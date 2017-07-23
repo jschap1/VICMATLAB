@@ -1,10 +1,10 @@
 function [varargout] = LoadVICResults(varargin)
 
 % Loads results from VIC simulation and the routing model (if specified).
-% Must be run from the directory containing the VIC outputs.
+% Must be run from the directory containing the VIC outputs. If the routing model is being run, this directory must contain the routing model outputs, as well.
+%
 %
 % INPUTS
-% rout = logical (1 if routing model, 0 otherwise)
 % --Need to specify the filename for the routing outputs. 
 % --The form is prefix.timestep or prefix.timestep_mm
 % prefix = string

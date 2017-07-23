@@ -1,22 +1,16 @@
-%% Plot a map of VIC results
+function h = PlotVICMap()
 
-% Load results from VIC simulation and the routing model
+% Plot a map of VIC results
 
-cd '/Users/jschapMac/Desktop/results_VIC/longrun'
-fluxnames = dir('fluxes*');
-ncells = length(fluxnames);
-tmp = dlmread(fluxnames(1).name);  
-fluxresults = NaN([size(tmp),ncells]);
+% FLUXES contains the time series and entries for each thing. I want to plot a map given the coordinates. I should structure this after the MODWET work from DA class.
 
-for i=1:ncells
-    fluxresults(:,:,i) = dlmread(fluxnames(i).name);  
+% It would probably be useful to have a coordinates object.
+
+% The following lines extract the names from the FLUXES structure:
+for k=1:ncells
+	FLUXES
+
+	
 end
 
-snownames = dir('snow*');
-ncells = length(snownames);
-tmp = dlmread(snownames(1).name);  
-snowresults = NaN([size(tmp),ncells]);
-
-for i=1:ncells
-    snowresults(:,:,i) = dlmread(snownames(i).name);  
 end

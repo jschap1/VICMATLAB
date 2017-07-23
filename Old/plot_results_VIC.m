@@ -9,7 +9,6 @@ load routresults % dim = timesteps x numvars
 %%
 
 
-
 %% 
 % Separate by variable
 tsindex = 1; % 1 for yearly, 2 for monthly, 3 for daily

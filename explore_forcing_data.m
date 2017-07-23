@@ -9,3 +9,5 @@ for i=1:size(forcings,2)
 end
 varnames = {'PREC','TMAX','TMIN','WIND'}';
 FORCINGS = struct('forcings', forcings, 'varnames', varnames);
+
+
