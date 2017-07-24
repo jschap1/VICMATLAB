@@ -8,7 +8,6 @@ function FLUXES = ProcessVICFluxResults(gridcells, results, nlayers, run_type, r
 % Note: Only supports daily recording intervals
 % Note: Only supports water balance run_type
 %
-% Todo: Somehow need to map the number of the gridcell to the lat/lon.
 % 
 % INPUTS
 % gridcells = locations of the gridcells (lat/lon). Output from LoadVICResults.
@@ -20,8 +19,6 @@ function FLUXES = ProcessVICFluxResults(gridcells, results, nlayers, run_type, r
 % Struct of VIC flux results.
 
 ncells = size(results,3);
-
-FLUXES.time = GetDateTime(results);
 
 for k=1:ncells
 
@@ -55,10 +52,8 @@ for k=1:ncells
             
             T = table(prec, evap, runoff, baseflow, wdew, moist, net_short, ...
                 r_net, evap_canop, evap_veg, evap_bare, sub_canop, sub_snow, ...
-                aero_resist, surf_temp, albedo, rel_humid, in_long, air_temp, wind);
-            % tmp = gridcells(k).name;
-            cmd = ['FLUXES.gridcell_' gridcells{k} ' = T;'];
-            eval(cmd);
+                aero_resist, surf_temp, albedo, rel_humid, in_long, air_temp, wind);          
+            FLUXES.ts.(gridcells{k}) = T;
             
         elseif strcmp(rec_interval, 'monthly')
             FLUXES = NaN;
@@ -118,5 +113,7 @@ else
     FLUXES.units.air_temp = 'deg. C';
     FLUXES.units.wind = 'm/s';
 end
+
+FLUXES.time = GetDateTime(results);
 
 end
