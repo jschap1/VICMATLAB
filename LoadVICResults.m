@@ -15,7 +15,7 @@ function [varargout] = LoadVICResults(varargin)
 % gridcells = locations of the gridcells (lat/lon)
 % fluxresults
 % snowresults 
-% routresults
+% routresults 
 
 fluxnames = dir('fluxes*');
 ncells = length(fluxnames);
