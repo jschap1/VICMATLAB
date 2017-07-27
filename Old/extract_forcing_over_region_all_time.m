@@ -1,10 +1,15 @@
-% This is better as a script
+% Finds the precise forcing data that applies to the region of interest,
+% from a larger forcing dataset. Must run from directory containing your
+% basin shapefiles and forcing data.
+%
+% It may take a long time to run (hours to days) depending on the number of
+% years and the size of the modeling domain.
 
 tic
 cd '/Users/jschapMac/Desktop/UpperKaweah'; % directory containing basin shapefile
 kaweah = shaperead('upper_kaweah.shp'); % name of basin shapefile
 numforcings = 4;
-beginyear = 2004;
+beginyear = 2006;
 endyear = 2007;
 
 lat = ncread(['MetNC/prec.' num2str(beginyear) '.nc'], 'lat');
@@ -19,6 +24,7 @@ end
 
 if exist('mask.mat','file') % only performs masking if necessary
     load mask.mat
+    disp('Mask loaded.')
 else
     mask = NaN(922, 444);
     for i=1:922
@@ -27,21 +33,27 @@ else
         end
     end
     save('mask.mat', 'mask')
+    disp('Mask generated.')
 end
 
 [ind1, ind2] = find(mask);
 
+ncells = length(ind1);
 nyears = endyear - beginyear + 1;
-disp('Mask generated. ')
 toc
 
-tic
+disp('Extracting forcing variables')
 for i=1:ncells
     
     t_ind = 1;
     cum_days = 0; % needed to keep track of the length of "data"
+    
     for t = beginyear:endyear
         
+        % Amend this to just read a small part of the nc file, in
+        % particular the part containing the basin of interest.
+        
+        if t==beginyear && i==1, tic, end
         prec = ncread(['MetNC/prec.' num2str(t) '.nc'], 'prec');
         tmax = ncread(['MetNC/tmax.' num2str(t) '.nc'], 'tmax');
         tmin = ncread(['MetNC/tmin.' num2str(t) '.nc'], 'tmin');
@@ -58,12 +70,16 @@ for i=1:ncells
         
         cum_days = size(prec,3) + cum_days;
         
+        if t==beginyear && i==1, 
+            disp(['About ' num2str(toc*ncells*nyears/60) ...
+                ' minutes remaining.'])
+        end
+        
     end
     
-    data = reshape(data,cum_days, numforcings);
+    savedata = reshape(data,cum_days, numforcings);
         
     filename = ['data_' num2str(lat(ind2(i))) '_' num2str(lon(ind1(i)))];
-    dlmwrite(fullfile('ClippedForcings', [filename '.txt']), data)
+    dlmwrite(fullfile('ClippedForcings', [filename '.txt']), savedata)
     
 end
-toc

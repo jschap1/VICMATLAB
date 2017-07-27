@@ -6,11 +6,7 @@
 % Takes netCDF (daily Livneh data) as input, and outputs ASCII files 
 % compatible with the VIC4 model.
 %
-% Currently loads the whole NC file, which slows it down unnecessarily.
-%
-% Does not work. Need to find a better way to get "data" because right now
-% it cannot handle leap years. Needs to save inside the for loop. This
-% should fix the problem.
+% Currently loads the whole NC file, which slows it down unnecessarily
 
 tic
 cd '/Users/jschapMac/Desktop/UpperKaweah'; % directory containing basin shapefile
@@ -63,18 +59,21 @@ for t = beginyear:endyear
     tmin = ncread(['MetNC/tmin.' num2str(t) '.nc'], 'tmin');
     wind = ncread(['MetNC/wind.' num2str(t) '.nc'], 'wind');
        
-    % Note: this method requires loading a large amount of data into "data"
-    % before finally saving it after the loops finish running. It may be better in
-    % general to save to file inside the loop, and reduce the dimensions of
-    % "data" by one. On the other hand, "data" is much smaller than any of
-    % the netCDF files we are loading in as long as the study domain is not
-    % too large.
+    info = ncinfo(['MetNC/prec.' num2str(t) '.nc']);
+    ndays = info.Dimensions(1).Length; % get number of days in the year
+    data = NaN(ndays, numforcings, ncells);
     
     for i=1:ncells
-        data(:,1,i,t_ind) = prec(ind1(i), ind2(i), :);
-        data(:,2,i,t_ind) = tmin(ind1(i), ind2(i), :);
-        data(:,3,i,t_ind) = tmax(ind1(i), ind2(i), :);
-        data(:,4,i,t_ind) = wind(ind1(i), ind2(i), :);
+        data(:,1,i) = prec(ind1(i), ind2(i), :);
+        data(:,2,i) = tmin(ind1(i), ind2(i), :);
+        data(:,3,i) = tmax(ind1(i), ind2(i), :);
+        data(:,4,i) = wind(ind1(i), ind2(i), :);
+    end
+    
+    if t_ind~=1
+        data_cum = vertcat(data_cum, data);
+    else
+        data_cum = data;
     end
 
     t_ind = t_ind + 1;
@@ -87,16 +86,7 @@ for t = beginyear:endyear
     
 end
 
-for i=1:ncells
-    
-    % The below code is needed to rearrange the dimensions of data so that 
-    % reshape works correctly, and does not mess up the order of the forcing vars.
-    % This is necessary bc Matlab fills in the reshaped array by column,
-    % then row, then 3rd dim, then 4th dim, etc.
-    savedata = permute(data,[1,4,3,2]);
-    savedata = reshape(savedata(:,:,i,:),cum_days, numforcings); 
-    
+for i=1:ncells     
     filename = ['data_' num2str(lat(ind2(i))) '_' num2str(lon(ind1(i)))];
-    dlmwrite(fullfile(savedir, [filename '.txt']), savedata)
-    
+    dlmwrite(fullfile(savedir, [filename '.txt']), data_cum(:,:,i))  
 end
