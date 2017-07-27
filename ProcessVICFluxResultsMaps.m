@@ -36,7 +36,7 @@ end
     % p, varnames
     % k, ncells
 
-varnames = FLUXES.ts.gridcell_fluxes_48_1875_120_6875.Properties.VariableNames;
+varnames = FLUXES.ts.fluxes_48_1875_120_6875.Properties.VariableNames;
 cellnames = fieldnames(FLUXES.ts);
 
 for p = 1:length(varnames)

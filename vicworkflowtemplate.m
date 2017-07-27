@@ -56,5 +56,3 @@ xyz = [FLUXES.lat, FLUXES.lon, FLUXES.maps.prec];
 % xyz should be sufficient to make a georeferenced precipitation map for
 % for the whole simulation region at time t. Hopefully, there is some
 % Matlab function in the mapping toolbox that will do this.
-
- 
