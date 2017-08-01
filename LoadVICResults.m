@@ -1,8 +1,9 @@
 function [varargout] = LoadVICResults(varargin)
 
 % Loads results from VIC simulation and the routing model (if specified).
-% Must be run from the directory containing the VIC outputs. If the routing model is being run, this directory must contain the routing model outputs, as well.
-%
+% Must be run from the directory containing the VIC outputs. 
+% If the routing model is being run, this directory must contain the 
+% routing model outputs, as well.
 %
 % INPUTS
 % --Need to specify the filename for the routing outputs. 
