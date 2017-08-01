@@ -1,56 +1,43 @@
 % Generic workflow for creating VIC input files
-
-soils = load('/Users/jschapMac/Desktop/UpperKaweah/soils.KAWEAH');
-slat = soils(:,3);
-slon = soils(:,4);
-
-[X Y] = meshgrid(metlat, metlon);
-
-metcoords = NaN(922*444,2);
-for i=1:922*444
-    metcoords(i,:) = [X(i) Y(i)];
-end
-
-i=1;
-[a,ind] = ismember([slat(i) slon(i)], metcoords);
-% if five decimals of precision are used for the soils data, then the
-% coordinates of the Livneh data match them.
-
-% Extract the forcing field values for the cells whose coordinates match
-% those of the soils data.
-
-
-
-% 36.7188 -119.3438
-
-indlat = metcoords(:,1)>36.7 & metcoords(:,1)<36.72;
-indlatlon = (metcoords(:,1)>36.7 & metcoords(:,1)<36.72) & metcoords(:,2)>-119.4 & metcoords(:,2)<-119.3;
-metcoords(indlatlon)
-
-% soils result
-% 36.7188000000000  -119.3438000000000
-% 36.7187500000000  -119.3437500000000
-
-% metcoords result:
-% 36.7187500000000  -119.3437500000000
+%
+% Clips daily forcing and soil parameter data for CONUS to just the cells within 
+% a specified basin shapefile. Saves the subsetted forcing and soil
+% parameter data in an appropriate format to use for VIC input.
 
 %% Specify inputs
 
+% Directory of CONUS soil parameter file
+soilpath = '/Users/jschapMac/Documents/HydrologyData/VICParametersCONUS';
+soilname = 'vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt'; 
+
+% Directory where clipped soil parameter file should be saved
+soilsavedir = '/Users/jschapMac/Desktop/UpperKaweah';
+
+% Directory of daily CONUS met. forcing file
+forcingpath = '/Users/jschapMac/Documents/HydrologyData/Livneh/MetNC';
+
+% Directory where clipped forcing files should be saved
+forcingsavedir = '/Users/jschapMac/Desktop/UpperKaweah/ClippedForcings';
+
+% Name and location of basin shapefil
 shpname = '/Users/jschapMac/Desktop/UpperKaweah/upper_kaweah.shp';
-savedir = '/Users/jschapMac/Desktop/UpperKaweah/ClippedForcings2';
+
+% Number of forcings in the daily CONUS met. forcing file
 numforcings = 4;
+
+% Beginning and ending years of simulation (must be included in the daily CONUS
+% met. forcing file)
 beginyear = 2000;
 endyear = 2007;
-forcingdir = '/Users/jschapMac/Desktop/UpperKaweah/MetNC';
 
-%% Make mask
+% Number of decimal points of precision to use for forcing file names
+grid_decimal = 4; 
 
-% Makes a mask of the met. forcing dataset over the CONUS. The extent of
-% the mask is the basin of interest.
+%% Make the mask
 
 tic
 
-addpath(forcingdir)
+addpath(forcingpath)
 metlat = ncread(['prec.' num2str(beginyear) '.nc'], 'lat');
 metlon = ncread(['prec.' num2str(beginyear) '.nc'], 'lon');
     
@@ -86,4 +73,80 @@ cum_days = 0;
 
 toc
 
-extract_forcing_over_region
+%% Use the mask to extract forcing variables
+disp('Extracting forcing variables')
+
+for t = beginyear:endyear
+    
+    if t==beginyear, tic, end
+    prec = ncread(['prec.' num2str(t) '.nc'], 'prec');
+    tmax = ncread(['tmax.' num2str(t) '.nc'], 'tmax');
+    tmin = ncread(['tmin.' num2str(t) '.nc'], 'tmin');
+    wind = ncread(['wind.' num2str(t) '.nc'], 'wind');
+       
+    info = ncinfo(['prec.' num2str(t) '.nc']);
+    ndays = info.Dimensions(1).Length; % get number of days in the year
+    data = NaN(ndays, numforcings, ncells);
+    
+    for i=1:ncells
+        data(:,1,i) = prec(ind1(i), ind2(i), :);
+        data(:,2,i) = tmin(ind1(i), ind2(i), :);
+        data(:,3,i) = tmax(ind1(i), ind2(i), :);
+        data(:,4,i) = wind(ind1(i), ind2(i), :);
+    end
+    
+    if t_ind~=1
+        data_cum = vertcat(data_cum, data);
+    else
+        data_cum = data;
+    end
+
+    t_ind = t_ind + 1;
+    cum_days = size(prec,3) + cum_days;
+    
+    if t==beginyear 
+        disp(['About ' num2str(toc*nyears/60) ...
+            ' minutes remaining.'])
+    end
+    
+end
+
+% % Save met. forcings as .mat file
+% % The dimensions are [numdays, numforcings, ncells]
+% save('METFORC.mat', 'data_cum');
+
+fstring = ['%.' num2str(grid_decimal) 'f'];
+for i=1:ncells     
+    filename = ['data_' num2str(metlat(ind2(i)),fstring) '_' num2str(metlon(ind1(i)),fstring)];
+    dlmwrite(fullfile(forcingsavedir, filename), data_cum(:,:,i))  
+end
+
+%% Extract soils data
+
+% Load the soils data
+soils = load(fullfile(soilpath, soilname));
+slat = soils(:,3);
+slon = soils(:,4);
+
+% Go through each row of soils, check if it is in the study domain.
+% If it is, add that row to soilsnew.
+
+disp('Clipping soils data')
+ind = 1;
+for i=1:length(soils)
+    indomain = inpolygon(slon(i),slat(i), basin.X, basin.Y);
+    if indomain
+        soilsclip(ind,:) = soils(i,:);
+        ind = ind + 1;
+    end
+end
+
+fstring = ['%.' num2str(grid_decimal) 'f'];
+fspec = ['%d %.0f ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d'];
+dlmwrite(fullfile(soilsavedir, 'soils_spec.KAWEAH'), soilsclip, ...
+    'precision',fspec,'delimiter','')
+
+% Note: the delimiter and the format spec must be specified precisely as
+% the Stehekin example from the VIC website in order to avoid the error
+% about CELL LATITUDE not being found/for VIC to successfully read the soil
+% parameter file.
