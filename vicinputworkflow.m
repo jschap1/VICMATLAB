@@ -19,7 +19,7 @@ forcingpath = '/Users/jschapMac/Documents/HydrologyData/Livneh/MetNC';
 % Directory where clipped forcing files should be saved
 forcingsavedir = '/Users/jschapMac/Desktop/UpperKaweah/ClippedForcings';
 
-% Name and location of basin shapefil
+% Name and location of basin shapefile
 shpname = '/Users/jschapMac/Desktop/UpperKaweah/upper_kaweah.shp';
 
 % Number of forcings in the daily CONUS met. forcing file
@@ -31,7 +31,7 @@ beginyear = 2000;
 endyear = 2007;
 
 % Number of decimal points of precision to use for forcing file names
-grid_decimal = 4; 
+grid_decimal = 4;
 
 %% Make the mask
 
@@ -124,7 +124,9 @@ end
 %% Extract soils data
 
 % Load the soils data
+
 soils = load(fullfile(soilpath, soilname));
+
 slat = soils(:,3);
 slon = soils(:,4);
 
