@@ -18,9 +18,8 @@ ncells = length(fieldnames(FLUXES.ts));
     % p, varnames
     % k, ncells
 
-fnames = fieldnames(FLUXES.ts);
-varnames = FLUXES.ts.(fnames{1}).Properties.VariableNames;
 cellnames = fieldnames(FLUXES.ts);
+varnames = FLUXES.ts.(cellnames{1}).Properties.VariableNames;
 
 for p = 1:length(varnames)
     

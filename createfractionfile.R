@@ -7,7 +7,10 @@
 # OUTPUTS (in ASCII GRID format)
 # Fraction File at VIC model resolution
 # Watershed mask at DEM resolution
+# Watershed mask at VIC model resolution
 # DEM clipped to basin boundaries
+
+# Note: all coordinate systems should be geographic. I've been using WGS84.
 
 # Basin boundary shapefile; can use ogrListLayers() to get layer name
 # ogrListLayers("/Users/jschapMac/Desktop/UpperKaweah")
@@ -41,29 +44,27 @@ clip<-function(raster,shape) {
   step1<-rasterize(shape,a1_crop)
   a1_crop*step1}
 
+# Create a clipped DEM using the basin boundary shapefile
 dem.clipped <- clip(dem, bb)
-
 writeRaster(dem.clipped, file.path(saveloc, rastername), 
             format = "ascii", overwrite = T)
 
-# Fraction file
-
+# Create a watershed mask at the DEM resolution
 dem.clipped.copy <- dem.clipped
 dem.clipped.copy[!is.na(dem.clipped.copy)] <- 1
 
-# Create a slightly larger extent than that of the clipped DEM
+# Use a slightly larger extent than that of the clipped DEM
 e <- extent(dem.clipped)
 e@xmax <- ceiling(e@xmax)
 e@xmin <- floor(e@xmin)
 e@ymax <- ceiling(e@ymax)
 e@ymin <- floor(e@ymin)
 
-# Create a watershed mask at the DEM resolution (30 arc-seconds)
 finemask <- raster(resolution = fineres, ext = e)
 values(finemask) <- 0
 
-basinmask <- merge(dem.clipped.copy, finemask)
-writeRaster(basinmask, file.path(saveloc, "basinmask_fine"), 
+basinmask.fine <- merge(dem.clipped.copy, finemask)
+writeRaster(basinmask.fine, file.path(saveloc, "basinmask_fine"), 
             format = "ascii", overwrite = T)
 
 # Make a grid with the VIC model resolution.
@@ -76,12 +77,19 @@ for (i in 1:ncell(coarsegrid)) {
 # Must have a unique value in each cell (defines "zones").
 
 # Resample the coarse grid to the DEM resolution, without changing the values
-finegrid <- resample(coarsegrid, basinmask, method = "ngb")
+finegrid <- resample(coarsegrid, basinmask.fine, method = "ngb")
 
 # Compute zonal mean
-zmean <- zonal(basinmask, z = finegrid, progress = "text")
+zmean <- zonal(basinmask.fine, z = finegrid, progress = "text")
 
+# Output fraction file
 fract <- raster(coarsegrid)
 values(fract) <- zmean[,2]
 writeRaster(fract, file.path(saveloc, "fract"), 
+            format = "ascii", overwrite = T)
+
+# Create a basin mask at the VIC model resolution
+basinmask.coarse <- fract
+basinmask.coarse[basinmask.coarse != 0] <- 1
+writeRaster(basinmask.coarse, file.path(saveloc, "basinmask_coarse"), 
             format = "ascii", overwrite = T)

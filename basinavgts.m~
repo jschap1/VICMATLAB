@@ -1,0 +1,33 @@
+function FLUXES = basinavgts(FLUXES)
+
+ncells = length(fieldnames(FLUXES.ts));
+cellnames = fieldnames(FLUXES.ts);
+varnames = FLUXES.ts.(cellnames{1}).Properties.VariableNames;
+t = FLUXES.time;
+
+FLUXES.avgts.(varnames{p})(:,n)
+
+FLUXES.maps
+
+for p = 1:length(varnames)
+    
+    if strcmp(varnames{p}, 'moist')
+        nlayers = size(FLUXES.ts.(cellnames{1}).(varnames{p}),2);
+        sum1 = 0;
+        for k=1:ncells
+            sum1 = sum1 + FLUXES.ts.(cellnames{k}).(varnames{p})(t);   
+        end
+        FLUXES.avgts.(varnames{p}) = sum1/ncells;
+    else
+        for t
+            sum1 = 0;
+            for k=1:ncells
+                sum1 = sum1 + FLUXES.ts.(cellnames{k}).(varnames{p})(t);   
+            end
+            FLUXES.avgts.(varnames{p})(t) = sum1/ncells;
+        end
+    end
+    
+end
+
+return

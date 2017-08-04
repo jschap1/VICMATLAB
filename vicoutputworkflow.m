@@ -1,11 +1,12 @@
-% Generic workflow for processing VIC results. 
+% Generic workflow for loading and processing VIC results, and generating
+% figures.
 %
 % Loads VIC results (flux, snow) and optionally routing model results and 
 % arranges them into a nicely formatted structure. 
 %
 % Allows easy creation of time series plots and maps for fluxes
 %
-% Must be run from the same directory where the VIC results are located.
+% Should be run from the same directory where the VIC results are located.
 %
 % Dependencies:
 % LoadVICResults
@@ -30,61 +31,123 @@ else
 end
 
 % Provide info about the VIC model run
-precision = 5;
+precision = 4;
 nlayers = 3;
 run_type = 'WATER_BALANCE';
 rec_interval = 'daily';
 
-%%
-% Process VIC flux results, arranging them into a structure with entries 
-% for each grid cell
+saveflag = 1;
+saveloc = '/Users/jschapMac/Desktop/Tuolumne/Plots';
+
+%% Post-processing
 FLUXES = ProcessVICFluxResults(gridcells, fluxresults, nlayers, run_type, rec_interval);
 
 [lat, lon] = GetCoords(gridcells, precision);
 FLUXES.lat = lat;
 FLUXES.lon = lon;
 
-%% Plot flux time series
+ncells = length(fieldnames(FLUXES.ts));
+cellnames = fieldnames(FLUXES.ts);
+varnames = FLUXES.ts.(cellnames{1}).Properties.VariableNames;
 
-saveflag = 0;
-figure
+% Add basin average time series to FLUXES
 
-subplot(2,1,1)
-plot(FLUXES.time, FLUXES.ts.fluxes_48_1875_120_6875.prec);
-subplot(2,1,2)
-plot(FLUXES.time, FLUXES.ts.fluxes_48_1875_120_6875.runoff);
-
-% Save the time series of FLUXES.time
-timevectorpath = '/Users/jschapMac/Desktop/Stehekin_4_2/results/vic/default';
-timevector = FLUXES.time;
-save(fullfile(timevectorpath, 'timevector'), 'timevector')
-
-titletext = 'Daily wdew for (48.1875, 120.6875)';
-xlabel('Time')
-ylabel('wdew (mm)')
-title(titletext)
-
-if saveflag
-    saveas(gcf, fullfile(saveloc, 'WDEW.png'));
-    savefig(gcf, fullfile(saveloc, 'WDEW.fig'));
+for p=1:length(varnames)
+    
+    if ~strcmp(varnames{p}, 'moist')
+        fluxarray = NaN(length(FLUXES.time),ncells);
+        for k=1:ncells
+            fluxarray(:,k) = FLUXES.ts.(cellnames{k}).(varnames{p});
+        end
+        FLUXES.avgts.(varnames{p}) = mean(fluxarray,2);
+    else
+        fluxarray = NaN(length(FLUXES.time),ncells, nlayers);
+        for k=1:ncells
+            fluxarray(:,k,:) = FLUXES.ts.(cellnames{k}).(varnames{p});
+        end
+        FLUXES.avgts.(varnames{p}) = squeeze(mean(fluxarray,2));
+    end
+    
 end
 
-%% Plot flux map
+% Add time-average flux maps to FLUXES
 
-% Choose a date to make map:
-mapdate = datetime([2000, 12, 31]); % year, month, day
+for p = 1:length(varnames)
+    
+    FLUXES.avgmaps.(varnames{p}) = NaN(ncells,1);
+    if strcmp(varnames{p}, 'moist')
+        FLUXES.avgmaps.(varnames{p}) = NaN(ncells,nlayers);
+    end
+    for k=1:ncells
+        FLUXES.avgmaps.(varnames{p})(k,:) = mean(FLUXES.ts.(cellnames{k}).(varnames{p}));
+    end
+    
+end
 
-t_ind = find(FLUXES.time == mapdate);
-FLUXES = ProcessVICFluxResultsMaps(FLUXES, t_ind);
-disp(['Map generated for ' datestr(FLUXES.time(t_ind))]);
+%% Generate figures
 
-% 3D scatter
-figure
-plot3(FLUXES.lat, FLUXES.lon, FLUXES.maps.prec, '*')
-xlabel('lon'), ylabel('lat'), zlabel('value (units)')
-title('title'); grid on
+%% Plot basin average time series
+unitscell = struct2cell(FLUXES.units);
 
-% Filled scatter
-figure
-scatter(FLUXES.lat,FLUXES.lon,50,FLUXES.maps.prec,'filled')
-colorbar
+for p=1:length(varnames)
+    
+    figure
+      
+    if ~strcmp(varnames{p}, 'moist')
+        plot(FLUXES.time, FLUXES.avgts.(varnames{p}))
+        titletext = ['Basin average ' varnames{p} ' (' unitscell{p} ')'];
+        title(sprintf('%s_%d',titletext), 'Interpreter', 'none'); 
+        xlabel('time'); ylabel(varnames{p})
+        set(gca, 'FontSize', 14)  
+    else
+        for n = 1:nlayers
+            subplot(nlayers, 1, n)
+            plot(FLUXES.time, FLUXES.avgts.(varnames{p})(:,n))
+            titletext = ['layer ' num2str(n) ' soil moisture (' unitscell{p} ')'];
+            title(sprintf('%s_%d',titletext), 'Interpreter', 'none'); 
+            xlabel('time'); ylabel(varnames{p})
+            set(gca, 'FontSize', 14)          
+        end
+    end
+
+   if saveflag
+        saveas(gcf, fullfile(saveloc, ['avg_' varnames{p} 'ts.png']));
+        savefig(gcf, fullfile(saveloc, ['avg_' varnames{p} 'ts.fig']));
+    end
+
+end
+
+% Note: 'Interpreter','none' disables the LaTeX interpreter which reads
+% underbar as "make subscript".
+
+%% Plot time average flux maps
+unitscell = struct2cell(FLUXES.units);
+
+for p=1:length(varnames)
+    
+    figure
+      
+    if ~strcmp(varnames{p}, 'moist')   
+        scatter(FLUXES.lon,FLUXES.lat,50,FLUXES.avgmaps.(varnames{p}),'filled')
+        title([datestr(FLUXES.time(1)) ' to ' datestr(FLUXES.time(end)) ...
+        ' average ' varnames{p} ' (' unitscell{p} ')']);
+        xlabel('lon (degrees)'); ylabel('lat (degrees)')
+        set(gca, 'FontSize', 14)
+        colorbar        
+    else
+        for n = 1:nlayers
+            subplot(nlayers, 1, n)
+            scatter(FLUXES.lon,FLUXES.lat,50,FLUXES.avgmaps.(varnames{p})(:,n),'filled')
+            title(['layer ' num2str(n) ' soil moisture (' unitscell{p} ')']);
+            xlabel('lon (degrees)'); ylabel('lat (degrees)')
+            set(gca, 'FontSize', 14)
+            colorbar            
+        end
+    end
+
+   if saveflag
+        saveas(gcf, fullfile(saveloc, ['avg_' varnames{p} 'map.png']));
+        savefig(gcf, fullfile(saveloc, ['avg_' varnames{p} 'map.fig']));
+    end
+
+end

@@ -1,3 +1,5 @@
+% THIS HAS BEEN MIGRATED TO R BECAUSE R IS BETTER FOR GIS
+%
 % Fine resolution basin mask (at the DEM resolution)
 % Coarse resolution basin mask (at the VIC model resolution)
 
