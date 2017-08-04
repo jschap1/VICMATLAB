@@ -10,9 +10,8 @@
 %
 % Dependencies:
 % LoadVICResults
-% ProcessVICFluxResults, GetDateTime
+% ProcessVICFluxResults
 % GetCoords
-% ProcessVICFluxResultsMaps
 
 %% Inputs
 
@@ -41,6 +40,11 @@ saveloc = '/Users/jschapMac/Desktop/Tuolumne/Plots';
 
 %% Post-processing
 FLUXES = ProcessVICFluxResults(gridcells, fluxresults, nlayers, run_type, rec_interval);
+
+if saveflag
+    timevector = FLUXES.time;
+    save(fullfile(saveloc,'timevector.mat'),'timevector')
+end
 
 [lat, lon] = GetCoords(gridcells, precision);
 FLUXES.lat = lat;
