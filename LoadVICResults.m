@@ -29,8 +29,8 @@ for k=1:ncells
     tmpstring = fluxnames(k).name;
     tmpstring = strrep(tmpstring,'-',''); % remove some characters bc Matlab cannot handle them
     tmpstring = strrep(tmpstring,'.','_');
-    % tmpstring = strrep(tmpstring,'fluxes_',''); % enable to make variable
-    % names a bit shorter
+    tmpstring = strrep(tmpstring,'fluxes_','');
+    tmpstring = strcat('cell_', tmpstring);
     gridcells{k} = tmpstring;
 end
 

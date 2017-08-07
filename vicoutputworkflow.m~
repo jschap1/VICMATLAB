@@ -33,12 +33,11 @@ end
 % Provide info about the VIC model run
 precision = 4;
 nlayers = 3;
-run_type = 'ENERGY_BALANCE';
-% rec_interval = 'daily';
-rec_interval = 6; % number of hours per timestep
+run_type = 'WATER_BALANCE';
+rec_interval = 'daily';
 
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/Tuolumne/VICResults/2006-2011EnergyBalance/Plots';
+saveloc = '/Users/jschapMac/Desktop/Tuolumne/Plots';
 
 %%
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -139,9 +138,6 @@ for p = 1:length(snowvarnames)
 end
 
 if saveflag
-    if ~exist(saveloc,'dir')
-        mkdir(saveloc)
-    end    
     save(fullfile(saveloc,'timevector.mat'),'timevector')
     save(fullfile(saveloc,'FLUXES.mat'),'FLUXES')
     save(fullfile(saveloc,'SNOW.mat'),'SNOW')
