@@ -11,6 +11,8 @@
 # DEM clipped to basin boundaries
 
 # Note: all coordinate systems should be geographic. I've been using WGS84.
+# Amended to use the same modeling domain as VIC model, instead of clipping
+# to basin boundary in the R code. Actually, not used.
 
 library(raster)
 library(rgdal)

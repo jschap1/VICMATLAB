@@ -124,20 +124,27 @@ soils = load(fullfile(soilpath, soilname));
 slat = soils(:,3);
 slon = soils(:,4);
 
-soils(:,1) = 0;
-
+soilsclip = NaN(ncells,size(soils,2));
 for k=1:ncells
     % Get the index of the met. forcing data that matches the basin mask
     sind = find(masklat(k) == slat & masklon(k) == slon);
-    soils(sind,1) = 1;
+    soilsclip(k,:) = soils(sind,:);        
 end
 
 %%% fprintf version
 fstring = ['%.' num2str(grid_decimal) 'f'];
 fspec = ['%d %d ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d\n'];
-fID = fopen(fullfile(soilsavedir, 'soilsl.TUOLUMNE'),'w');
-fprintf(fID, fspec, soils');
+fID = fopen(fullfile(soilsavedir, 'soilsf.TUOLUMNE'),'w');
+fprintf(fID, fspec, soilsclip');
 fclose(fID);
+display(['Soils data saved to ' soilsavedir])
+%%%
+
+%%% dlmwrite version
+fstring = ['%.' num2str(8) 'f'];
+fspec = ['%d %.0f ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d'];
+dlmwrite(fullfile(soilsavedir, 'soils.TUOLUMNE'), soilsclip, ...
+    'precision',fspec,'delimiter','')
 display(['Soils data saved to ' soilsavedir])
 %%%
 

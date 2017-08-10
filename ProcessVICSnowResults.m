@@ -15,34 +15,41 @@ function SNOW = ProcessVICSnowResults(gridcells, results, run_type, rec_interval
 
 ncells = size(results,3);
 
+%%%%%%
+% Assumes timesteps are the same for each grid cell
+% Otherwise, move this inside the k loop.
+switch rec_interval 
+    case 'hourly'
+    t_prec = 4; % index for date precision
+    Y = results(:,1,1);
+    M = results(:,2,1);
+    D = results(:,3,1);
+    H = results(:,4,1);
+    SNOW.time = datetime(Y,M,D,H,0,0);   
+    case 'daily'
+    t_prec = 3;
+    Y = results(:,1,1);
+    M = results(:,2,1);
+    D = results(:,3,1);
+    SNOW.time = datetime(Y,M,D);  
+    case 'monthly'
+    t_prec = 2; 
+    Y = results(:,1,1);
+    M = results(:,2,1);
+    SNOW.time = datetime(Y,M,0);  
+    case 'yearly'
+    t_prec = 1;
+    Y = results(:,1,1);
+    SNOW.time = datetime(Y,0,0);  
+    otherwise
+        error('Specify recording interval')
+end
+%%%%%%
+
 for k=1:ncells
 %% water balance
-    if strcmp(run_type, 'WATER_BALANCE') % this is a more compact (better) format than ProcessVICFluxResults
-         
-       if strcmp(rec_interval, 'hourly')   
-            Y = results(:,1,1);
-            M = results(:,2,1);
-            D = results(:,3,1);
-            H = results(:,4,1);
-            SNOW.time = datetime(Y,M,D,H,0,0);  
-            t_prec = 4; % index for date precision
-        elseif strcmp(rec_interval, 'daily') 
-            Y = results(:,1,1);
-            M = results(:,2,1);
-            D = results(:,3,1);
-            SNOW.time = datetime(Y,M,D);  
-            t_prec = 3;
-        elseif strcmp(rec_interval, 'monthly')
-            Y = results(:,1,1);
-            M = results(:,2,1);
-            SNOW.time = datetime(Y,M,0);  
-            t_prec = 2;
-        elseif strcmp(rec_interval, 'yearly')
-            Y = results(:,1,1);
-            SNOW.time = datetime(Y,0,0);  
-            t_prec = 1;
-        end
-        
+    if strcmp(run_type, 'WATER_BALANCE')
+                
         swe = results(:,t_prec + 1,k);
         snow_depth = results(:,t_prec + 2,k);
         snow_canopy = results(:,t_prec + 3,k);
@@ -54,27 +61,30 @@ for k=1:ncells
 %% full energy
     elseif strcmp(run_type, 'FULL_ENERGY')
         
-        if strcmp(rec_interval, 'hourly')
-            SNOW = NaN; 
-        elseif strcmp(rec_interval, 'daily')
-            SNOW = NaN;
-        elseif strcmp(rec_interval, 'monthly')
-            SNOW = NaN;
-        elseif strcmp(rec_interval, 'yearly')
-            SNOW = NaN;
-        end
+        swe = results(:,t_prec + 1,k);
+        snow_depth = results(:,t_prec + 2,k);
+        snow_canopy = results(:,t_prec + 3,k);
+        snow_cover = results(:,t_prec + 4,k);
+        
+        advection = results(:,t_prec + 5,k);
+        deltacc = results(:,t_prec + 6,k);
+        snow_flux = results(:,t_prec + 7,k);
+        rfrz_energy = results(:,t_prec + 8,k);
+        melt_energy = results(:,t_prec + 9,k);
+        adv_sens = results(:,t_prec + 10,k);
+        latent_sub = results(:,t_prec + 11,k);
+        snow_surf_temp = results(:,t_prec + 12,k);
+        snow_pack_temp = results(:,t_prec + 13,k);
+        snow_melt = results(:,t_prec + 14,k);
+        
+        T = table(swe, snow_depth, snow_canopy, snow_cover, advection, ...
+            deltacc, snow_flux, rfrz_energy, melt_energy, adv_sens, ...
+            latent_sub, snow_surf_temp, snow_pack_temp, snow_melt);          
+        SNOW.ts.(gridcells{k}) = T;
      
 %% frozen soil      
     elseif strcmp(run_type, 'FROZEN_SOIL')
-        if strcmp(rec_interval, 'hourly')
-            SNOW = NaN;
-        elseif strcmp(rec_interval, 'daily')
-            SNOW = NaN;
-        elseif strcmp(rec_interval, 'monthly')
-            SNOW = NaN;
-        elseif strcmp(rec_interval, 'yearly')
-            SNOW = NaN;
-        end
+        SNOW = NaN;
         
     end
 
@@ -88,6 +98,16 @@ else
     SNOW.units.snow_depth =  'cm';
     SNOW.units.snow_canopy =  'mm';
     SNOW.units.snow_cover =  '-';
+    SNOW.units.advection = 'W/m^2';
+    SNOW.units.deltacc = 'W/m^2';
+    SNOW.units.snow_flux = 'W/m^2';
+    SNOW.units.rfrz_energy = 'W/m^2';
+    SNOW.units.melt_energy = 'W/m^2';
+    SNOW.units.adv_sens = 'W/m^2';         
+    SNOW.units.latent_sub = 'W/m^2';
+    SNOW.units.snow_surf_temp = 'deg C';
+    SNOW.units.snow_pack_temp = 'deg C'; 
+    SNOW.units.snow_melt = 'mm';
 end
 
 return

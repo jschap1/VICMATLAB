@@ -33,12 +33,12 @@ end
 % Provide info about the VIC model run
 precision = 4;
 nlayers = 3;
-run_type = 'ENERGY_BALANCE';
-% rec_interval = 'daily';
-rec_interval = 6; % number of hours per timestep
+run_type = 'WATER_BALANCE'; % FULL_ENERGY or WATER_BALANCE
+rec_interval = 'daily';
 
+invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/Tuolumne/VICResults/2006-2011EnergyBalance/Plots';
+saveloc = '/Users/jschapMac/Desktop/Tuolumne/VICResults/2006-2011DailyWB/Plots';
 
 %%
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -157,7 +157,11 @@ fluxunitscell = struct2cell(FLUXES.units);
 
 for p=1:length(fluxvarnames)
     
-    figure
+    h = figure; % means
+    
+    if invisible == 1
+        set(h, 'Visible', 'off');
+    end
       
     if ~strcmp(fluxvarnames{p}, 'moist')
         plot(FLUXES.time, FLUXES.avgts.(fluxvarnames{p}))
@@ -177,8 +181,8 @@ for p=1:length(fluxvarnames)
     end
 
    if saveflag
-        saveas(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} 'ts.png']));
-        savefig(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} 'ts.fig']));
+        saveas(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} '_ts.png']));
+        savefig(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} '_ts.fig']));
     end
 
 end
@@ -191,7 +195,11 @@ fluxunitscell = struct2cell(FLUXES.units);
 
 for p=1:length(fluxvarnames)
     
-    figure
+    h = figure; % means
+    
+    if invisible == 1
+        set(h, 'Visible', 'off');
+    end
       
     if ~strcmp(fluxvarnames{p}, 'moist')   
         scatter(FLUXES.lon,FLUXES.lat,50,FLUXES.avgmaps.(fluxvarnames{p}),'filled')
@@ -212,8 +220,8 @@ for p=1:length(fluxvarnames)
     end
 
    if saveflag
-        saveas(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} 'map.png']));
-        savefig(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} 'map.fig']));
+        saveas(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} '_map.png']));
+        savefig(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} '_map.fig']));
     end
 
 end
@@ -228,7 +236,11 @@ snowunitscell = struct2cell(SNOW.units);
 
 for p=1:length(snowvarnames)
     
-    figure
+    h = figure; % means
+    
+    if invisible == 1
+        set(h, 'Visible', 'off');
+    end
     
     plot(timevector, SNOW.avgts.(snowvarnames{p}))
     titletext = ['Basin average ' snowvarnames{p} ' (' snowunitscell{p} ')'];
@@ -237,8 +249,8 @@ for p=1:length(snowvarnames)
     set(gca, 'FontSize', 14)  
 
    if saveflag
-        saveas(gcf, fullfile(saveloc, ['avg_' snowvarnames{p} 'ts.png']));
-        savefig(gcf, fullfile(saveloc, ['avg_' snowvarnames{p} 'ts.fig']));
+        saveas(gcf, fullfile(saveloc, ['avg_' snowvarnames{p} '_ts.png']));
+        savefig(gcf, fullfile(saveloc, ['avg_' snowvarnames{p} '_ts.fig']));
     end
 
 end
@@ -248,7 +260,11 @@ snowunitscell = struct2cell(SNOW.units);
 
 for p=1:length(snowvarnames)
     
-    figure
+    h = figure; % means
+    
+    if invisible == 1
+        set(h, 'Visible', 'off');
+    end
       
     scatter(lon,lat,50,SNOW.avgmaps.(snowvarnames{p}),'filled')
     title([datestr(timevector(1)) ' to ' datestr(timevector(end)) ...
@@ -258,8 +274,8 @@ for p=1:length(snowvarnames)
     colorbar        
 
    if saveflag
-        saveas(gcf, fullfile(saveloc, ['avg_' snowvarnames{p} 'map.png']));
-        savefig(gcf, fullfile(saveloc, ['avg_' snowvarnames{p} 'map.fig']));
+        saveas(gcf, fullfile(saveloc, ['avg_' snowvarnames{p} '_map.png']));
+        savefig(gcf, fullfile(saveloc, ['avg_' snowvarnames{p} '_map.fig']));
     end
 
 end

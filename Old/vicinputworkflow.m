@@ -15,6 +15,9 @@ forcingpath = '/Users/jschapMac/Documents/HydrologyData/Livneh/MetNC';
 % Directory where clipped forcing files should be saved
 forcingsavedir = '/Users/jschapMac/Desktop/Tuolumne2/Forcings';
 
+% Name and location of basin shapefile
+shpname = '/Users/jschapMac/Desktop/Tuolumne2/Shapefiles/upper_tuolumne_wgs.shp';
+
 % Number of forcings in the daily CONUS met. forcing file
 numforcings = 4;
 
@@ -33,38 +36,67 @@ soilname = 'vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt';
 % Directory where clipped soil parameter file should be saved
 soilsavedir = '/Users/jschapMac/Desktop/Tuolumne2';
 
-%% Load the mask
+%% Make the mask
+
+tic
 
 addpath(forcingpath)
 metlat = ncread(['prec.' num2str(beginyear) '.nc'], 'lat');
 metlon = ncread(['prec.' num2str(beginyear) '.nc'], 'lon');
-
+    
 %%%
 % Run this code to convert lon coords if they use E/W, 
 % instead of absolute value system
 metlon = metlon - 360;
 %%%
 
-% Load coarse resolution basin mask (1/16 deg., same as the forcing data)
-[mask, R] = arcgridread('/Users/jschapMac/Desktop/Tuolumne/RoutingInputs/basinmask_coarse.asc');
+% Mask forcing data to basin boundary polygon
+basin = shaperead(shpname);
+% Convert lon, lat arrays to grid: 
+[X,Y] = meshgrid(metlon,metlat);
+mask = inpolygon(X,Y,basin.X, basin.Y);
 [ind1, ind2] = find(mask);
 
-% Get lat/lon of basin mask (only the pixels whose values are 1)
-ncells = sum(mask(:)~=0);
-masklat = NaN(ncells,1);
-masklon = NaN(ncells,1);
+% Plot
+figure, hold on,
+mapshow(basin)
+metlonvect = X(:);
+metlatvect = Y(:);
+plot(metlonvect, metlatvect, '.')
+hold off
 
-for i=1:ncells
-    [masklat(i),masklon(i)] = pix2latlon(R, ind1(i), ind2(i));
-end
+%%%
+% Replaced by a much more efficient implementation:
+% if exist('forcmask.mat','file') % only performs masking if necessary
+%     load forcmask.mat
+%     disp('Mask loaded.')
+% else
+%     mask = NaN(922, 444);
+%     for i=1:922
+%         for j=1:444
+%             mask(i,j) = inpolygon(metlon(i),metlat(j),basin.X,basin.Y);
+%         end
+%     end
+%     save('forcmask.mat', 'mask')
+%     disp('Mask generated.')
+% end
+%%%
 
-%% Extract the forcings whose lat/lon match those of the basin mask
-
-disp('Extracting forcing variables')
-
+ncells = length(ind1);
 nyears = endyear - beginyear + 1;
 t_ind = 1;
 cum_days = 0;
+
+% Check output mask
+% y = metlat(ind1);
+% x = metlon(ind2);
+% z = ones(ncells,1);
+% figure, scatter(x, y, 50, z, 'filled');
+
+toc
+
+%% Use the mask to extract forcing variables
+disp('Extracting forcing variables')
 
 for t = beginyear:endyear
     
@@ -78,14 +110,11 @@ for t = beginyear:endyear
     ndays = info.Dimensions(1).Length; % get number of days in the year
     data = NaN(ndays, numforcings, ncells);
     
-    for k=1:ncells
-        % Get the index of the met. forcing data that matches the basin mask
-        [Lia,lat_ind] = ismember(masklat(k),metlat);
-        [Lia,lon_ind] = ismember(masklon(k),metlon);
-        data(:,1,k) = prec(lon_ind,lat_ind, :);        
-        data(:,2,k) = tmin(lon_ind,lat_ind, :);
-        data(:,3,k) = tmax(lon_ind,lat_ind, :);
-        data(:,4,k) = wind(lon_ind,lat_ind, :);
+    for i=1:ncells
+        data(:,1,i) = prec(ind1(i), ind2(i), :);
+        data(:,2,i) = tmin(ind1(i), ind2(i), :);
+        data(:,3,i) = tmax(ind1(i), ind2(i), :);
+        data(:,4,i) = wind(ind1(i), ind2(i), :);
     end
     
     if t_ind~=1
@@ -109,8 +138,8 @@ end
 % save('METFORC.mat', 'data_cum');
 
 fstring = ['%.' num2str(grid_decimal) 'f'];
-for k=1:ncells     
-    filename = ['data_' num2str(masklat(k),fstring) '_' num2str(masklon(k),fstring)];
+for i=1:ncells     
+    filename = ['data_' num2str(metlat(ind2(i)),fstring) '_' num2str(metlon(ind1(i)),fstring)];
     dlmwrite(fullfile(forcingsavedir, filename), data_cum(:,:,i))  
 end
 display(['Forcing data saved to ' forcingsavedir])
@@ -124,42 +153,26 @@ soils = load(fullfile(soilpath, soilname));
 slat = soils(:,3);
 slon = soils(:,4);
 
-soils(:,1) = 0;
+% Go through each row of soils, check if it is in the study domain.
+% If it is, add that row to soilsnew.
 
-for k=1:ncells
-    % Get the index of the met. forcing data that matches the basin mask
-    sind = find(masklat(k) == slat & masklon(k) == slon);
-    soils(sind,1) = 1;
+disp('Clipping soils data')
+ind = 1;
+for i=1:length(soils)
+    indomain = inpolygon(slon(i),slat(i), basin.X, basin.Y);
+    if indomain
+        soilsclip(ind,:) = soils(i,:);
+        ind = ind + 1;
+    end
 end
 
-%%% fprintf version
 fstring = ['%.' num2str(grid_decimal) 'f'];
-fspec = ['%d %d ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d\n'];
-fID = fopen(fullfile(soilsavedir, 'soilsl.TUOLUMNE'),'w');
-fprintf(fID, fspec, soils');
-fclose(fID);
+fspec = ['%d %.0f ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d'];
+dlmwrite(fullfile(soilsavedir, 'soils.TUOLUMNE'), soilsclip, ...
+    'precision',fspec,'delimiter','')
 display(['Soils data saved to ' soilsavedir])
-%%%
 
 % Note: the delimiter and the format spec must be specified precisely as
 % the Stehekin example from the VIC website in order to avoid the error
 % about CELL LATITUDE not being found/for VIC to successfully read the soil
 % parameter file.
-
-%% Make plots to check that everything is all right
-
-% Plot basin mask
-figure 
-mapshow(mask,R,'DisplayType','surface')
-
-% Plot met. forcing file lat lons
-% figure
-% plot(data_cum(:,:,1),'.')
-
-% Plot soils file lat lons
-figure
-plot(soilsclip(:,4), soilsclip(:,3), '.')
-
-% Plot basin mask and soil lat lons in one figure:
-% figure,hold on, mapshow(mask,R),  mapshow(soilsclip(:,4), soilsclip(:,3))
-

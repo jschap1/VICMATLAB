@@ -5,21 +5,26 @@
 
 %% Specify inputs
 
-forcingpath = '/Users/jschapMac/Desktop/Tuolumne/ClippedForcings/'; 
+forcingpath = '/Users/jschapMac/Desktop/Tuolumne/DisaggForcings/'; 
 % the final slash is needed
 
 precision = 4;
 
-varnames = {'prec','tmin','tmax','wind'};
-varunits = {'mm','deg C','deg C','m/s'};
+varnames = {'prec','air_temp','shortwave','longwave','density','pressure','vp','wind'};
+varunits = {'mm','deg C','W/m^2','W/m^2','kg/m^3','kPa','kPa','m/s'};
+
+% varnames = {'prec','tmin','tmax','wind'};
+% varunits = {'mm','deg C','deg C','m/s'};
 % order of the forcing variables must match the order in the forcing files
 
+invisible = 1;
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/Tuolumne/Plots/Forcings'; 
+saveloc = '/Users/jschapMac/Desktop/Tuolumne/ForcingPlots/Hourly'; 
 
 %% Load forcing data
 
-forcenames = dir([forcingpath 'data*']);
+% forcenames = dir([forcingpath 'data*']);
+forcenames = dir([forcingpath 'full_data*']);
 ncells = length(forcenames);
 addpath(forcingpath)
 
@@ -65,9 +70,9 @@ end
 %% Plot basin average time series
 
 % Optionally load time series vector from VIC output
-timev = 0;
+timev = 1;
 if timev
-    timevector = load('timevector.mat');
+    timevector = load('/Users/jschapMac/Desktop/Tuolumne/VICResults/2006-2011EnergyBalance/ProcessedResults/timevector.mat');
     timevector = timevector.timevector;
 else
     timevector = 1:nsteps;
@@ -75,7 +80,12 @@ end
 
 for p = 1:nvars
     
-    figure;
+    h = figure; 
+    
+    if invisible
+        set(h, 'Visible', 'off');
+    end
+    
     plot(timevector, AVGFORC(:,p))
     titletext = ['Basin average ' varnames{p} ' (' varunits{p} ')'];
     title(titletext)
