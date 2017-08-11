@@ -1,6 +1,6 @@
 function [varargout] = LoadVICResults(varargin)
 
-% Loads results from VIC simulation and the routing model (if specified).
+% Loads results from VIC simulation OR the routing model.
 % Must be run from the directory containing the VIC outputs. 
 % If the routing model is being run, this directory must contain the 
 % routing model outputs, as well.
@@ -18,6 +18,24 @@ function [varargout] = LoadVICResults(varargin)
 % snowresults 
 % routresults 
 
+%% Load routing results
+if nargin
+    prefix = varargin{1};
+    units = varargin{2};
+    timestep = varargin{3};
+    switch units
+        case 'cfs'
+           routname = [prefix '.' timestep];
+        case 'mm'
+           routname = [prefix '.' timestep '_mm'];
+        otherwise
+            error('Not a valid routname')
+    end
+    routresults = dlmread(routname); 
+    varargout{1} = routresults;
+else
+% OR    
+%% Load VIC results
 fluxnames = dir('fluxes*');
 ncells = length(fluxnames);
 tmp = dlmread(fluxnames(1).name);  
@@ -47,22 +65,10 @@ for i=1:ncells
     snowresults(:,:,i) = dlmread(snownames(i).name);  
 end
 
-if nargin
-    prefix = varargin{1};
-    units = varargin{2};
-    timestep = varargin{3};
-    switch units
-        case 'cfs'
-           routname = [prefix '.' timestep];
-        case 'mm'
-           routname = [prefix '.' timestep '_mm'];
-    end
-    routresults = dlmread(routname); 
-    varargout{4} = routresults;
-end
-
 varargout{1} = gridcells;
 varargout{2} = fluxresults;
 varargout{3} = snowresults;
+
+end
 
 end

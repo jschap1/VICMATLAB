@@ -132,14 +132,12 @@ for k=1:ncells
     soils(sind,1) = 1;
 end
 
-%%% fprintf version
 fstring = ['%.' num2str(grid_decimal) 'f'];
 fspec = ['%d %d ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d\n'];
 fID = fopen(fullfile(soilsavedir, 'soilsl.TUOLUMNE'),'w');
 fprintf(fID, fspec, soils');
 fclose(fID);
 display(['Soils data saved to ' soilsavedir])
-%%%
 
 % Note: the delimiter and the format spec must be specified precisely as
 % the Stehekin example from the VIC website in order to avoid the error
@@ -162,4 +160,3 @@ plot(soilsclip(:,4), soilsclip(:,3), '.')
 
 % Plot basin mask and soil lat lons in one figure:
 % figure,hold on, mapshow(mask,R),  mapshow(soilsclip(:,4), soilsclip(:,3))
-

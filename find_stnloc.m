@@ -42,3 +42,5 @@ for i=1:nrows
     end
     
 end
+
+% [col, row] = 14, 10 or 14, 22;

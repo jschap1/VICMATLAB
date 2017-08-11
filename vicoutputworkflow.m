@@ -19,26 +19,18 @@
 % Path to VICMATLAB codes
 addpath('/Users/jschapMac/Desktop/VIC/VICMATLAB')
 
-rout = 0; % Specify whether or not to process routing results
-if rout == 1
-    prefix = 'STEHE'; % Provide info about routing files
-    units = 'mm';
-    timestep = 'daily';
-    [gridcells, fluxresults, snowresults, routresults] = LoadVICResults(rout, prefix, units, timestep);
-else
-    % Pull results from VIC output files into Matlab
-    [gridcells, fluxresults, snowresults] = LoadVICResults();
-end
+% Pull results from VIC output files into Matlab
+[gridcells, fluxresults, snowresults] = LoadVICResults();
 
 % Provide info about the VIC model run
-precision = 4;
+precision = 5;
 nlayers = 3;
 run_type = 'WATER_BALANCE'; % FULL_ENERGY or WATER_BALANCE
 rec_interval = 'daily';
 
 invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/Tuolumne/VICResults/2006-2011DailyWB/Plots';
+saveloc = '/Users/jschapMac/Desktop/Tuolumne2/VICResults/wb2006-2011/Plots';
 
 %%
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
