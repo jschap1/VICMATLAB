@@ -30,7 +30,7 @@ rec_interval = 'daily';
 
 invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/Tuolumne2/VICResults/wb2006-2011/Plots';
+saveloc = '/Users/jschapMac/Desktop/Tuolumne2/VICOutputs/wb2006-2011/Plots';
 
 %%
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv

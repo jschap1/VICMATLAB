@@ -1,18 +1,5 @@
-% % Generic workflow for loading and processing VIC results, and generating
-% figures.
-%
-% Loads VIC results (flux, snow) and optionally routing model results and 
-% arranges them into a nicely formatted structure. 
-%
-% Allows easy creation of time series plots and maps for fluxes
-%
-% Should be run from the same directory where the VIC results are located.
-%
-% Dependencies:
-% LoadVICResults
-% ProcessVICFluxResults
-% ProcessVICSnowResults
-% GetCoords
+% Loads, processes, and makes plots for VIC routing model outputs (Lohmann
+% routing model)
 
 %% Inputs
 

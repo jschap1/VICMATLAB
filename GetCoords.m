@@ -35,8 +35,8 @@ for k = 1:ncells
             str3 = gridcells_numbers{k}(3 + precision:2*precision - 1);
             str4 = gridcells_numbers{k}(2*precision:end);
         case 15 % 2 digits for lat and 3 for lon (precision = 5)
-            str3 = gridcells_numbers{k}(3 + precision:1 + 2*precision);
-            str4 = gridcells_numbers{k}(2 + 2*precision:end);
+            str3 = gridcells_numbers{k}(3 + precision:2*precision);
+            str4 = gridcells_numbers{k}(1 + 2*precision:end);
         otherwise
             error('Incorrect number of characters in gridcells string. Precision must be 4 or 5 digits.');
     end
