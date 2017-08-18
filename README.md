@@ -15,7 +15,6 @@ LoadVICResults - loads VIC results into Matlab. Called by vicoutputworkflow.
 ProcessVICFluxResults - formats VIC flux outputs. Called by vicoutputworkflow.
 ProcessVICSnowResults - formats VIC snow state outputs. Called by vicoutputworkflow.
 
-# There are also some R scripts.
-
+There are also some R scripts:
 routinputworkflow - creates fraction file, watershed mask, and clipped DEM at DEM and/or VIC modeling resolution. Does not create flow direction file (this is best done with ArcMap).
 modfdir - script for modifying the flow direction file
