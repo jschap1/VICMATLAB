@@ -10,6 +10,7 @@
 %
 % Dependencies:
 % LoadVICResults
+% LoadVIC5Results
 % ProcessVICFluxResults
 % ProcessVICSnowResults
 % GetCoords
@@ -18,9 +19,16 @@
 
 % Path to VICMATLAB codes
 addpath('/Users/jschapMac/Desktop/VIC/VICMATLAB')
+headers = 3; % default for VIC5 outputs is to have three lines of headers
 
 % Pull results from VIC output files into Matlab
-[gridcells, fluxresults, snowresults] = LoadVICResults();
+if headers
+    nfluxvars = 25;
+    nsnowvars = 7;
+    [gridcells, fluxresults, snowresults] = LoadVIC5Results(headers, nfluxvars, nsnowvars);
+else
+    [gridcells, fluxresults, snowresults] = LoadVICResults();
+end
 
 % Provide info about the VIC model run
 precision = 5;
@@ -30,7 +38,7 @@ rec_interval = 'daily';
 
 invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/Tuolumne2/VICOutputs/wb2006-2011/Plots';
+saveloc = '/Users/jschapMac/Desktop/Tuolumne5/VICOutputs/2006-2011_wb/Plots';
 
 %%
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv

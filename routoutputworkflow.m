@@ -4,7 +4,7 @@
 %% Inputs
 
 % Location of routing output files
-cd /Users/jschapMac/Desktop/Tuolumne2/RoutOutputs
+cd /Users/jschapMac/Desktop/Tuolumne5/RoutOutputs
 
 % Path to VICMATLAB codes
 addpath('/Users/jschapMac/Desktop/VIC/VICMATLAB')
@@ -15,7 +15,7 @@ timestep = 'day'; % day, month, or year
    
 invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/Tuolumne2/VICOutputs/wb2006-2011/Plots';
+saveloc = '/Users/jschapMac/Desktop/Tuolumne5/VICOutputs/2006-2011_wb/Plots';
 
 %% Load routing results
 
@@ -27,7 +27,7 @@ switch timestep
     case 'day'
         ROUT.time = datetime([routresults(:,1), routresults(:,2), routresults(:,3)]);        
     case 'month'
-        ROUT.time = datetime([routresults(:,1), routresults(:,2), 0]);;
+        ROUT.time = datetime([routresults(:,1), routresults(:,2), 0]);
     case 'year'
         ROUT.time = datetime([routresults(:,1), 0, 0]);
 end

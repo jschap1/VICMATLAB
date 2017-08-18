@@ -7,9 +7,11 @@
 % Find station location in fdir file
 [fdir, R] = arcgridread('/Users/jschapMac/Desktop/Tuolumne/RoutingInputs/fdir_in.asc');
 
+[fdir, R] = arcgridread('/Users/jschapMac/Desktop/Tuolumne5/LFP/FlowDir/flowdir2_wgs.txt');
+
 gage = [-121.151    37.6];
 
-min_diff = 1/16; % resolution
+min_diff = 0.008; % 1/16; % resolution
 % the difference between the gage location and the grid cell coordinates
 % will never be greater than the grid resolution
 

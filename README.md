@@ -1,5 +1,5 @@
 # VICMATLAB
-Matlab scripts and functions for processing output files from the Variable Infiltration Capacity (VIC) model.
+Matlab scripts and functions for processing output files from the Variable Infiltration Capacity (VIC) model for version 4.2.
 
 Scripts
 vicinputworkflow - creates basin-specific VIC input files from met. forcing data and soil data over a larger domain (CONUS)
