@@ -6,14 +6,21 @@
 %
 % Is set up to use Livneh forcing data, which is on a 444 by 922 lat/lon
 % grid (1/16 degree resolution)
+%
+% Run the R script routinputworkflow first to generate the basin mask
+% After running this script, run VIC4 as a disaggregator to get subdaily
+% forcing inputs for VIC5.
 
 %% Specify inputs
 
 % Directory of daily CONUS met. forcing file
-forcingpath = '/Users/jschapMac/Documents/HydrologyData/Livneh/MetNC';
+forcingpath = '/Users/jschapMac/Documents/Data/Livneh/MetNC';
+
+% Name of basin mask at VIC modeling resolution
+basinmask = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne6/GIS/extent.asc';
 
 % Directory where clipped forcing files should be saved
-forcingsavedir = '/Users/jschapMac/Desktop/Tuolumne2/Forcings';
+forcingsavedir = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne6/Forcings';
 
 % Number of forcings in the daily CONUS met. forcing file
 numforcings = 4;
@@ -27,11 +34,11 @@ endyear = 2011;
 grid_decimal = 5;
 
 % Directory of CONUS soil parameter file
-soilpath = '/Users/jschapMac/Documents/HydrologyData/VICParametersCONUS';
+soilpath = '/Users/jschapMac/Documents/Data/VICParametersCONUS';
 soilname = 'vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt'; 
 
 % Directory where clipped soil parameter file should be saved
-soilsavedir = '/Users/jschapMac/Desktop/Tuolumne2';
+soilsavedir = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne6/VIC_Inputs';
 
 %% Load the mask
 
@@ -46,7 +53,7 @@ metlon = metlon - 360;
 %%%
 
 % Load coarse resolution basin mask (1/16 deg., same as the forcing data)
-[mask, R] = arcgridread('/Users/jschapMac/Desktop/Tuolumne/RoutingInputs/basinmask_coarse.asc');
+[mask, R] = arcgridread(basinmask);
 [ind1, ind2] = find(mask);
 
 % Get lat/lon of basin mask (only the pixels whose values are 1)
@@ -134,7 +141,7 @@ end
 
 fstring = ['%.' num2str(grid_decimal) 'f'];
 fspec = ['%d %d ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d\n'];
-fID = fopen(fullfile(soilsavedir, 'soilsl.TUOLUMNE'),'w');
+fID = fopen(fullfile(soilsavedir, 'soils.TUOLUMNE'),'w');
 fprintf(fID, fspec, soils');
 fclose(fID);
 display(['Soils data saved to ' soilsavedir])
@@ -155,8 +162,8 @@ mapshow(mask,R,'DisplayType','surface')
 % plot(data_cum(:,:,1),'.')
 
 % Plot soils file lat lons
-figure
-plot(soilsclip(:,4), soilsclip(:,3), '.')
+% figure
+% plot(soilsclip(:,4), soilsclip(:,3), '.')
 
 % Plot basin mask and soil lat lons in one figure:
 % figure,hold on, mapshow(mask,R),  mapshow(soilsclip(:,4), soilsclip(:,3))

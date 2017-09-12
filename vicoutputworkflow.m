@@ -1,12 +1,13 @@
 % Generic workflow for loading and processing VIC results, and generating
-% figures.
+% figures. Should be run from the same directory where the VIC results are
+% located. Works with VIC4 or VIC5 Classic Driver. 
+%
+% Use vicoutputworkflow_image.m if results are from the Image Driver.
 %
 % Loads VIC results (flux, snow) and optionally routing model results and 
 % arranges them into a nicely formatted structure. 
 %
 % Allows easy creation of time series plots and maps for fluxes
-%
-% Should be run from the same directory where the VIC results are located.
 %
 % Dependencies:
 % LoadVICResults
@@ -18,17 +19,9 @@
 %% Inputs
 
 % Path to VICMATLAB codes
-addpath('/Users/jschapMac/Desktop/VIC/VICMATLAB')
-headers = 3; % default for VIC5 outputs is to have three lines of headers
+addpath('/Users/jschapMac/Documents/Codes/VICMATLAB')
 
-% Pull results from VIC output files into Matlab
-if headers
-    nfluxvars = 25;
-    nsnowvars = 7;
-    [gridcells, fluxresults, snowresults] = LoadVIC5Results(headers, nfluxvars, nsnowvars);
-else
-    [gridcells, fluxresults, snowresults] = LoadVICResults();
-end
+vic_version = 5; % 4 or 5
 
 % Provide info about the VIC model run
 precision = 5;
@@ -38,12 +31,26 @@ rec_interval = 'daily';
 
 invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/Tuolumne5/VICOutputs/2006-2011_wb/Plots';
+saveloc = '/Users/jschapMac/Desktop/TuoSub/Plots';
 
 %%
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 %                            POST-PROCESSING
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+%% Load results into Matlab
+
+switch vic_version
+    case 4
+        [gridcells, fluxresults, snowresults] = LoadVICResults();
+    case 5
+        % default for VIC5 classic outputs is to have three lines of headers
+        headers = 3; 
+        nfluxvars = 25;
+        nsnowvars = 7;
+        [gridcells, fluxresults, snowresults] = LoadVIC5Results(headers, ...
+            nfluxvars, nsnowvars);
+end
 
 %% Fluxes
 

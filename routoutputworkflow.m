@@ -4,18 +4,18 @@
 %% Inputs
 
 % Location of routing output files
-cd /Users/jschapMac/Desktop/Tuolumne5/RoutOutputs
+cd /Users/jschapMac/Desktop/Tuolumne/Tuolumne7/Rout_Results
 
 % Path to VICMATLAB codes
-addpath('/Users/jschapMac/Desktop/VIC/VICMATLAB')
+addpath('/Users/jschapMac/Documents/Codes/VICMATLAB')
 
-prefix = 'PRPT '; % name of gauge station/routing model output file prefix
+prefix = 'TUO007'; % name of gauge station/routing model output file prefix
 units = 'cfs'; % mm or cfs
 timestep = 'day'; % day, month, or year
    
 invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/Tuolumne5/VICOutputs/2006-2011_wb/Plots';
+saveloc = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne7/Rout_Results/Plots';
 
 %% Load routing results
 
@@ -32,7 +32,7 @@ switch timestep
         ROUT.time = datetime([routresults(:,1), 0, 0]);
 end
 ROUT.ts = routresults(:,end);      
-save('ROUT.mat', 'ROUT');
+save('ROUT_OUT.mat', 'ROUT');
 
 %% Plots
 
@@ -45,7 +45,7 @@ set(gca, 'FontSize', 14)
 
 if saveflag
     saveas(gcf, fullfile(saveloc, [prefix '_' timestep '_ts.png']));
-    savefig(gcf, fullfile(saveloc, [prefix '_' timestep '_ts.fig']));
+    % savefig(gcf, fullfile(saveloc, [prefix '_' timestep '_ts.fig']));
 end
 
 %% Validate against a USGS gauge
@@ -53,7 +53,7 @@ end
 % Load USGS gauge data
 gaugeID = 11290000; % 11290000 (non-ref), 11274630 (ref), 11303000 (non-ref)
 fname = ['usgs' num2str(gaugeID) '.txt'];
-fID = fopen(fullfile('/Users/jschapMac/Documents/HydrologyData/StreamGauges',fname));
+fID = fopen(fullfile('/Users/jschapMac/Documents/Data/StreamGauges',fname));
 fstring = '%s %d %s %f %s';
 usgs_data = textscan(fID, fstring);
 fclose(fID);
