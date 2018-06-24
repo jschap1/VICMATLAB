@@ -4,18 +4,18 @@
 %% Inputs
 
 % Location of routing output files
-cd /Users/jschapMac/Desktop/Tuolumne/Tuolumne7/Rout_Results
+cd /Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Rout_Results/fd_Wu_Mu
 
 % Path to VICMATLAB codes
 addpath('/Users/jschapMac/Documents/Codes/VICMATLAB')
 
-prefix = 'TUO007'; % name of gauge station/routing model output file prefix
+prefix = 'TU007'; % name of gauge station/routing model output file prefix
 units = 'cfs'; % mm or cfs
 timestep = 'day'; % day, month, or year
    
 invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne7/Rout_Results/Plots';
+saveloc = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Rout_Results/fd_Wu_Mu/Plots';
 
 %% Load routing results
 
@@ -79,4 +79,19 @@ if saveflag
     saveas(gcf, fullfile(saveloc, 'compare_RO.png'));
     savefig(gcf, fullfile(saveloc, 'compare_RO.fig'));
 end
+
+%%
+% Compare results from different routing model runs
+
+fd = load('/Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Rout_Results/fd/ROUT_OUT.mat');
+fd_Wu = load('/Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Rout_Results/fd_Wu/ROUT_OUT.mat');
+fd_Wu_Mu = load('/Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Rout_Results/fd_Wu_Mu/ROUT_OUT.mat');
+
+% Plot results on one figure
+figure, hold on
+plot(fd.ROUT.time, fd.ROUT.ts)
+plot(fd.ROUT.time, fd_Wu.ROUT.ts)
+plot(fd.ROUT.time, fd_Wu_Mu.ROUT.ts)
+legend('1','2','3')
+
 

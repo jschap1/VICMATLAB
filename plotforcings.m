@@ -1,30 +1,39 @@
 % Loads and plots ASCII forcing data
 %
+% Toggle VIC4 or VIC5 (different number of input variables)
+%
 % Dependencies:
 % GetCoords.m
 
 %% Specify inputs
 
-forcingpath = '/Users/jschapMac/Desktop/Tuolumne/DisaggForcings/'; 
+forcingpath = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Forcings/Disagg_Forc/'; 
 % the final slash is needed
 
-precision = 4;
+version = 5;
+precision = 5;
 
-varnames = {'prec','air_temp','shortwave','longwave','density','pressure','vp','wind'};
-varunits = {'mm','deg C','W/m^2','W/m^2','kg/m^3','kPa','kPa','m/s'};
-
-% varnames = {'prec','tmin','tmax','wind'};
-% varunits = {'mm','deg C','deg C','m/s'};
-% order of the forcing variables must match the order in the forcing files
+if version == 4
+    varnames = {'prec','tmin','tmax','wind'};
+    varunits = {'mm','deg C','deg C','m/s'};
+    % order of the forcing variables must match the order in the forcing files
+elseif version == 5
+    varnames = {'prec','air_temp','shortwave','longwave','density','pressure','vp','wind'};
+    varunits = {'mm','deg C','W/m^2','W/m^2','kg/m^3','kPa','kPa','m/s'};
+end
 
 invisible = 1;
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/Tuolumne/ForcingPlots/Hourly'; 
+saveloc = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Figures/Forcings/Disaggregated_fixed_hopefully'; 
 
 %% Load forcing data
 
-% forcenames = dir([forcingpath 'data*']);
-forcenames = dir([forcingpath 'full_data*']);
+if version == 4
+    forcenames = dir([forcingpath 'data*']);
+elseif version == 5
+    forcenames = dir([forcingpath 'full_data*']);
+end
+
 ncells = length(forcenames);
 addpath(forcingpath)
 
@@ -70,9 +79,9 @@ end
 %% Plot basin average time series
 
 % Optionally load time series vector from VIC output
-timev = 1;
+timev = 0;
 if timev
-    timevector = load('/Users/jschapMac/Desktop/Tuolumne/VICResults/2006-2011EnergyBalance/ProcessedResults/timevector.mat');
+    timevector = load('/Users/jschapMac/Desktop/Tuolumne/Tuolumne5/VICOutputs/2006-2011_wb/ProcessedResults/timevector.mat');
     timevector = timevector.timevector;
 else
     timevector = 1:nsteps;

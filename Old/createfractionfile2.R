@@ -11,23 +11,22 @@
 # DEM clipped to basin boundaries
 
 # Note: all coordinate systems should be geographic. I've been using WGS84.
-# If the pixels are not square (in geographic coordinates), this becomes a pain.
+# Amended to use the same modeling domain as VIC model, instead of clipping
+# to basin boundary in the R code. Actually, not used.
 
 library(raster)
 library(rgdal)
 
 # Basin boundary shapefile; can use ogrListLayers() to get layer name
-# ogrListLayers("/Users/jschap/Desktop/UMRB/GIS")
-bb <- readOGR(dsn = "/Users/jschap/Desktop/UMRB/GIS/", 
-              layer = "bb_merc")
-wgs84 <- "+init=epsg:4326"
-bb <- spTransform(bb, crs(wgs84))
+# ogrListLayers("/Users/jschapMac/Desktop/Tuolumne/Shapefiles")
+bb <- readOGR(dsn = "/Users/jschapMac/Desktop/Tuolumne/Shapefiles", 
+              layer = "upper_tuolumne_wgs")
 
 # Path and filename of DEM
-dempath <- "/Users/jschapMac/Documents/Data/GTOPO30/gt30w140n40_dem"
+dempath <- "/Users/jschapMac/Documents/HydrologyData/GTOPO30/gt30w140n40_dem"
 dem <- raster(file.path(dempath, "gt30w140n40.dem"))
 
-saveloc <- "/Users/jschapMac/Desktop/Tuolumne/TuoSub/Rout_Param_Files/"
+saveloc <- "/Users/jschapMac/Desktop/Tuolumne/RoutingInputs"
 
 fineres <- 30 # DEM resolution (arc-seconds - "fine")
 fineres <- fineres/3600
@@ -49,11 +48,6 @@ dem.clipped <- clip(dem, bb)
 writeRaster(dem.clipped, file.path(saveloc, "GTOPO30_clipped"), 
             format = "ascii", overwrite = T)
 
-# Also saved a version that is cropped to the basin extent
-dem.cropped <- crop(dem, bb)
-writeRaster(dem.cropped, file.path(saveloc, "GTOPO30_cropped"), 
-            format = "ascii", overwrite = T)
-
 # Create a watershed mask at the DEM resolution
 dem.clipped.copy <- dem.clipped
 dem.clipped.copy[!is.na(dem.clipped.copy)] <- 1
@@ -65,7 +59,7 @@ e@xmin <- floor(e@xmin)
 e@ymax <- ceiling(e@ymax)
 e@ymin <- floor(e@ymin)
 
-finemask <- raster(resolution = fineres, ext = e, crs = crs(bb))
+finemask <- raster(resolution = fineres, ext = e)
 values(finemask) <- 0
 
 basinmask.fine <- merge(dem.clipped.copy, finemask)
@@ -75,7 +69,7 @@ writeRaster(basinmask.fine, file.path(saveloc, "basinmask_fine"),
 # Make a grid with the VIC model resolution.
 # Extent must be larger than the real basin boundaries.
 
-coarsegrid <- raster(resolution = coarseres , ext = e, crs = crs(bb))
+coarsegrid <- raster(resolution = coarseres , ext = e)
 for (i in 1:ncell(coarsegrid)) {
   coarsegrid[i] <- i
 }
@@ -101,4 +95,3 @@ writeRaster(basinmask.coarse, file.path(saveloc, "basinmask_coarse"),
 
 # Check outputs
 plot(fract)
-

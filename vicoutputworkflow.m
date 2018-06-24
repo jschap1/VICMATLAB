@@ -19,7 +19,7 @@
 %% Inputs
 
 % Path to VICMATLAB codes
-addpath('/Users/jschapMac/Documents/Codes/VICMATLAB')
+addpath('/Users/jschap/Documents/Codes/VICMATLAB')
 
 vic_version = 5; % 4 or 5
 
@@ -31,7 +31,7 @@ rec_interval = 'daily';
 
 invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/TuoSub/Plots';
+saveloc = '/Users/jschap/Desktop/UMRB';
 
 %%
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -39,6 +39,10 @@ saveloc = '/Users/jschapMac/Desktop/TuoSub/Plots';
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 %% Load results into Matlab
+
+%
+% For large VIC runs, this is very RAM-intensive. Should optimize.
+% 
 
 switch vic_version
     case 4
@@ -151,6 +155,7 @@ if saveflag
     end    
     save(fullfile(saveloc,'timevector.mat'),'timevector')
     save(fullfile(saveloc,'FLUXES.mat'),'FLUXES')
+%     save(fullfile(saveloc,'FLUXES.mat'),'FLUXES', '-v7.3')
     save(fullfile(saveloc,'SNOW.mat'),'SNOW')
 end
 
@@ -158,6 +163,8 @@ end
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 %                               PLOTTING
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+saveloc = '/Users/jschap/Desktop/UMRB/Figures';
 
 %% Plot basin average flux time series
 fluxunitscell = struct2cell(FLUXES.units);
