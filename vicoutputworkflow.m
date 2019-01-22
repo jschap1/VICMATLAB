@@ -19,7 +19,7 @@
 %% Inputs
 
 % Path to VICMATLAB codes
-addpath('/Users/jschap/Documents/Codes/VICMATLAB')
+addpath(genpath('/Users/jschap/Documents/Codes/VICMATLAB'))
 
 vic_version = 5; % 4 or 5
 
@@ -31,7 +31,7 @@ rec_interval = 'daily';
 
 invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-saveloc = '/Users/jschap/Desktop/UMRB';
+saveloc = '/Volumes/HD3/SWOTDA/Outputs/VIC_UMRB';
 
 %%
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -59,11 +59,16 @@ end
 %% Fluxes
 
 FLUXES = ProcessVICFluxResults(gridcells, fluxresults, nlayers, run_type, rec_interval);
-
 timevector = FLUXES.time;
+
+% load('FLUXES.mat')
+% load('timevector.mat')
+% load('../gridcells.mat')
+
 [lat, lon] = GetCoords(gridcells, precision);
 FLUXES.lat = lat;
 FLUXES.lon = lon;
+scatter(FLUXES.lon,FLUXES.lat,50,ones(14015,1),'filled')
 
 ncells = length(fieldnames(FLUXES.ts));
 cellnames = fieldnames(FLUXES.ts);
@@ -154,8 +159,8 @@ if saveflag
         mkdir(saveloc)
     end    
     save(fullfile(saveloc,'timevector.mat'),'timevector')
-    save(fullfile(saveloc,'FLUXES.mat'),'FLUXES')
-%     save(fullfile(saveloc,'FLUXES.mat'),'FLUXES', '-v7.3')
+%     save(fullfile(saveloc,'FLUXES.mat'),'FLUXES')
+    save(fullfile(saveloc,'FLUXES.mat'),'FLUXES', '-v7.3')
     save(fullfile(saveloc,'SNOW.mat'),'SNOW')
 end
 
@@ -164,7 +169,7 @@ end
 %                               PLOTTING
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
-saveloc = '/Users/jschap/Desktop/UMRB/Figures';
+saveloc = '/Volumes/HD3/SWOTDA/Figures/VIC_UMRB/';
 
 %% Plot basin average flux time series
 fluxunitscell = struct2cell(FLUXES.units);
@@ -217,6 +222,7 @@ for p=1:length(fluxvarnames)
       
     if ~strcmp(fluxvarnames{p}, 'moist')   
         scatter(FLUXES.lon,FLUXES.lat,50,FLUXES.avgmaps.(fluxvarnames{p}),'filled')
+%         scatter(FLUXES.lon,FLUXES.lat,50,ones(14015,1),'filled')
         title([datestr(FLUXES.time(1)) ' to ' datestr(FLUXES.time(end)) ...
         ' average ' fluxvarnames{p} ' (' fluxunitscell{p} ')']);
         xlabel('lon (degrees)'); ylabel('lat (degrees)')

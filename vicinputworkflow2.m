@@ -1,4 +1,9 @@
+function [] = vicinputworkflow2()
+
 % INPUTS
+%
+% Basin mask, as list of coordinates
+%
 % Met. forcings at daily resolution, saved as separate NetCDF files for
 % each variable and year (e.g. prec.1965.nc, wind.1990.nc)
 % Basin mask with using appropriate resolution, geographic coordinates
@@ -62,28 +67,10 @@ metlon = ncread(['prec.' num2str(beginyear) '.nc'], 'lon');
 metlon = metlon - 360;
 %%%
 
-% Load coarse resolution basin mask (1/16 deg., same as the forcing data)
-[mask, R] = arcgridread(basinmask);
-
-figure(4), imagesc(mask)
-
-% mask(isnan(mask)) = 0; % run this if NaNs are used instead of 0s
-
-[ind1, ind2] = find(mask);
-
-% Replacing this part of the workflow with r.out.xyz in GRASS GIS
-% (1/15/2019):
-% Get lat/lon of basin mask (only the pixels whose values are nonzero)
-ncells = sum(mask(:)~=0);
-masklat = NaN(ncells,1);
-masklon = NaN(ncells,1);
-
-for i=1:ncells
-    [masklat(i),masklon(i)] = pix2latlon(R, ind1(i), ind2(i));
-    if mod(i, 1000) == 0
-        disp(i) % displays progress
-    end
-end
+maskxyz = dlmread('/Volumes/HD3/SWOTDA/Data/UMRB/Basin/basincoords.txt', '|');
+masklon = maskxyz(maskxyz(:,3) == 1,1);
+masklat = maskxyz(maskxyz(:,3) == 1,2);
+ncells = length(masklon);
 
 % masklat = list of latitudes of the nonzero mask pixels. Must have four
 % decimal places.
@@ -170,8 +157,6 @@ end
 
 soils(soils(:,1) == 0,:) = []; % include this line to reduce file size
 
-
-
 fstring = ['%.' num2str(grid_decimal) 'f'];
 fspec = ['%d %d ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d\n'];
 fID = fopen(fullfile(soilsavedir, 'soils.UMRB'),'w');
@@ -183,20 +168,3 @@ display(['Soils data saved to ' soilsavedir])
 % the Stehekin example from the VIC website in order to avoid the error
 % about CELL LATITUDE not being found/for VIC to successfully read the soil
 % parameter file.
-
-%% Defunct. Use plotforcings.m instead.
-
-% Plot basin mask
-figure 
-mapshow(mask,R,'DisplayType','surface')
-
-% Plot met. forcing file lat lons
-% figure
-% plot(data_cum(:,:,1),'.')
-
-% Plot soils file lat lons
-% figure
-% plot(soilsclip(:,4), soilsclip(:,3), '.')
-
-% Plot basin mask and soil lat lons in one figure:
-% figure,hold on, mapshow(mask,R),  mapshow(soilsclip(:,4), soilsclip(:,3))
