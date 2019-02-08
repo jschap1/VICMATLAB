@@ -4,18 +4,18 @@
 %% Inputs
 
 % Location of routing output files
-cd /Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Rout_Results/fd_Wu_Mu
+cd /Volumes/HD3/SWOTDA/Outputs/ROUT_UMRB
 
 % Path to VICMATLAB codes
-addpath('/Users/jschapMac/Documents/Codes/VICMATLAB')
+addpath('/Users/jschap/Documents/Codes/VICMATLAB')
 
-prefix = 'TU007'; % name of gauge station/routing model output file prefix
+prefix = 'IN001'; % name of gauge station/routing model output file prefix
 units = 'cfs'; % mm or cfs
 timestep = 'day'; % day, month, or year
    
 invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-saveloc = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Rout_Results/fd_Wu_Mu/Plots';
+saveloc = './plots';
 
 %% Load routing results
 
@@ -93,5 +93,3 @@ plot(fd.ROUT.time, fd.ROUT.ts)
 plot(fd.ROUT.time, fd_Wu.ROUT.ts)
 plot(fd.ROUT.time, fd_Wu_Mu.ROUT.ts)
 legend('1','2','3')
-
-

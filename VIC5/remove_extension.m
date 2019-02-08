@@ -36,11 +36,18 @@ end
 % to run the VIC routing model with VIC 5 outputs, these header rows need
 % to be removed.
 
+cd /Volumes/HD3/SWOTDA/Outputs/VIC_UMRB/Raw/w_header/
+
 orignames = dir('fluxes*');
 ncells = length(orignames);
 header_rows = 3;
-
 for k=1:ncells
-    data = dlmread(orignames(k).name, ' ', header_rows, 0);
+    data = dlmread(orignames(k).name, '\t', header_rows, 0);
     dlmwrite(fullfile(orignames(k).name), data, ' ');
+    if mod(k, 1000)==0
+        disp(k)
+    end
 end
+
+
+

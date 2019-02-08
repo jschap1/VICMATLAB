@@ -1,10 +1,10 @@
 % June 25, 2018, JRS
 % Double check routing model inputs
 
-[fract, ~] = arcgridread('/Users/jschap/Desktop/UMRB/R_In/umrb.fract');
-[fdir, ~] = arcgridread('/Users/jschap/Desktop/UMRB/R_In/umrb.flowdir');
+[fract, ~] = arcgridread('/Volumes/HD3/SWOTDA/Data/UMRB/ROUT/umrb.fract');
+[fdir, ~] = arcgridread('/Volumes/HD3/SWOTDA/Data/UMRB/ROUT/umrb.flowdir');
 
-stationsfile = '/Users/jschap/Desktop/UMRB/R_In/umrb.stations_noNONE.txt';
+stationsfile = '/Volumes/HD3/SWOTDA/Data/UMRB/ROUT/umrb.stations';
 f1 = fopen(stationsfile);
 stations = textscan(f1, '%d %s %f %f %f');
 fclose(f1);
@@ -21,3 +21,18 @@ stations{4} % row, from bottom
 
 % Plot flow direction
 figure, imagesc(fdir), colorbar, title('flowdir')
+
+colfromleft = stations{3};
+rowfrombottom = stations{4};
+[xx,yy] = pix2latlon(R, colfromleft, rowfrombottom)
+
+
+%%
+
+fdir = geotiffread('/Volumes/HD3/SWOTDA/Data/UMRB/Flowdir/umrb_flowdir.tif');
+fdir = arcgridread('/Volumes/HD3/SWOTDA/Data/UMRB/ROUT/umrb.flowdir');
+fract = arcgridread('/Volumes/HD3/SWOTDA/Data/UMRB/ROUT/umrb.fract');
+fdir_grass = convertflowdir(fdir, 'grass');
+
+imagesc(fdir);
+imagesc(fdir_grass);
