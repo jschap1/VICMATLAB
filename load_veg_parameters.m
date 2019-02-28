@@ -1,15 +1,10 @@
 % Loads VIC4 or VIC5 classic vegetation parameter file into Matlab in a
 % convenient, easy-to-work-with structure format
-
-% varnames = {'run_cell','grid_cell','lat','lon','b_infilt','ds','dsmax', ... % no organic, no frozen soil, no July_Tavg, two soil layers
-%     'ws','c','expt1','expt2','ksat1','ksat2','phi_s1','phi_s2', ...
-%     'init_moist1','init_moist2','elev','depth1','depth2','avg_T', ...
-%     'dp','bubble1','bubble2','quartz1','quartz2','bulk_dens1','bulk_dens2', ...
-%     'soil_dens1','soil_dens2', ...
-%     'off_gmt','wcr_fract1','wcr_fract2','wpwp_fract1','wpwp_fract2','rough','snow_rough', ...
-%     'annual_prec','resid_moist1','resid_moist2'};
-
-% writecsv_cell('varnames.txt', varnames);
+% Feb. 28, 2019 JRS
+%
+% Assumes that LAI is provided in the vegetation parameter file, but not
+% albedo, etc.
+%
 
 % cd /Volumes/HD3/VICParametersGlobal/vic_params_global_0.5deg/
 % vegfile = 'vegparam_test.txt';
@@ -47,29 +42,6 @@ for i=1:ncells
     
 end
 
-% cellID = [];
-% nveg = [];
-% vegclass = [];
-% cv = [];
-% rootdepth1 = [];
-% rootdepth2 = [];
-% rootfract1 = [];
-% rootfract2 = [];
-% LAI1 = [];
-% LAI2 = [];
-% LAI3 = [];
-% LAI4 = [];
-% LAI5 = [];
-% LAI6 = [];
-% LAI7 = [];
-% LAI8 = [];
-% LAI9 = [];
-% LAI10 = [];
-% LAI11 = [];
-% LAI12 = [];
-
-
-
 fID = fopen(vegfile);
 tline = fgetl(fID);
 nline = str2num(tline);
@@ -79,9 +51,6 @@ while ischar(tline)
     
     if nline(2) == 0
 %         disp(['No vegetation classes in cell ' num2str(nline(1))])
-
-%         cellID = [cellID, nline(1)];
-%         nveg = [nveg, nline(2)]; 
 
         current_cellID = nline(1);
         current_nveg = nline(2);
@@ -98,9 +67,6 @@ while ischar(tline)
         
     elseif nline(2) >= 1
 %         disp(['There are ' num2str(nline(2)) ' vegetation classes in cell ' num2str(nline(1))])
-
-%         cellID = [cellID, nline(1)];
-%         nveg = [nveg, nline(2)];
 
         current_cellID = nline(1);
         current_nveg = nline(2);
@@ -121,13 +87,6 @@ while ischar(tline)
         while length(nline)>2
 %             disp('Reading data for each vegetation class in the grid cell')
             
-%             vegclass = [vegclass nline(1)];
-%             cv = [cv nline(2)];
-%             rootdepth1 = [rootdepth1 nline(3)];
-%             rootdepth2 = [rootdepth2 nline(4)];
-%             rootfract1 = [rootfract1 nline(5)];
-%             rootfract2 = [rootfract2 nline(6)];
-
             current_vegclass = nline(1); % vegclass numbers must correctly line up with the lines in vegnames
             current_cv = nline(2);
             current_rootdepth = [nline(3), nline(4)];
@@ -146,24 +105,7 @@ while ischar(tline)
             VEGPAR(current_cellID).(vegnames{current_vegclass}).LAI = ...
                 [nline(1), nline(2), nline(3), nline(4), nline(5), nline(6), ...
                 nline(7), nline(8), nline(9), nline(10), nline(11), nline(12)];
-            
-%             LAI1 = [LAI1 nline(1)];
-%             LAI2 = [LAI2 nline(2)];
-%             LAI3 = [LAI3 nline(3)];
-%             LAI4 = [LAI4 nline(4)];
-%             LAI5 = [LAI5 nline(5)];
-%             LAI6 = [LAI6 nline(6)];
-%             LAI7 = [LAI7 nline(7)];
-%             LAI8 = [LAI8 nline(8)];
-%             LAI9 = [LAI9 nline(9)];
-%             LAI10 = [LAI10 nline(10)];
-%             LAI11 = [LAI11 nline(11)];
-%             LAI12 = [LAI12 nline(12)];
-            
-            % check if next line is a new tile or not
-            
-%             C = fseek(fID, 1, 1)
-            
+                        
             tline = fgetl(fID);
             if tline==-1; break; end
             

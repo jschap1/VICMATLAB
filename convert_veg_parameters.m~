@@ -1,12 +1,19 @@
 % Converts vegetation parameter file to a geotiff file
 % 
-% Not the most efficient implementation (lots of for loops), but it gets
-% the job done as long as the data are not too large. Requires mapping toolbox
-%
 % INPUTS
-% soil parameter file
+% vegfile = vegetation parameter file
+% soilfile = soil parameter file
+% outfile = savename
 % processed vegetation parameter file from load_veg_parameters.m
 %
+% Requires mapping toolbox
+% soilfile = 'global_soil_param_new';
+% vegfile = 'global_veg_param_new';
+
+% load('global_vegetation_parameters.mat')
+% soilfile = 'global_soil_param_new';
+% soils = load(soilfile);
+
 % OUTPUTS
 % geotiffs containing:
 % -cover fraction (1*ntypes) for each vegetation type
@@ -143,26 +150,48 @@ for m=1:12
     for i=1:ncells
         for k=1:ntypes
 
-            lai = VEGPAR(i).(vegnames{k}).LAI;
-            if isempty(lai)
+            lai = VEGPAR(i).(vegnames{k}).rootfract;
+            if isempty()
                 LAI.(months{m})(i,k) = NaN;
             else
-                LAI.(months{m})(i,k) = lai(m);
+                LAI.(months{m})(i,k) = NaN;;
             end
 
         end
     end
 end
 
-for m=1:12
-    for k=1:ntypes
-        lai_map = xyz2grid(lon, lat, LAI.(months{m})(:,k));
-        fname_map = [vegnames{k} '_' months{m} '_LAI_map.tif'];
-        geotiffwrite(fname_map, flipud(lai_map), R)
+
+%% Scrap
+
+VEGPAR(1).(vegnames{k}).cv
+
+
+
+nveg_vect = zeros(ncells,1);
+nveg_vect = zeros(ncells,1);
+nveg_vect = zeros(ncells,1);
+nveg_vect = zeros(ncells,1);
+        
+
+    for k=5:length(varnames)
+
+        % xyz2grid function from Matlab File Exchange :)
+%         A = xyz2grid(lon, lat, soils(:,k)); 
+        A = xyz2grid(lon, lat, nveg'); 
+        % 444 rows (latitude) by 922 columns (longitude)
+        
+        outname = [varnames{k} '.tif'];
+        geotiffwrite(outname, flipud(A), R)
+        disp(['Saved soil parameter data as ', outname])
+        
     end
-end
 
 % % for visualizing results
 % xvals = linspace(R.LongitudeLimits(1), R.LongitudeLimits(2), R.RasterSize(1));
 % yvals = linspace(R.LatitudeLimits(1), R.LatitudeLimits(2), R.RasterSize(2));
 % figure, imagesc(xvals, yvals, vegmask)
+
+xvals = linspace(R.LongitudeLimits(1), R.LongitudeLimits(2), R.RasterSize(1));
+yvals = linspace(R.LatitudeLimits(1), R.LatitudeLimits(2), R.RasterSize(2));
+figure, imagesc(xvals, yvals, cv_map)
