@@ -2,11 +2,11 @@ There is a problem with FLUXES.lon and FLUXES.lat that makes a line at
 the top of the plot for the UMRB basin, in particular. It is the last hundred or so entries of
 FLUXES.lat/lon.
 
-There are 14015 output files, so VIC was run over 14015 grid cells. 
+There are 14015 output files, so VIC was run over 14015 grid cells.
 Either there are 100 or so grid cells being run that should not be run, or the location of 100 or so grid cells is not being taken correctly from the file names in the GetCoords workflow.
 
 There are a bunch of 47.78125 latitude pixels at the end that do not belong in the model, but were run anyway. Thus, there is an issue with the pixels included in the soil parameter file, vicinputworkflow.m. The problem is already introduced when the soils file is created/partitioned from the larger, CONUS soils file.
 
 There are 184 such points. There are basically a bunch of masklat = 47.7812 values that don't belong. Where do they come from? The masklat and masklon values just seem so wrong. What's going on? I haven't figured out why so many masklat values are set equal to the same value. This workflow would be better off done in a GIS program, like GRASS.
 
-
+This was fixed in January 2019, with vicinputworkflow2.m

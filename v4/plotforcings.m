@@ -1,6 +1,5 @@
 % Loads and plots ASCII forcing data
-%
-% Toggle VIC4 or VIC5 (different number of input variables)
+% VIC4
 %
 % Dependencies:
 % GetCoords.m
@@ -10,17 +9,11 @@
 forcingpath = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Forcings/Disagg_Forc/'; 
 % the final slash is needed
 
-version = 5;
 precision = 5;
 
-if version == 4
-    varnames = {'prec','tmin','tmax','wind'};
-    varunits = {'mm','deg C','deg C','m/s'};
-    % order of the forcing variables must match the order in the forcing files
-elseif version == 5
-    varnames = {'prec','air_temp','shortwave','longwave','density','pressure','vp','wind'};
-    varunits = {'mm','deg C','W/m^2','W/m^2','kg/m^3','kPa','kPa','m/s'};
-end
+varnames = {'prec','tmin','tmax','wind'};
+varunits = {'mm','deg C','deg C','m/s'};
+% order of the forcing variables must match the order in the forcing files
 
 invisible = 1;
 saveflag = 1;
@@ -28,11 +21,7 @@ saveloc = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Figures/Forcings/Disaggre
 
 %% Load forcing data
 
-if version == 4
-    forcenames = dir([forcingpath 'data*']);
-elseif version == 5
-    forcenames = dir([forcingpath 'full_data*']);
-end
+forcenames = dir([forcingpath 'data*']);
 
 ncells = length(forcenames);
 addpath(forcingpath)

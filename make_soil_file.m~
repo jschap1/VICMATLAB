@@ -72,9 +72,6 @@ is_soil = ncread('../HWSD/HWSD_1247/data/ISSOIL.nc4', 'ISSOIL');
 is_soil_rg = myregrid(lons, lats, rglons, rglats, is_soil);
 is_soil_rg = is_soil_rg';
 
-figure, imagesc(target_lon, target_lat, is_soil_rg)
-set(gca, 'ydir', 'normal')
-
 % Since we've upscaled the soil mask, some pixels are partially soil and
 % partially not soil. Need to account for this. Simplest thing to do:
 % assume that all partial soil units are soil.
@@ -137,7 +134,6 @@ title('Soil mapping units')
 
 % hwsd_landmask = geotiffread('/Volumes/HD3/HWSD/hwsd_landmask_1_16.tif');
 % hwsd_landmask(hwsd_landmask == 255) = NaN;
-% hwsd_landmask = flipud(hwsd_landmask);
 % figure, imagesc(hwsd_landmask)
 % this should be very similar to the ISSOIL mask bc both are from the same data source, ultimately
 % SRTM has limited spatial coverage. Should really use a more global
@@ -508,10 +504,6 @@ dsmax = mean([ksat1, ksat2],2).*slope(landmask); % Dsmax
 % soils(noslope,7) = 0; 
 soils(:,7) = fillmissing(dsmax, 'nearest');
 % filling missing values with the nearest non-missing value
-%
-% There are some very high values of dsmax
-% The max value is 9200*6; where there is exceptionally high conductivity and
-% also a very steep slope
 
 soils(:,8) = 0.9; % Ws
 soils(:,9) = 2; % c
@@ -529,8 +521,8 @@ soils(:,17) = 1000.*wcr_fract2.*0.7.*porosity2; % init_moist2
 % soils(noelev,18) = 0;
 soils(:,18) = fillmissing(elev1(landmask), 'nearest'); % elev
 
-soils(:,19) = 30/100; % depth1 (m)
-soils(:,20) = 100/100; % depth2 (m)
+soils(:,19) = 30; % depth1
+soils(:,20) = 100; % depth2
 
 soils(:,21) = fillmissing(avgT_rg(landmask), 'nearest'); % avg_T
 % soils(:,21) = avgT_rg(landmask); % avg_T
@@ -543,8 +535,8 @@ soils(:,24) = 0.32*expt2 + 4.3; % bubble2
 soils(:,25) = quartz1; % quartz1
 soils(:,26) = quartz2; % quartz2
 
-soils(:,27) = fillmissing(1000*t_bd_rg(landmask), 'nearest'); % bulk_dens1
-soils(:,28) = fillmissing(1000*s_bd_rg(landmask), 'nearest'); % bulk_dens2
+soils(:,27) = fillmissing(t_bd_rg(landmask), 'nea; % bulk_dens1
+soils(:,28) = fillmissing(s_bd_rg(landmask); % bulk_dens2
 
 % soils(:,27) = bulk_dens1; % bulk_dens1
 % soils(:,28) = bulk_dens2; % bulk_dens2
@@ -559,10 +551,9 @@ soils(:,35) = wpwp_fract2; % wpwp_fract2
 soils(:,36) = 0.001; % rough
 soils(:,37) = 0.0005; % snow_rough
 
-% soils(:,38) = avgP_rg(landmask); % annual_prec
-soils(:,38) = fillmissing(avgP_rg(landmask), 'nearest');
-% noprecip = find(isnan(avgT_rg(landmask)));
-% soils(noprecip,21) = -99; 
+soils(:,38) = avgP_rg(landmask); % annual_prec
+noprecip = find(isnan(avgT_rg(landmask)));
+soils(noprecip,21) = -99; 
 
 soils(:,39) = 0; % resid_moist1 (leaving it as 0...)
 soils(:,40) = 0; % resid_moist2

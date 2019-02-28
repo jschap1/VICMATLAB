@@ -36,7 +36,7 @@ end
 % to run the VIC routing model with VIC 5 outputs, these header rows need
 % to be removed.
 
-cd /Volumes/HD3/SWOTDA/Outputs/VIC_UMRB/Raw/w_header/
+cd ./Outputs/VIC_UMRB/Raw/
 
 orignames = dir('fluxes*');
 ncells = length(orignames);

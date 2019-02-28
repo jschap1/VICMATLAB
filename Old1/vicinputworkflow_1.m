@@ -1,18 +1,3 @@
-function [] = vicinputworkflow2()
-
-% INPUTS
-%
-% Basin mask, as list of coordinates
-%
-% Met. forcings at daily resolution, saved as separate NetCDF files for
-% each variable and year (e.g. prec.1965.nc, wind.1990.nc)
-% Basin mask with using appropriate resolution, geographic coordinates
-% Soil parameter file covering >= the domain of interest
-% 
-% OUTPUTS
-% Met. forcing file, clipped to basin boundaries
-% Soil parameter file, clipped to basin boundaries
-%
 % Generic workflow for creating VIC input files
 %
 % Clips daily forcing and soil parameter data for CONUS to just the cells within 
@@ -21,39 +6,32 @@ function [] = vicinputworkflow2()
 %
 % Is set up to use Livneh forcing data, which is on a 444 by 922 lat/lon
 % grid (1/16 degree resolution)
-%
-% Run the R script routinputworkflow first to generate the basin mask
-% After running this script, run VIC4 as a disaggregator to get subdaily
-% forcing inputs for VIC5.
 
 %% Specify inputs
 
 % Directory of daily CONUS met. forcing file
-forcingpath = '/Volumes/HD3/Livneh_2013/MetNC';
-
-% Name of basin mask at VIC modeling resolution
-basinmask = '/Volumes/HD3/SWOTDA/Data/UMRB/Basin/basin.wgs.asc';
+forcingpath = '/Users/jschapMac/Documents/HydrologyData/Livneh/MetNC';
 
 % Directory where clipped forcing files should be saved
-forcingsavedir = '/Volumes/HD3/SWOTDA/Data/Livneh_Forcings/Test';
+forcingsavedir = '/Users/jschapMac/Desktop/Tuolumne2/Forcings';
 
 % Number of forcings in the daily CONUS met. forcing file
 numforcings = 4;
 
 % Beginning and ending years of simulation (must be included in the daily CONUS
 % met. forcing file)
-beginyear = 1991; % 1948;
-endyear = 1992;
+beginyear = 2006;
+endyear = 2011;
 
 % Number of decimal points of precision to use for forcing file names
 grid_decimal = 5;
 
 % Directory of CONUS soil parameter file
-soilpath = '/Volumes/HD3/VICParametersCONUS';
+soilpath = '/Users/jschapMac/Documents/HydrologyData/VICParametersCONUS';
 soilname = 'vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt'; 
 
 % Directory where clipped soil parameter file should be saved
-soilsavedir = '/Volumes/HD3/SWOTDA/Data/UMRB/VIC';
+soilsavedir = '/Users/jschapMac/Desktop/Tuolumne2';
 
 %% Load the mask
 
@@ -67,21 +45,20 @@ metlon = ncread(['prec.' num2str(beginyear) '.nc'], 'lon');
 metlon = metlon - 360;
 %%%
 
-maskxyz = dlmread('/Volumes/HD3/SWOTDA/Data/UMRB/Basin/basincoords.txt', '|');
-masklon = maskxyz(maskxyz(:,3) == 1,1);
-masklat = maskxyz(maskxyz(:,3) == 1,2);
-ncells = length(masklon);
+% Load coarse resolution basin mask (1/16 deg., same as the forcing data)
+[mask, R] = arcgridread('/Users/jschapMac/Desktop/Tuolumne/RoutingInputs/basinmask_coarse.asc');
+[ind1, ind2] = find(mask);
 
-% masklat = list of latitudes of the nonzero mask pixels. Must have four
-% decimal places.
+% Get lat/lon of basin mask (only the pixels whose values are 1)
+ncells = sum(mask(:)~=0);
+masklat = NaN(ncells,1);
+masklon = NaN(ncells,1);
 
-% kk = find(abs(masklat - 47.7813) < 0.0001); % these are the problematic pixels
-
-% figure(3), imagesc(masklon, masklat, mask)
+for i=1:ncells
+    [masklat(i),masklon(i)] = pix2latlon(R, ind1(i), ind2(i));
+end
 
 %% Extract the forcings whose lat/lon match those of the basin mask
-
-% Takes about 30 minutes to run for UMRB, five years.
 
 disp('Extracting forcing variables')
 
@@ -134,7 +111,7 @@ end
 fstring = ['%.' num2str(grid_decimal) 'f'];
 for k=1:ncells     
     filename = ['data_' num2str(masklat(k),fstring) '_' num2str(masklon(k),fstring)];
-    dlmwrite(fullfile(forcingsavedir, filename), data_cum(:,:,i), ' ')  
+    dlmwrite(fullfile(forcingsavedir, filename), data_cum(:,:,i))  
 end
 display(['Forcing data saved to ' forcingsavedir])
 
@@ -147,24 +124,49 @@ soils = load(fullfile(soilpath, soilname));
 slat = soils(:,3);
 slon = soils(:,4);
 
-soils(:,1) = 0;
-
+soilsclip = NaN(ncells,size(soils,2));
 for k=1:ncells
     % Get the index of the met. forcing data that matches the basin mask
     sind = find(masklat(k) == slat & masklon(k) == slon);
-    soils(sind,1) = 1;
+    soilsclip(k,:) = soils(sind,:);        
 end
 
-soils(soils(:,1) == 0,:) = []; % include this line to reduce file size
-
+%%% fprintf version
 fstring = ['%.' num2str(grid_decimal) 'f'];
 fspec = ['%d %d ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d\n'];
-fID = fopen(fullfile(soilsavedir, 'soils.UMRB'),'w');
-fprintf(fID, fspec, soils');
+fID = fopen(fullfile(soilsavedir, 'soilsf.TUOLUMNE'),'w');
+fprintf(fID, fspec, soilsclip');
 fclose(fID);
 display(['Soils data saved to ' soilsavedir])
+%%%
+
+%%% dlmwrite version
+fstring = ['%.' num2str(8) 'f'];
+fspec = ['%d %.0f ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d'];
+dlmwrite(fullfile(soilsavedir, 'soils.TUOLUMNE'), soilsclip, ...
+    'precision',fspec,'delimiter','')
+display(['Soils data saved to ' soilsavedir])
+%%%
 
 % Note: the delimiter and the format spec must be specified precisely as
 % the Stehekin example from the VIC website in order to avoid the error
 % about CELL LATITUDE not being found/for VIC to successfully read the soil
 % parameter file.
+
+%% Make plots to check that everything is all right
+
+% Plot basin mask
+figure 
+mapshow(mask,R,'DisplayType','surface')
+
+% Plot met. forcing file lat lons
+% figure
+% plot(data_cum(:,:,1),'.')
+
+% Plot soils file lat lons
+figure
+plot(soilsclip(:,4), soilsclip(:,3), '.')
+
+% Plot basin mask and soil lat lons in one figure:
+% figure,hold on, mapshow(mask,R),  mapshow(soilsclip(:,4), soilsclip(:,3))
+
