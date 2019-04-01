@@ -24,12 +24,12 @@ addpath(genpath('/Users/jschap/Documents/Codes/VICMATLAB'))
 
 % Provide info about the VIC model run
 precision = 5;
-nlayers = 3;
+nlayers = 2;
 run_type = 'WATER_BALANCE'; % FULL_ENERGY or WATER_BALANCE
 rec_interval = 'daily';
 
 saveflag = 1;
-saveloc = '/Volumes/HD3/SWOTDA/Outputs/VIC_UMRB';
+saveloc = '/Volumes/HD3/SWOTDA/Outputs/VIC_IRB/Raw';
 
 %%
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -42,10 +42,17 @@ saveloc = '/Volumes/HD3/SWOTDA/Outputs/VIC_UMRB';
 
 % default for VIC5 classic outputs is to have three lines of headers
 headers = 3; 
-nfluxvars = 25;
+
+% default outputs
+if nlayers == 2
+    nfluxvars = 24;
+elseif nlayers == 3
+    nfluxvars = 25; 
+end
+
 nsnowvars = 7;
 [gridcells, fluxresults, snowresults] = LoadVIC5Results(headers, ...
-    nfluxvars, nsnowvars);
+    nfluxvars, nsnowvars, saveloc);
 
 
 %% Fluxes
@@ -133,13 +140,15 @@ for p = 1:length(snowvarnames)
     
 end
 
+%% Save
+
 if saveflag
     if ~exist(saveloc,'dir')
         mkdir(saveloc)
     end    
     save(fullfile(saveloc,'timevector.mat'),'timevector')
-%     save(fullfile(saveloc,'FLUXES.mat'),'FLUXES')
-    save(fullfile(saveloc,'FLUXES.mat'),'FLUXES', '-v7.3')
+    save(fullfile(saveloc,'FLUXES.mat'),'FLUXES')
+%     save(fullfile(saveloc,'FLUXES.mat'),'FLUXES', '-v7.3')
     save(fullfile(saveloc,'SNOW.mat'),'SNOW')
 end
 

@@ -1,7 +1,7 @@
 % Plots VIC snow outputs
 
-load('./Outputs/VIC_UMRB/SNOW.mat') % load processed snow state data
-saveloc = './Figures/VIC_UMRB/Snow';
+load('./Outputs/VIC_IRB/Processed/SNOW.mat') % load processed snow state data
+saveloc = './Figures/VIC_IRB/Snow';
 invisible = 1;
 saveflag = 1;
 

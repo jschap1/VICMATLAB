@@ -5,17 +5,19 @@
 % Assumes that LAI is provided in the vegetation parameter file, but not
 % albedo, etc.
 %
-
+% Note: this is not a good format for really large vegetation parameter
+% files. Should update this function to conserve memory.
+%
 % cd /Volumes/HD3/VICParametersGlobal/vic_params_global_0.5deg/
+% cd /Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation
 % vegfile = 'vegparam_test.txt';
 % vegfile = 'global_veg_param_new';
+% 
+% Use soil parameter file to get ncells (if needed)
+% soils = load('/Volumes/HD3/VICParametersGlobal/Global_1_16/soils/second_attempt/global_soils_1_16.txt');
+% ncells = size(soils, 1)
 
 function VEGPAR = load_veg_parameters(vegfile)
-
-% load the vegetation parameter file
-% maybe it would be useful to split it into two files?
-% there might be a tonic script to convert vegetation parameter file to
-% netcdf?
 
 % initialize variables
 
@@ -25,7 +27,8 @@ vegnames = textscan(fID, '%s');
 vegnames = vegnames{1};
 fclose(fID);
 
-ncells = 61345;
+ncells = 3657751;
+% ncells = 61345;
 VEGPAR(ncells) = struct(); % initializing a structure to a certain size
 
 for i=1:ncells
@@ -38,6 +41,10 @@ for i=1:ncells
         VEGPAR(i).(vegnames{j}).rootfract = zeros(0,2);
         VEGPAR(i).(vegnames{j}).rootfract = zeros(0,2);
         VEGPAR(i).(vegnames{j}).LAI = zeros(0,12);
+    end
+    
+    if mod(i, 1e5)==0
+        disp(['Progress: ' num2str(round(i/ncells, 2)*100) '%'])
     end
     
 end
@@ -126,13 +133,18 @@ while ischar(tline)
             currentlinenumber = currentlinenumber + 1;
         end
     
-        disp(num2str(round(100*currentlinenumber/471929)))
+        if mod(current_cellID, 1e5)==0
+            round(100*current_cellID/ncells)
+        end
+        
         
 end
 fclose(fID);
 
 % Save the processed vegetation parameter data
-save('global_vegetation_parameters.mat', 'VEGPAR')
+% save('global_vegetation_parameters.mat', 'VEGPAR')
+save('global_vegetation_parameters.mat', 'VEGPAR', '-v7.3')
+
 % It would be useful to be able to also detect which vegetation classes
 % have values for a particular cell, but this is nonessential for now.
 

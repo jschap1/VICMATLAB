@@ -1,7 +1,8 @@
 % Plots VIC flux outputs
 
-load('./Outputs/VIC_UMRB/FLUXES.mat') % load processed flux data
-saveloc = './Figures/VIC_UMRB/Fluxes/';
+cd /Volumes/HD3/SWOTDA
+load('/Volumes/HD3/SWOTDA/Outputs/VIC_IRB/Processed/FLUXES.mat') % load processed flux data
+saveloc = './Figures/VIC_IRB/Fluxes/';
 
 ncells = length(fieldnames(FLUXES.ts));
 nsteps = length(FLUXES.time);
@@ -9,7 +10,7 @@ cellnames = fieldnames(FLUXES.ts);
 fluxvarnames = FLUXES.ts.(cellnames{1}).Properties.VariableNames;
 invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-nlayers = 3;
+nlayers = 2;
 
 %% Plot basin average flux time series
 % fluxunitscell = struct2cell(FLUXES.units);
@@ -56,7 +57,9 @@ for p=1:length(fluxvarnames)
    if saveflag
         saveas(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} '_ts.png']));
 %         savefig(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} '_ts.fig']));
-    end
+   else
+       pause;
+   end
 
 end
 
@@ -96,7 +99,9 @@ for p=1:length(fluxvarnames)
    if saveflag
         saveas(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} '_map.png']));
 %         savefig(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} '_map.fig']));
-    end
+   else
+       pause;
+   end
 
 end
 
@@ -112,6 +117,9 @@ end
 A_bar = 13.67; % square miles
 A_bar_ft = A_bar*2.788e+7;
 runoff_sum_cfs = runoff_sum*39.37*A_bar_ft/(12*86400*1000);
+
+% convert to km^3 per year
+runoff_sum_km3 = (sum(runoff_sum_cfs)*3600*365*24*(12/39.37)^3)/1000^3
 
 % Compare to USGS gauge data
 
@@ -133,8 +141,11 @@ gage_subset = gageq(qind,:);
 figure, hold on
 plot(FLUXES.time, runoff_sum_cfs)
 plot(FLUXES.time, gage_subset.Q)
+
+figure, plot(FLUXES.time, runoff_sum)
 xlabel('time')
-ylabel('runoff (cfs)')
+ylabel('runoff (mm)')
+
 legend('VIC','Gauge')
 
 % Repeat for monthly discharge
@@ -145,4 +156,4 @@ round(runoff_sum_cfs)
 FLUXES.time
 gage_subset.Q
 
-
+%% Calculate water balance components (in meaningful units)

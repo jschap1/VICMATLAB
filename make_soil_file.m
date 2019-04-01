@@ -13,6 +13,9 @@
 %    website, under "terrain"
 % 2. Fill gaps in coverage (by interpolation or finding different data)
 % 3. Write up procedure of making the soil parameter file
+%
+% Updated 3/12/2019 JRS - added fs_active to base set of soil parameters
+% since it's required to run VIC, even if not using frozen soils
 
 %% INPUTS
 
@@ -50,16 +53,16 @@ target_lat = min(lat):0.0625:max(lat);
 [lons, lats] = ndgrid(lon, lat);
 [rglons, rglats] = ndgrid(target_lon, target_lat);
 
-t_sand_rg = myregrid(lons, lats, rglons, rglats, t_sand)';
-t_clay_rg = myregrid(lons, lats, rglons, rglats, t_clay)';
-s_sand_rg = myregrid(lons, lats, rglons, rglats, s_sand)';
-s_clay_rg = myregrid(lons, lats, rglons, rglats, s_clay)';
-t_bd_rg = myregrid(lons, lats, rglons, rglats, t_bd)';
-s_bd_rg = myregrid(lons, lats, rglons, rglats, s_bd)';
-t_org_rg = myregrid(lons, lats, rglons, rglats, t_org)';
-s_org_rg = myregrid(lons, lats, rglons, rglats, s_org)';
+t_sand_rg = myregrid(lons, lats, rglons, rglats, t_sand, 'linear')';
+t_clay_rg = myregrid(lons, lats, rglons, rglats, t_clay, 'linear')';
+s_sand_rg = myregrid(lons, lats, rglons, rglats, s_sand, 'linear')';
+s_clay_rg = myregrid(lons, lats, rglons, rglats, s_clay, 'linear')';
+t_bd_rg = myregrid(lons, lats, rglons, rglats, t_bd, 'linear')';
+s_bd_rg = myregrid(lons, lats, rglons, rglats, s_bd, 'linear')';
+t_org_rg = myregrid(lons, lats, rglons, rglats, t_org, 'linear')';
+s_org_rg = myregrid(lons, lats, rglons, rglats, s_org, 'linear')';
 
-figure, imagesc(target_lon, target_lat, t_sand_rg)
+% figure, imagesc(target_lon, target_lat, t_sand_rg)
 
 % Make a land mask from HWSD. Use the field "ISSOIL"
 
@@ -69,11 +72,11 @@ is_soil = ncread('../HWSD/HWSD_1247/data/ISSOIL.nc4', 'ISSOIL');
 % 0 - 4.8e5 pixels -> indicates a soil mapping unit is not soil
 % NaN - 2.0e7 pixels -> ocean
 
-is_soil_rg = myregrid(lons, lats, rglons, rglats, is_soil);
+is_soil_rg = myregrid(lons, lats, rglons, rglats, is_soil, 'linear');
 is_soil_rg = is_soil_rg';
 
-figure, imagesc(target_lon, target_lat, is_soil_rg)
-set(gca, 'ydir', 'normal')
+% figure, imagesc(target_lon, target_lat, is_soil_rg)
+% set(gca, 'ydir', 'normal')
 
 % Since we've upscaled the soil mask, some pixels are partially soil and
 % partially not soil. Need to account for this. Simplest thing to do:
@@ -104,7 +107,7 @@ elev(elev==-9999) = NaN; % nodata values
 
 % Regrid elevation data
 [elons, elats] = ndgrid(elon, elat);
-elev_rg = myregrid(elons, elats, rglons, rglats, elev);
+elev_rg = myregrid(elons, elats, rglons, rglats, elev, 'linear');
 elev_rg = elev_rg';
 
 % Repeat for land cover fraction data
@@ -114,20 +117,20 @@ elev_rg = elev_rg';
 % fract_rg = myregrid(elons, elats, rglons, rglats, fract);
 % fract_rg = fract_rg';
 
-figure
-subplot(1,3,1)
-imagesc(target_lon, target_lat, t_sand_rg)
-set(gca, 'ydir', 'normal')
-title('Percent sand (topsoil)')
-subplot(1,3,2)
-imagesc(target_lon, target_lat, elev_rg)
-set(gca, 'ydir', 'normal')
-title('Elevation')
-
-subplot(1,3,3)
-imagesc(target_lon, target_lat, is_soil_rg)
-set(gca, 'ydir', 'normal')
-title('Soil mapping units')
+% figure
+% subplot(1,3,1)
+% imagesc(target_lon, target_lat, t_sand_rg)
+% set(gca, 'ydir', 'normal')
+% title('Percent sand (topsoil)')
+% subplot(1,3,2)
+% imagesc(target_lon, target_lat, elev_rg)
+% set(gca, 'ydir', 'normal')
+% title('Elevation')
+% 
+% subplot(1,3,3)
+% imagesc(target_lon, target_lat, is_soil_rg)
+% set(gca, 'ydir', 'normal')
+% title('Soil mapping units')
 
 % imagesc(target_lon, target_lat, fract_rg)
 % set(gca, 'ydir', 'normal')
@@ -162,11 +165,22 @@ title('Soil mapping units')
 % -------------------------------------------------------------------------
 % -------------------------------------------------------------------------
 
+% -------------------------------------------------------------------------
+% -------------------------------------------------------------------------
+% Load a landmask from MODIS
+
+% gsw_landmask = geotiffread('/Volumes/HD3/VICParametersGlobal/High_Resolution/landmask_from_GSW.tif');
+% gsw_landmask(gsw_landmask<0) = NaN;
+% figure, imagesc(gsw_landmask)
+
+
+% -------------------------------------------------------------------------
+% -------------------------------------------------------------------------
 
 landmask = is_soil_rg; 
 landmask(isnan(landmask)) = 0;
 landmask = logical(landmask);
-landcells = find(landmask);
+landcells = find(landmask); % where HWSD has data..., these are considered to be land..., should fill in missing data
 ncells = length(landcells);
 
 % landmask = fract_rg>0;
@@ -180,6 +194,14 @@ ncells = length(landcells);
 % ncells = sum(landmask(:));
 % 
 % land_ind = find(landmask);
+
+figure
+imagesc(target_lon, target_lat, landmask)
+xlabel('Longitude')
+ylabel('Latitude')
+title('Land mask from HWSD')
+set(gca, 'ydir', 'normal')
+set(gca, 'fontsize', 18)
 
 elev1 = elev_rg;
 elev1(~landmask) = NaN;
@@ -205,7 +227,7 @@ noslope = find(isnan(slope(landmask)));
 % gdaldem slope -s 111120 -p -compute_edges  N34E069.hgt N34E069_slope.tif
 % noslope = find(isnan(slope(landmask)));
 
-figure, imagesc(target_lon, target_lat, elev1)
+% figure, imagesc(target_lon, target_lat, elev1)
 % 
 % [slope, R] = geotiffread('./Data/JISAO/slope.tif');
 % slope(slope==-9999) = NaN;
@@ -237,6 +259,47 @@ s_percent_clay = s_clay_rg(landcells);
 [~, ~, s_sc_int, ~] = soil_classification(s_percent_sand/100, s_percent_clay/100, 'usda', 0);
 % sc_int is the USGS soil class, which is used in the lookup table 
 
+% ------------------------------------------------------
+% Save soil textures as geotiffs (how to do this?)
+
+M1 = single(landmask);
+M2 = single(landmask);
+
+% this assignment does not work for some unknown reason...
+M1(landcells) = t_sc_int;
+M2(landcells) = s_sc_int;
+
+% landmask(landcells)
+% 
+% M1 = xyz2grid(lonlat(:,1), lonlat(:,2), t_sc_int);
+% M2 = xyz2grid(lonlat(:,1), lonlat(:,2), s_sc_int);
+
+% append rows to the soil texture matrix to account for the missing
+% southern latitudes
+% nmissingrows = size(t_sand_rg, 1) - size(M1, 1);
+% M1 = [M1; NaN(nmissingrows, size(M1, 2))];
+% M2 = [M2; NaN(nmissingrows, size(M2, 2))];
+
+R = makerefmat(target_lon(1), target_lat(1), res, res);
+
+geotiffwrite('topsoil_texture.tif', M1, R)
+geotiffwrite('subsoil_texture.tif', M2, R)
+
+figure
+imagesc(target_lon, target_lat, M2)
+xlabel('Longitude')
+ylabel('Latitude')
+title('USDA Soil Textures (subsoil)')
+set(gca, 'ydir', 'normal')
+set(gca, 'fontsize', 18)
+
+% Not sure how to get legend to appear as desired:
+% legend('sand','loamy-sand','sandy-loam','silty-loam',...
+%     'silt','loam','sandy-clay-loam','silty-clay-loam',...
+%     'clay','sandy-clay','silty-clay', 'clay');
+
+% ------------------------------------------------------
+
 % Import pedotransfer table
 T = dlmread('/Users/jschap/Documents/Codes/VICMATLAB/pedotransfer_table.txt', '\t', 1, 0);
 
@@ -260,7 +323,7 @@ for sc=1:12
     ksat1(t_sc_int == sc) = 240*T(sc, 6); % mm/day
     expt1(t_sc_int == sc) = 3 + 2*T(sc, 7);
 %     bulk_dens1(t_sc_int == sc) = 1000*T(sc, 2); % kg/m^3
-    wcr_fract1(t_sc_int == sc) = T(sc, 3)/T(sc, 5); % fraction of maximum moisture
+    wcr_fract1(t_sc_int == sc) = T(sc, 3)/T(sc, 5); % fraction of maximum moisture (double check this calculation, might be incorrect)
     wpwp_fract1(t_sc_int == sc) = T(sc, 4)/T(sc, 5); % fraction of maximum moisture
     porosity1(t_sc_int == sc) = T(sc,5);
     
@@ -317,7 +380,7 @@ Tres = 0.0416667;
 Tlat = -90:Tres:90-0.5*Tres; % 2.5 minute resolution
 Tlon = -180:Tres:180-0.5*Tres;
 [Tlons, Tlats] = ndgrid(Tlon, Tlat);
-avgT_rg = myregrid(Tlons, Tlats, rglons, rglats, avgT.y');
+avgT_rg = myregrid(Tlons, Tlats, rglons, rglats, avgT.y', 'linear');
 avgT_rg = avgT_rg';
 
 ann_T = avgT_rg;
@@ -342,9 +405,13 @@ set(gca, 'ydir', 'normal')
 % x 66.15833 82.45000
 % y 24.02500 37.08333
 
+% Save the average temperature map
+R = makerefmat(target_lon(1), target_lat(1), res, res);
+geotiffwrite('worldclim_tavg.tif', ann_T, R)
+
 % Also compute July_Tavg
 
-JT_rg = myregrid(Tlons, Tlats, rglons, rglats, avgT.m7');
+JT_rg = myregrid(Tlons, Tlats, rglons, rglats, avgT.m7', 'linear');
 JT_rg = JT_rg';
 
 %% Part 5 
@@ -415,13 +482,17 @@ Tres = 0.0416667;
 Tlat = -90:Tres:90-0.5*Tres; % 2.5 minute resolution
 Tlon = -180:Tres:180-0.5*Tres;
 [Tlons, Tlats] = ndgrid(Tlon, Tlat);
-avgP_rg = myregrid(Tlons, Tlats, rglons, rglats, double(avgP.y'));
+avgP_rg = myregrid(Tlons, Tlats, rglons, rglats, double(avgP.y'), 'linear');
 avgP_rg = avgP_rg';
 
-ann_T = avgP_rg;
-ann_T(~landmask) = NaN;
-figure, imagesc(target_lon, target_lat, ann_T)
+ann_P = avgP_rg;
+ann_P(~landmask) = NaN;
+figure, imagesc(target_lon, target_lat, ann_P)
 set(gca, 'ydir', 'normal')
+
+% Save the annual precipitation map
+R = makerefmat(target_lon(1), target_lat(1), res, res);
+geotiffwrite('worldclim_prec.tif', ann_P, R)
 
 %% Part 8 
 
@@ -566,9 +637,9 @@ soils(:,38) = fillmissing(avgP_rg(landmask), 'nearest');
 
 soils(:,39) = 0; % resid_moist1 (leaving it as 0...)
 soils(:,40) = 0; % resid_moist2
+soils(:,41) = 0; % fs_active
 
 % Use if frozen soils = TRUE
-% soils(:,41) = 1; % fs_active
 % soils(:,42) = NaN; % frost_slope
 % soils(:,43) = NaN; % msds
 
@@ -611,8 +682,8 @@ fstring = ['%.' num2str(grid_decimal) 'f'];
 % This is used for the Livneh (2013) soil parameter file
 % fspec = ['%d %d ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d\n'];
 
-% This is used for VIC w no optional variables (40 columns in the soil parameter file).
-fspec = ['%d %d ' fstring ' ' fstring ' ' '%.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %d %d %.3f %.3f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d\n'];
+% This is used for VIC w no optional variables (41 columns in the soil parameter file).
+fspec = ['%d %d ' fstring ' ' fstring ' ' '%.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %d %d %.3f %.3f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d\n'];
 
 fID = fopen(savename,'w');
 fprintf(fID, fspec, soils');

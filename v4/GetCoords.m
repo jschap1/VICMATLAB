@@ -47,7 +47,7 @@ for k = 1:ncells
 end
 
 % Convention for western hemisphere
-lon = -lon;
+% lon = -lon;
     % Indexing convention
     % i, x
     % j, y

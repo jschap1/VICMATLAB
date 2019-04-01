@@ -1,4 +1,4 @@
-% Converts vegetation parameter file to a geotiff file
+% Converts vegetation parameter files to geotiff files
 % 
 % Not the most efficient implementation (lots of for loops), but it gets
 % the job done as long as the data are not too large. Requires mapping toolbox

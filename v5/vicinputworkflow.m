@@ -31,7 +31,7 @@ function [] = vicinputworkflow()
 % cd '/Volumes/HD3/SWOTDA/Data/IRB/'
 
 % Directory of daily CONUS met. forcing files
-forcingpath = '/Users/jschap/Box Sync/Margulis_Research_Group/Jacob/Shared_SWOTDA/MERRA2/Processed/MERRA2_Outputs';
+forcingpath = '/Users/jschap/Box Sync/Margulis_Research_Group/Jacob/Shared_SWOTDA/MERRA2/Forc_onemonth';
 
 % Name of basin mask at VIC modeling resolution
 % basinmask = './Data/UMRB/Basin/basin.wgs.asc';
@@ -48,14 +48,14 @@ numforcings = 7;
 
 % Beginning and ending years of simulation (must be included in the daily CONUS
 % met. forcing file)
-beginyear = 1990;
-endyear = 2000;
+beginyear = 1980;
+endyear = 1980;
 
 % Number of decimal points of precision to use for forcing file names
 grid_decimal = 5;
 
 % Directory of CONUS soil parameter file
-soilpath = '/Volumes/HD3/SWOTDA/Data/Global/second_attempt';
+soilpath = '/Volumes/HD3/VICParametersGlobal/Global_1_16/soils';
 soilname = 'global_soils_1_16.txt'; 
 
 % Directory where clipped soil parameter file should be saved
@@ -67,27 +67,43 @@ soilsavedir = './VIC';
 % metlat = ncread(['prec.' num2str(beginyear) '.nc'], 'lat');
 % metlon = ncread(['prec.' num2str(beginyear) '.nc'], 'lon');
 
-metlat = 1; % list of coordinates where forcing data are available
-metlon = 1; 
-% Ask GK to get this for me...
+% metlat = 1; % list of coordinates where forcing data are available
+% metlon = 1; 
+% % Ask GK to get this for me...
+% 
+% fnames = dir(fullfile(forcingpath, '*.out'));
+% 
+% % Get list of pixel numbers --------------------
+% n_merra = length(fnames);
+% pixelno = zeros(n_merra,1);
+% for k=1:n_merra
+%     temp1 = split(fnames(k).name, '_year');
+%     temp2 = split(temp1{1}, 'pixel_');
+%     pixelno(k) = str2double(temp2{2});
+% end
+% 
+% % Use static file to get lat and lon from pixel numbers
+% static_file = load('/Users/jschap/Box Sync/Margulis_Research_Group/Jacob/Shared_SWOTDA/MERRA2/Processed/static_file_MERRA2.in');
+% % [~, basin_inds] = ismember(pixelno, static_file(:,1));
+% metlat = static_file(pixelno,2);
+% metlon = static_file(pixelno,3);
+% ----------------------------------------------
 
-fnames = dir(fullfile(forcingpath, '*.out'));
+% Get lat and lon coordinates of forcing files
+forcnames = dir(fullfile(forcingpath, 'Forcings*'));
+nforc = length(forcnames);
+metlat = zeros(nforc, 1);
+metlon = zeros(nforc, 1);
 
-% Get list of pixel numbers --------------------
-n_merra = length(fnames);
-pixelno = zeros(n_merra,1);
-for k=1:n_merra
-    temp1 = split(fnames(k).name, '_year');
-    temp2 = split(temp1{1}, 'pixel_');
-    pixelno(k) = str2double(temp2{2});
+for k=1:nforc 
+    tmp1 = strsplit(forcnames(k).name, '_');
+    forclat = str2double(tmp1{2});
+    tmp2 = strsplit(tmp1{3}, '.txt');
+    forclon = str2double(tmp2{1});
+    metlat(k) = forclat;
+    metlon(k) = forclon;
 end
 
-% Use static file to get lat and lon from pixel numbers
-static_file = load('/Users/jschap/Box Sync/Margulis_Research_Group/Jacob/Shared_SWOTDA/MERRA2/Processed/static_file_MERRA2.in');
-% [~, basin_inds] = ismember(pixelno, static_file(:,1));
-metlat = static_file(pixelno,2);
-metlon = static_file(pixelno,3);
-% ----------------------------------------------
 
 %%%
 % Run this code to convert lon coords if they use E/W, 

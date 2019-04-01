@@ -1,4 +1,4 @@
-function [gridcells, fluxresults, snowresults] = LoadVIC5Results(headers, nfluxvars, nsnowvars)
+function [gridcells, fluxresults, snowresults] = LoadVIC5Results(headers, nfluxvars, nsnowvars, resultsdir)
 
 % Loads results from VIC simulation
 % Must be run from the directory containing the VIC outputs. 
@@ -15,15 +15,15 @@ function [gridcells, fluxresults, snowresults] = LoadVIC5Results(headers, nfluxv
 % snowresults 
 
 %% Load VIC flux results
-fluxnames = dir('fluxes*');
+fluxnames = dir(fullfile(resultsdir, 'fluxes*'));
 ncells = length(fluxnames);
-tmp = dlmread(fluxnames(1).name, '\t', headers, 0); % skip headers
+tmp = dlmread(fullfile(resultsdir, fluxnames(1).name), '\t', headers, 0); % skip headers
 tmp = tmp(:,1:nfluxvars);
 nsteps = size(tmp,1);
 fluxresults = NaN([nsteps, nfluxvars ,ncells]);
 
 % read headers/variable names
-fID = fopen(fluxnames(1).name);
+fID = fopen(fullfile(resultsdir, fluxnames(1).name));
 fluxheadernames = textscan(fID, '%s', nfluxvars, 'HeaderLines',headers-1);
 fclose(fID);
 
@@ -39,25 +39,25 @@ for k=1:ncells
 end
 
 for i=1:ncells
-    fluxresults(:,:,i) = dlmread(fluxnames(i).name, '\t', [headers 0 nsteps+headers-1 nfluxvars-1]);  
+    fluxresults(:,:,i) = dlmread(fullfile(resultsdir, fluxnames(i).name), '\t', [headers 0 nsteps+headers-1 nfluxvars-1]);  
 end
 
 %% Load VIC snow results
 
-snownames = dir('snow_*');
+snownames = dir(fullfile(resultsdir, 'snow_*'));
 ncells = length(snownames);
-tmp = dlmread(snownames(1).name, '\t', headers, 0); % skip headers
+tmp = dlmread(fullfile(resultsdir, snownames(1).name), '\t', headers, 0); % skip headers
 tmp = tmp(:,1:nsnowvars);
 nsteps = size(tmp,1);
 snowresults = NaN([nsteps, nsnowvars ,ncells]);
 
 % read headers/variable names
-fID = fopen(snownames(1).name);
+fID = fopen(fullfile(resultsdir, snownames(1).name));
 snowheadernames = textscan(fID, '%s', nsnowvars, 'HeaderLines',headers-1);
 fclose(fID);
 
 for i=1:ncells
-    snowresults(:,:,i) = dlmread(snownames(i).name, '\t', [headers 0 nsteps+headers-1 nsnowvars-1]);  
+    snowresults(:,:,i) = dlmread(fullfile(resultsdir, snownames(i).name), '\t', [headers 0 nsteps+headers-1 nsnowvars-1]);  
 end
 
 end
