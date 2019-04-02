@@ -22,7 +22,7 @@
 addpath(genpath('/Users/jschap/Documents/MATLAB/from_file_exchange'))
 
 res = 1/16;
-grid_decimal = 5; % number of decimal points for forcing file names
+grid_decimal = 4; % number of decimal points for forcing file names
 savename = 'mysoilparam.txt';
 
 %% Part 1 - load HWSD data
@@ -92,7 +92,7 @@ is_soil_rg(is_soil_rg>0) = 1;
 
 % (Preprocessing - make geotiffs from TBASE data using R)
 
-% Load elevation data
+% Load elevation data from TBASE
 [elev, R] = geotiffread('/Volumes/HD3/SWOTDA/Data/JISAO/tbase_elev_0.25.tif');
 
 elat = -89.875:0.25:89.875;
@@ -109,6 +109,17 @@ elev(elev==-9999) = NaN; % nodata values
 [elons, elats] = ndgrid(elon, elat);
 elev_rg = myregrid(elons, elats, rglons, rglats, elev, 'linear');
 elev_rg = elev_rg';
+
+% load elevation from MERIT
+[elev, R] = geotiffread('/Volumes/HD3/VICParametersGlobal/Global_1_16/merged_merit_1_16.tif');
+elev(elev==-9999) = NaN;
+
+% grow elev so it is the same size as the HWSD-derived files (add latitudes
+% below 60 S_
+
+addthis = NaN(2880-2320, 5760);
+elev = vertcat(elev, addthis);
+figure, imagesc(target_lon, target_lat, elev)
 
 % Repeat for land cover fraction data
 % [fract, R] = geotiffread('/Volumes/HD3/SWOTDA/Data/JISAO/tbase_fract_0.25.tif');
@@ -203,8 +214,8 @@ title('Land mask from HWSD')
 set(gca, 'ydir', 'normal')
 set(gca, 'fontsize', 18)
 
-elev1 = elev_rg;
-elev1(~landmask) = NaN;
+elev = flipud(elev);
+elev(~landmask) = NaN;
 
 R = makerefmat(-179.975, -89.975, res, res);
 
@@ -212,7 +223,7 @@ R = makerefmat(-179.975, -89.975, res, res);
 % geotiffwrite('./Data/JISAO/elev1.tif', elev1, R);
 
 % computing slope in Matlab
-[~, slope, ~, ~] = gradientm(elev1, R); % there are a lot of missing values
+[~, slope, ~, ~] = gradientm(elev, R); % there are a lot of missing values
 
 % Address missing values of slope where there is a land pixel:
 noslope = find(isnan(slope(landmask)));
@@ -249,7 +260,7 @@ lonlat = xyz_upscaled(landcells,1:2);
 % 
 % Done, using ISSOILS.nc4 file
 
-% Classify soils using USGS soil triangle
+% Classify soils using USGS soil triangle (this step takes a few minutes)
 t_percent_sand = t_sand_rg(landcells);
 t_percent_clay = t_clay_rg(landcells);
 [~, ~, t_sc_int, ~] = soil_classification(t_percent_sand/100, t_percent_clay/100, 'usda', 0);
@@ -555,13 +566,31 @@ geotiffwrite('worldclim_prec.tif', ann_P, R)
 %     'off_gmt','wcr_fract1','wcr_fract2','wpwp_fract1','wpwp_fract2','rough','snow_rough', ...
 %     'annual_prec','resid_moist1','resid_moist2','fs_active','frost_slope','msds','july_Tavg'};
 
-varnames = {'run_cell','grid_cell','lat','lon','b_infilt','ds','dsmax', ... % no organic, no frozen soil, no July_Tavg
-    'ws','c','expt1','expt2','ksat1','ksat2','phi_s1','phi_s2', ...
-    'init_moist1','init_moist2','elev','depth1','depth2','avg_T', ...
-    'dp','bubble1','bubble2','quartz1','quartz2','bulk_dens1','bulk_dens2', ...
-    'soil_dens1','soil_dens2', ...
-    'off_gmt','wcr_fract1','wcr_fract2','wpwp_fract1','wpwp_fract2','rough','snow_rough', ...
-    'annual_prec','resid_moist1','resid_moist2'};
+% varnames = {'run_cell','grid_cell','lat','lon','b_infilt','ds','dsmax', ... % no organic, no frozen soil, no July_Tavg
+%     'ws','c','expt1','expt2','ksat1','ksat2','phi_s1','phi_s2', ...
+%     'init_moist1','init_moist2','elev','depth1','depth2','avg_T', ...
+%     'dp','bubble1','bubble2','quartz1','quartz2','bulk_dens1','bulk_dens2', ...
+%     'soil_dens1','soil_dens2', ...
+%     'off_gmt','wcr_fract1','wcr_fract2','wpwp_fract1','wpwp_fract2','rough','snow_rough', ...
+%     'annual_prec','resid_moist1','resid_moist2'};
+
+% Three-layer soil parameter file (assuming top two layers are identical
+% given limited data)
+% varnames = {'run_cell','grid_cell','lat','lon','b_infilt','ds','dsmax', ... % all 
+%     'ws','c','expt1','expt2','expt3','ksat1','ksat2','ksat3','phi_s1','phi_s2','phi_s3', ...
+%     'init_moist1','init_moist2','init_moist3','elev','depth1','depth2','depth3','avg_T', ...
+%     'dp','bubble1','bubble2','bubble3','quartz1','quartz2','quartz3','bulk_dens1','bulk_dens2','bulk_dens3', ...
+%     'soil_dens1','soil_dens2','soil_dens3','organic1','organic2','organic3','bdo1','bdo2','bdo3','sdo1','sdo2','sdo3', ...
+%     'off_gmt','wcr_fract1','wcr_fract2','wcr_fract3','wpwp_fract1','wpwp_fract2','wpwp_fract3','rough','snow_rough', ...
+%     'annual_prec','resid_moist1','resid_moist2','resid_moist3','fs_active','frost_slope','msds','july_Tavg'};
+
+varnames = {'run_cell','grid_cell','lat','lon','b_infilt','ds','dsmax', ... % three layers, no organic, no frost slope or msds
+    'ws','c','expt1','expt2','expt3','ksat1','ksat2','ksat3','phi_s1','phi_s2','phi_s3', ...
+    'init_moist1','init_moist2','init_moist3','elev','depth1','depth2','depth3','avg_T', ...
+    'dp','bubble1','bubble2','bubble3','quartz1','quartz2','quartz3','bulk_dens1','bulk_dens2','bulk_dens3', ...
+    'soil_dens1','soil_dens2','soil_dens3', ...
+    'off_gmt','wcr_fract1','wcr_fract2','wcr_fract3','wpwp_fract1','wpwp_fract2','wpwp_fract3','rough','snow_rough', ...
+    'annual_prec','resid_moist1','resid_moist2','resid_moist3','fs_active','july_Tavg'};
 
 nvars = length(varnames);
 
@@ -575,10 +604,7 @@ soils(:,5) = 0.2; % b_infilt
 soils(:,6) = 0.001; % Ds
 
 dsmax = mean([ksat1, ksat2],2).*slope(landmask); % Dsmax
-% noslope = find(isnan(slope(landmask)));
-% soils(noslope,7) = 0; 
 soils(:,7) = fillmissing(dsmax, 'nearest');
-% filling missing values with the nearest non-missing value
 %
 % There are some very high values of dsmax
 % The max value is 9200*6; where there is exceptionally high conductivity and
@@ -586,58 +612,73 @@ soils(:,7) = fillmissing(dsmax, 'nearest');
 
 soils(:,8) = 0.9; % Ws
 soils(:,9) = 2; % c
+
 soils(:,10) = expt1; % expt1
-soils(:,11) = expt2; % expt2
-soils(:,12) = ksat1; % Ksat1
-soils(:,13) = ksat2; % Ksat2
-soils(:,14) = -99; % phi_s1
-soils(:,15) = -99; % phi_s2
-soils(:,16) = 1000.*wcr_fract1.*0.3.*porosity1; % init_moist1
-soils(:,17) = 1000.*wcr_fract2.*0.7.*porosity2; % init_moist2
+soils(:,11) = expt1; % expt2
+soils(:,12) = expt2; % expt3
 
-% soils(:,18) = elev1(landmask); % elev
-% noelev = find(isnan(elev1(landmask)));
-% soils(noelev,18) = 0;
-soils(:,18) = fillmissing(elev1(landmask), 'nearest'); % elev
+soils(:,13) = ksat1; % Ksat1
+soils(:,14) = ksat1; % Ksat2
+soils(:,15) = ksat2; % Ksat3
 
-soils(:,19) = 30/100; % depth1 (m)
-soils(:,20) = 100/100; % depth2 (m)
+soils(:,16) = -99; % phi_s1
+soils(:,17) = -99; % phi_s2
+soils(:,18) = -99; % phi_s3
 
-soils(:,21) = fillmissing(avgT_rg(landmask), 'nearest'); % avg_T
-% soils(:,21) = avgT_rg(landmask); % avg_T
-% noT = find(isnan(avgT_rg(landmask)));
-% soils(noT,21) = 15; % if no data, assume they're 15 degrees C
+soils(:,19) = 1000.*wcr_fract1.*0.3.*porosity1; % init_moist1
+soils(:,20) = 1000.*wcr_fract1.*0.7.*porosity1; % init_moist2
+soils(:,21) = 1000.*wcr_fract2.*0.7.*porosity2; % init_moist3
 
-soils(:,22) = 4; % dp
-soils(:,23) = 0.32*expt1 + 4.3; % bubble1
-soils(:,24) = 0.32*expt2 + 4.3; % bubble2
-soils(:,25) = quartz1; % quartz1
-soils(:,26) = quartz2; % quartz2
+soils(:,22) = fillmissing(elev(landmask), 'nearest'); % elev
 
-soils(:,27) = fillmissing(1000*t_bd_rg(landmask), 'nearest'); % bulk_dens1
-soils(:,28) = fillmissing(1000*s_bd_rg(landmask), 'nearest'); % bulk_dens2
+% I am unsure whether this should be the layer thickness or the depth
+% Could check another soil parameter file for reference
+soils(:,23) = 10/100; % depth1 (m)
+soils(:,24) = 30/100; % depth2 (m)
+soils(:,25) = 100/100; % depth3 (m)
 
-% soils(:,27) = bulk_dens1; % bulk_dens1
-% soils(:,28) = bulk_dens2; % bulk_dens2
+soils(:,26) = fillmissing(avgT_rg(landmask), 'nearest'); % avg_T
 
-soils(:,29) = 2685; % soil_dens1
-soils(:,30) = 2685; % soil_dens2
-soils(:,31) = tz(landmask); % off_gmt
-soils(:,32) = wcr_fract1; % wcr_fract1
-soils(:,33) = wcr_fract2; % wcr_fract2
-soils(:,34) = wpwp_fract1; % wpwp_fract1
-soils(:,35) = wpwp_fract2; % wpwp_fract2
-soils(:,36) = 0.001; % rough
-soils(:,37) = 0.0005; % snow_rough
+soils(:,27) = 4; % dp
 
-% soils(:,38) = avgP_rg(landmask); % annual_prec
-soils(:,38) = fillmissing(avgP_rg(landmask), 'nearest');
-% noprecip = find(isnan(avgT_rg(landmask)));
-% soils(noprecip,21) = -99; 
+soils(:,28) = 0.32*expt1 + 4.3; % bubble1
+soils(:,29) = 0.32*expt1 + 4.3; % bubble2
+soils(:,30) = 0.32*expt2 + 4.3; % bubble3
 
-soils(:,39) = 0; % resid_moist1 (leaving it as 0...)
-soils(:,40) = 0; % resid_moist2
-soils(:,41) = 0; % fs_active
+soils(:,31) = quartz1; % quartz1
+soils(:,32) = quartz1; % quartz2
+soils(:,33) = quartz2; % quartz3
+
+soils(:,34) = fillmissing(1000*t_bd_rg(landmask), 'nearest'); % bulk_dens1
+soils(:,35) = fillmissing(1000*t_bd_rg(landmask), 'nearest'); % bulk_dens2
+soils(:,36) = fillmissing(1000*s_bd_rg(landmask), 'nearest'); % bulk_dens3
+
+soils(:,37) = 2685; % soil_dens1
+soils(:,38) = 2685; % soil_dens2
+soils(:,39) = 2685; % soil_dens3
+
+soils(:,40) = tz(landmask); % off_gmt
+
+soils(:,41) = wcr_fract1; % wcr_fract1
+soils(:,42) = wcr_fract1; % wcr_fract2
+soils(:,43) = wcr_fract2; % wcr_fract3
+
+soils(:,44) = wpwp_fract1; % wpwp_fract1
+soils(:,45) = wpwp_fract1; % wpwp_fract2
+soils(:,46) = wpwp_fract2; % wpwp_fract3
+
+soils(:,47) = 0.001; % rough
+soils(:,48) = 0.0005; % snow_rough
+
+soils(:,49) = fillmissing(avgP_rg(landmask), 'nearest'); % annual_prec
+
+soils(:,50) = 0; % resid_moist1 (leaving it as 0...)
+soils(:,51) = 0; % resid_moist2
+soils(:,52) = 0; % resid_moist3
+
+soils(:,53) = 1; % fs_active
+
+soils(:,54) = fillmissing(JT_rg(landmask), 'nearest'); % july_Tavg
 
 % Use if frozen soils = TRUE
 % soils(:,42) = NaN; % frost_slope
@@ -669,9 +710,7 @@ soils(:,41) = 0; % fs_active
 % soils(:,48) = NaN; % frost_slope
 % soils(:,49) = NaN; % msds
 
-% soils(:,50) = JT_rg(landmask); % july_Tavg
-% noJT = find(isnan(JT_rg(landmask)));
-% soils(noJT,50) = nanmean(JT_rg(landmask));
+
 
 %% Write out the soil parameter file
 
@@ -682,8 +721,11 @@ fstring = ['%.' num2str(grid_decimal) 'f'];
 % This is used for the Livneh (2013) soil parameter file
 % fspec = ['%d %d ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d\n'];
 
-% This is used for VIC w no optional variables (41 columns in the soil parameter file).
-fspec = ['%d %d ' fstring ' ' fstring ' ' '%.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %d %d %.3f %.3f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d\n'];
+% This is used for VIC-2L w no optional variables (41 columns in the soil parameter file).
+% fspec = ['%d %d ' fstring ' ' fstring ' ' '%.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %d %d %.3f %.3f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d\n'];
+
+% This is used VIC-3L w no optional variables (54 columns in the soil parameter file).
+fspec = ['%d %d ' fstring ' ' fstring ' ' '%.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d %d\n'];
 
 fID = fopen(savename,'w');
 fprintf(fID, fspec, soils');

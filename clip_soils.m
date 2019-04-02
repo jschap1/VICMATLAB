@@ -12,9 +12,9 @@
 cd '/Volumes/HD3/SWOTDA/Data/IRB/'
 
 soilpath = '/Volumes/HD3/VICParametersGlobal/Global_1_16/soils';
-soilname = 'global_soils_1_16.txt'; 
+soilname = 'global_soils_3L_MERIT.txt'; 
 soilsavedir = './VIC';
-grid_decimal = 5; % precision used in forcing filenames
+grid_decimal = 4; % precision used in forcing filenames
 
 % Use r.out.xyz to generate this from the basin mask raster
 maskxyz = dlmread('basincoords.txt', '|');
@@ -66,7 +66,10 @@ fstring = ['%.' num2str(grid_decimal) 'f'];
 % fspec = ['%d %d ' fstring ' ' fstring ' %.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d\n'];
 
 % For the 2-layer soil parameter file from HWSD
-fspec = ['%d %d ' fstring ' ' fstring ' ' '%.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %d %d %.3f %.3f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d\n'];
+% fspec = ['%d %d ' fstring ' ' fstring ' ' '%.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %d %d %.3f %.3f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d\n'];
+
+% This is used VIC-3L w no optional variables (54 columns in the soil parameter file).
+fspec = ['%d %d ' fstring ' ' fstring ' ' '%.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d %d\n'];
 
 fID = fopen(fullfile(soilsavedir, 'soils.SB'),'w');
 fprintf(fID, fspec, soils');
