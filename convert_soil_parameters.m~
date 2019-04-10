@@ -80,7 +80,7 @@ R = georefcells(latlim,lonlim,rasterSize);
         % 444 rows (latitude) by 922 columns (longitude)
         
         outname = [varnames{k} '.tif'];
-        geotiffwrite(outname, A, R)
+        geotiffwrite(outname, (A, R)
         disp(['Saved soil parameter data as ', outname])
         
     end

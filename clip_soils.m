@@ -8,6 +8,9 @@
 % 
 % OUTPUTS
 % Clipped soil parameter file
+%
+% Double check that this is working properly, especially for elevation
+% 4/4/2019
 
 cd '/Volumes/HD3/SWOTDA/Data/IRB/'
 

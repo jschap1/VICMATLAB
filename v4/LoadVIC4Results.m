@@ -1,9 +1,6 @@
-function [varargout] = LoadVICResults(varargin)
+function [varargout] = LoadVIC4Results(results_dir, varargin)
 
 % Loads results from VIC simulation OR the routing model.
-% Must be run from the directory containing the VIC outputs. 
-% If the routing model is being run, this directory must contain the 
-% routing model outputs, as well.
 %
 % INPUTS
 % --Need to specify the filename for the routing outputs. 
@@ -19,7 +16,7 @@ function [varargout] = LoadVICResults(varargin)
 % routresults 
 
 %% Load routing results
-if nargin
+if nargin>1
     prefix = varargin{1};
     units = varargin{2};
     timestep = varargin{3};
@@ -31,14 +28,14 @@ if nargin
         otherwise
             error('Not a valid routname')
     end
-    routresults = dlmread(routname); 
+    routresults = dlmread(fullfile(results_dir, routname)); 
     varargout{1} = routresults;
 else
 % OR    
 %% Load VIC results
-fluxnames = dir('fluxes*');
+fluxnames = dir(fullfile(results_dir, 'fluxes*'));
 ncells = length(fluxnames);
-tmp = dlmread(fluxnames(1).name);  
+tmp = dlmread(fullfile(results_dir, fluxnames(1).name));  
 fluxresults = NaN([size(tmp),ncells]);
 
 % Get grid cells locations
@@ -53,16 +50,16 @@ for k=1:ncells
 end
 
 for i=1:ncells
-    fluxresults(:,:,i) = dlmread(fluxnames(i).name);  
+    fluxresults(:,:,i) = dlmread(fullfile(results_dir, fluxnames(i).name));  
 end
 
-snownames = dir('snow*');
+snownames = dir(fullfile(results_dir, 'snow*'));
 ncells = length(snownames);
-tmp = dlmread(snownames(1).name);  
+tmp = dlmread(fullfile(results_dir, snownames(1).name));  
 snowresults = NaN([size(tmp),ncells]);
 
 for i=1:ncells
-    snowresults(:,:,i) = dlmread(snownames(i).name);  
+    snowresults(:,:,i) = dlmread(fullfile(results_dir, snownames(i).name));  
 end
 
 varargout{1} = gridcells;
