@@ -25,11 +25,11 @@ addpath(genpath('/Users/jschap/Documents/Codes/VICMATLAB'))
 % Provide info about the VIC model run
 precision = 5;
 nlayers = 3;
-run_type = 'WATER_BALANCE'; % FULL_ENERGY or WATER_BALANCE or FROZEN_SOIL
+run_type = 'FULL_ENERGY'; % FULL_ENERGY or WATER_BALANCE or FROE
 rec_interval = 'daily';
 
 saveflag = 1;
-saveloc = '/Volumes/HD3/SWOTDA/Outputs/VIC_IRB/WATER_BALANCE';
+saveloc = '/Volumes/HD3/SWOTDA/Outputs/VIC_IRB';
 
 %%
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -43,17 +43,17 @@ saveloc = '/Volumes/HD3/SWOTDA/Outputs/VIC_IRB/WATER_BALANCE';
 % default for VIC5 classic outputs is to have three lines of headers
 headers = 3; 
 
-% get number of flux variables in the output files
-fluxnames = dir(fullfile(saveloc, 'fluxes*'));
-fluxfile = dlmread(fullfile(saveloc, fluxnames(1).name), '\t', headers, 0); % skip headers
-nfluxvars = size(fluxfile, 2);
+% default outputs
+if nlayers == 2
+    nfluxvars = 24;
+elseif nlayers == 3
+    nfluxvars = 25; 
+end
 
-snownames = dir(fullfile(saveloc, 'snow_*'));
-snowfile = dlmread(fullfile(saveloc, snownames(1).name), '\t', headers, 0); % skip headers
-nsnowvars = size(snowfile, 2);
-
+nsnowvars = 7;
 [gridcells, fluxresults, snowresults] = LoadVIC5Results(headers, ...
     nfluxvars, nsnowvars, saveloc);
+
 
 %% Fluxes
 
@@ -82,15 +82,13 @@ for p=1:length(fluxvarnames)
         for k=1:ncells
             fluxarray(:,k) = FLUXES.ts.(cellnames{k}).(fluxvarnames{p});
         end
-        FLUXES.avgts.(fluxvarnames{p}) = nanmean(fluxarray,2);
-%         FLUXES.avgts.(fluxvarnames{p}) = mean(fluxarray,2);
+        FLUXES.avgts.(fluxvarnames{p}) = mean(fluxarray,2);
     else
         fluxarray = NaN(length(FLUXES.time),ncells, nlayers);
         for k=1:ncells
             fluxarray(:,k,:) = FLUXES.ts.(cellnames{k}).(fluxvarnames{p});
         end
-        FLUXES.avgts.(fluxvarnames{p}) = squeeze(nanmean(fluxarray,2));
-%         FLUXES.avgts.(fluxvarnames{p}) = squeeze(mean(fluxarray,2));
+        FLUXES.avgts.(fluxvarnames{p}) = squeeze(mean(fluxarray,2));
     end
     
 end
@@ -104,7 +102,7 @@ for p = 1:length(fluxvarnames)
         FLUXES.avgmaps.(fluxvarnames{p}) = NaN(ncells,nlayers);
     end
     for k=1:ncells
-        FLUXES.avgmaps.(fluxvarnames{p})(k,:) = nanmean(FLUXES.ts.(cellnames{k}).(fluxvarnames{p}));
+        FLUXES.avgmaps.(fluxvarnames{p})(k,:) = mean(FLUXES.ts.(cellnames{k}).(fluxvarnames{p}));
     end
     
 end
@@ -126,7 +124,7 @@ for p=1:length(snowvarnames)
     for k=1:ncells
         snowarray(:,k) = SNOW.ts.(cellnames{k}).(snowvarnames{p});
     end
-    SNOW.avgts.(snowvarnames{p}) = nanmean(snowarray,2);
+    SNOW.avgts.(snowvarnames{p}) = mean(snowarray,2);
     
 end
 
@@ -137,7 +135,7 @@ for p = 1:length(snowvarnames)
     SNOW.avgmaps.(snowvarnames{p}) = NaN(ncells,1);
     
     for k=1:ncells
-        SNOW.avgmaps.(snowvarnames{p})(k,:) = nanmean(SNOW.ts.(cellnames{k}).(snowvarnames{p}));
+        SNOW.avgmaps.(snowvarnames{p})(k,:) = mean(SNOW.ts.(cellnames{k}).(snowvarnames{p}));
     end
     
 end
@@ -148,10 +146,10 @@ if saveflag
     if ~exist(saveloc,'dir')
         mkdir(saveloc)
     end    
-    save(fullfile(saveloc,'../timevector.mat'),'timevector')
-    save(fullfile(saveloc,'../FLUXES.mat'),'FLUXES')
+    save(fullfile(saveloc,'timevector.mat'),'timevector')
+    save(fullfile(saveloc,'FLUXES.mat'),'FLUXES')
 %     save(fullfile(saveloc,'FLUXES.mat'),'FLUXES', '-v7.3')
-    save(fullfile(saveloc,'../SNOW.mat'),'SNOW')
+    save(fullfile(saveloc,'SNOW.mat'),'SNOW')
 end
 
 

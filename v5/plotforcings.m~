@@ -25,8 +25,7 @@ varunits = {'deg C','mm','kPa','W/m^2','W/m^2','kPa','m/s'};
 
 invisible = 1;
 saveflag = 1;
-% saveloc = '/Volumes/HD3/SWOTDA/Figures/VIC_IRB/Frozen_Soils_MERIT/Forcings'; 
-saveloc = '/Volumes/HD3/SWOTDA/Figures/VIC_IRB/Water_Balance_MERIT/Forcings';
+saveloc = '/Volumes/HD3/SWOTDA/Figures/VIC_IRB/Frozen_Soils_MERIT/Forcings'; 
 
 %% Load forcing data
 
@@ -54,7 +53,7 @@ end
 
 % it would be most useful to create a netcdf file for storing the forcing
 % data in space/time, though a tif would be fine for a snapshot
-[lat, lon] = GetCoords(gridcells, precision, 0);
+[lat, lon] = GetCoords(gridcells, precision);
 
 %% Converting data (can use a lot of RAM, potentially)
 
@@ -81,69 +80,45 @@ end_year = 1980;
 timevector = timebuilder(begin_year, begin_month, begin_day, end_year, end_month, end_day, 1);
 timevector(1,:) = [];
 
-% Set up geospatial reference frame
+% Make gridded forcing data for a single time step
+t=1;
+forc_array = zeros(ncells, nvars);
+for i=1:ncells
+    forc_array(i, :) = forc_cell{i}(t,:);
+end
+
+air_temp_grid = flipud(xyz2grid(lon, lat, forc_array(:,1)));
+prec_grid = flipud(xyz2grid(lon, lat, forc_array(:,2)));
+pressure_grid = flipud(xyz2grid(lon, lat, forc_array(:,3)));
+shortwave_grid = flipud(xyz2grid(lon, lat, forc_array(:,4)));
+longwave_grid = flipud(xyz2grid(lon, lat, forc_array(:,5)));
+vp_grid = flipud(xyz2grid(lon, lat, forc_array(:,6)));
+wind_grid = flipud(xyz2grid(lon, lat, forc_array(:,7)));
+
+figure, imagesc(lon, lat, air_temp_grid)
+title('air temperature'), colorbar
+set(gca, 'ydir', 'normal');
+
+figure, imagesc(lon, lat, prec_grid)
+title('precipitation'), colorbar
+set(gca, 'ydir', 'normal');
+
+% Write out a GeoTiff file for the time step
+savenames = cell(length(varnames));
+for v=1:length(varnames)
+    savenames{v} = [varnames{v} '.tif'];
+end
+
 res = 1/16;
 R = makerefmat(min(lon), min(lat), res, res);
+geotiffwrite('/Users/jschap/Desktop/air_temp.tif', air_temp_grid, R)
 
-% Make gridded forcing data for each time step
-for t=1:nt
-
-    forc_array = zeros(ncells, nvars);
-    for i=1:ncells
-        forc_array(i, :) = forc_cell{i}(t,:);
-    end
-
-    air_temp_grid = flipud(xyz2grid(lon, lat, forc_array(:,1)));
-    prec_grid = flipud(xyz2grid(lon, lat, forc_array(:,2)));
-    pressure_grid = flipud(xyz2grid(lon, lat, forc_array(:,3)));
-    shortwave_grid = flipud(xyz2grid(lon, lat, forc_array(:,4)));
-    longwave_grid = flipud(xyz2grid(lon, lat, forc_array(:,5)));
-    vp_grid = flipud(xyz2grid(lon, lat, forc_array(:,6)));
-    wind_grid = flipud(xyz2grid(lon, lat, forc_array(:,7)));
-
-    % they all need to be flipped again
-    air_temp_grid = fliplr(air_temp_grid);
-    prec_grid = fliplr(prec_grid);
-    pressure_grid = fliplr(pressure_grid);
-    shortwave_grid = fliplr(shortwave_grid);
-    longwave_grid = fliplr(longwave_grid);
-    vp_grid = fliplr(vp_grid);
-    wind_grid = fliplr(wind_grid);
-
-    % figure, imagesc(lon, lat, air_temp_grid)
-    % title('air temperature'), colorbar
-    % set(gca, 'ydir', 'normal');
-    % 
-    % figure, imagesc(lon, lat, prec_grid)
-    % title('precipitation'), colorbar
-    % set(gca, 'ydir', 'normal');
-
-    % Write out a GeoTiff file for the time step
-    savenames = cell(length(varnames));
-    for v=1:length(varnames)
-        yr = timevector(t,1);
-        mo = timevector(t,2);
-        da = timevector(t,3);
-        hr = timevector(t,4);
-        savenames{v} = [varnames{v} '_' num2str(yr) '_' num2str(mo) '_' num2str(da) '_h' num2str(hr) '.tif'];    
-    end
-
-    geotiffwrite(fullfile(saveloc, savenames{1}), air_temp_grid, R)
-    geotiffwrite(fullfile(saveloc, savenames{2}), prec_grid, R)
-    geotiffwrite(fullfile(saveloc, savenames{3}), pressure_grid, R)
-    geotiffwrite(fullfile(saveloc, savenames{4}), shortwave_grid, R)
-    geotiffwrite(fullfile(saveloc, savenames{5}), longwave_grid, R)
-    geotiffwrite(fullfile(saveloc, savenames{6}), vp_grid, R)
-    geotiffwrite(fullfile(saveloc, savenames{7}), wind_grid, R)
-    
-    disp(round(100*t/nt,2))
-
-end
 
 %% Read in forcing data for one cell
 
 k=1;
 FORC = dlmread(forcenames(k).name); 
+
 
 
 %% Convert to NetCDF

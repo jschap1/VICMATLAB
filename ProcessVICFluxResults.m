@@ -81,8 +81,8 @@ for k=1:ncells
             aero_resist, surf_temp, albedo, rel_humid, in_long, air_temp, wind);          
         FLUXES.ts.(gridcells{k}) = T;
 
-%% full energy
-    elseif strcmp(run_type, 'FULL_ENERGY')
+%% full energy or frozen soil
+    elseif strcmp(run_type, 'FULL_ENERGY') | strcmp(run_type, 'FROZEN_SOIL')
         
         prec = results(:,t_prec + 1,k);
         evap = results(:,t_prec + 2,k);
@@ -117,19 +117,13 @@ for k=1:ncells
             aero_resist, surf_temp, albedo, rel_humid, in_long, ...
             air_temp, wind);          
         FLUXES.ts.(gridcells{k}) = T;        
-     
-%% frozen soil      
-    elseif strcmp(run_type, 'FROZEN_SOIL')
-        FLUXES = NaN;
-        
-    end
-
+    
 end
     
 %%
 if ~isstruct(FLUXES)
     warning('ProcessVICFluxResults only supports daily flux outputs at this time')
-    warning('ProcessVICFluxResults only supports WATER_BALANCE run_type at this time')
+
 else % define units. These are the default VIC units, not ALMA units
     FLUXES.units.prec =  'mm';
     FLUXES.units.evap =  'mm';

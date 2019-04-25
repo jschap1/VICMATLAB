@@ -1,7 +1,13 @@
 function [gridcells, fluxresults, snowresults] = LoadVIC5Results(headers, nfluxvars, nsnowvars, resultsdir)
 
+% TODO
+%
+% Modify to handle different (non WB mode) VIC modes
+% Only loads 25 columns for EB mode, my EB mode results have 31 columns
+% However, I ran with frozen soils, too
+% 
+%
 % Loads results from VIC simulation
-% Must be run from the directory containing the VIC outputs. 
 % If the routing model is being run, this directory must contain the 
 % routing model outputs, as well.
 %
@@ -40,7 +46,15 @@ end
 
 for i=1:ncells
     fluxresults(:,:,i) = dlmread(fullfile(resultsdir, fluxnames(i).name), '\t', [headers 0 nsteps+headers-1 nfluxvars-1]);  
+    
+%     for p=4:length(fluxheadernames{1})
+%         figure, plot(fluxresults(:,p,i)) 
+%         title(fluxheadernames{1}{p})
+%     end
+    
 end
+
+
 
 %% Load VIC snow results
 

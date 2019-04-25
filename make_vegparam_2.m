@@ -10,10 +10,10 @@ function make_vegparam_2(soils, landmask, savename)
 
 % Load MODIS land cover data
 
-soils = load('/Volumes/HD3/VICParametersGlobal/Global_1_16/soils/second_attempt/global_soils_1_16.txt');
+soils = load('/Volumes/HD3/VICParametersGlobal/Global_1_16/soils/soils_3L_MERIT_latest.txt');
 
 lc = hdfread('/Volumes/HD3/MODIS/MCD12C1/MCD12C1.A2017001.006.2018257171411.hdf', ...
-    'MOD12C1', 'Fields', 'Majority_Land_Cover_Type_2');
+    'MOD12C1', 'Fields', 'Majority_Land_Cover_Type_2'); % UMD land cover class
 lc = single(lc);
 
 % Interpolate land cover data using nearest neighbor to a 1/16 degree resolution
@@ -24,10 +24,26 @@ lat = -90+0.5*ores:ores:90-0.5*ores;
 [lons, lats] = ndgrid(lon, lat);
 
 tres = 0.0625;
-target_lon = min(lon):tres:max(lon);
-target_lat = min(lat):tres:max(lat);
+target_lon = -180+tres/2:tres:180-tres/2;
+target_lat = -90+tres/2:tres:90-tres/2;
+
+% target_lon = -180+tres/2:tres:180-tres/2;
+% target_lat = -60+tres/2:tres:85-tres/2;
+
 [tlons, tlats] = ndgrid(target_lon, target_lat);
 lc_rg = myregrid(lons, lats, tlons, tlats, lc', 'nearest');
+
+%%%%%%%%
+% Tres = 0.0416667;
+% Tlat = -90:Tres:90-0.5*Tres; % 2.5 minute resolution
+% Tlon = -180:Tres:180-0.5*Tres;
+% [Tlons, Tlats] = ndgrid(Tlon, Tlat);
+% avgP_rg = myregrid(Tlons, Tlats, rglons, rglats, double(avgP.y'), 'linear');
+% avgP_rg = avgP_rg';
+% 
+% ann_P = avgP_rg;
+% ann_P(~landmask) = NaN;
+%%%%%%%
 
 lc1 = lc_rg';
 lc2 = flipud(lc1);
@@ -35,7 +51,12 @@ figure, imagesc(target_lon, target_lat, lc2)
 set(gca, 'ydir', 'normal')
 
 R = makerefmat(target_lon(1), target_lat(1), tres, tres);
-geotiffwrite('./Data/Global/landcover_umd.tif', lc2, R); % save intermediate result
+geotiffwrite('landcover_umd.tif', lc2, R); % save intermediate result
+
+% Crop the vegetation cover raster to the extent of the MERIT landmask and
+% load it in (below)
+% This is going to be easier to do in GDAL or R than in Matlab
+lc3 = geotiffread('/Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation/landcover_umd_cropped2merit.tif');
 
 %% Re-assign land cover types as needed
 
@@ -58,10 +79,16 @@ lcnames = {'EvergreenNeedleleaf', 'EvergreenBroadleaf', ...
     'CroplandCorn'};
 lcnumbers = 1:11;
 
-landmask = load('/Volumes/HD3/VICParametersGlobal/Global_1_16/landmask/landmask_hwsd_1_16.mat');
-landmask = landmask.landmask;
+[landmask, R] = geotiffread('/Volumes/HD3/VICParametersGlobal/Global_1_16/landmask/merit_mask_1_16.tif');
+landmask = logical(landmask);
+figure, imagesc(landmask)
 
-vegtype = lc2(landmask); % land cover for HWSD land cells
+figure, subplot(2,1,1)
+imagesc(lc3), title('land cover')
+subplot(2,1,2)
+imagesc(landmask), title('land mask')
+
+vegtype = lc3(landmask); % land cover for HWSD land cells
 
 % Reclassify from UMD to GLDAS LC numbering system
 vegcopy = vegtype;
@@ -84,6 +111,55 @@ vegtype = vegcopy;
 
 ntypes = length(unique(vegtype)); % number of land cover types
 
+%% Plot the original and reclassified vegetation covers
+
+lc3 = flipud(lc3);
+vegtype_raster = lc3;
+vegtype_raster(~landmask) = NaN;
+vegtype_raster(landmask) = vegtype;
+
+figure, subplot(2,1,1)
+h1 = imagesc(target_lon, target_lat, lc3);
+title('Original classification')
+xlabel('Lon'), ylabel('Lat')
+set(gca, 'ydir', 'normal')
+set(gca, 'fontsize', 18)
+
+subplot(2,1,2)
+imagesc(target_lon, target_lat, vegtype_raster)
+title('New classification')
+xlabel('Lon'), ylabel('Lat')
+set(gca, 'ydir', 'normal')
+set(gca, 'fontsize', 18)
+
+% diff = lc3 ~= vegtype_raster;
+% 
+% subplot(3,1,3)
+% imagesc(target_lon, target_lat, diff)
+% title('Reclassified bare soil pixels')
+% xlabel('Lon'), ylabel('Lat')
+% set(gca, 'ydir', 'normal')
+% set(gca, 'fontsize', 18)
+
+% Going to do this in R, actually
+
+% R = makerefmat(lon, lat, 0.0625, 0.0625);
+geotiffwrite('umd_modis_land_cover.tif', flipud(lc3), R)
+geotiffwrite('umd_land_cover_reclassified.tif', flipud(vegtype_raster), R)
+
+% 
+%  N=16;                       %  # of data types, hence legend entries
+%  imagesc(lc3)              % image it
+%  cmap = jet(N);             % assigen colormap
+%  colormap(cmap)
+%  hold on
+% 
+%  markerColor = mat2cell(cmap,ones(1,N),3);
+%  L = plot(ones(N), 'LineStyle','none','marker','s','visible','off');      
+%  set(L,{'MarkerFaceColor'},markerColor,{'MarkerEdgeColor'},markerColor);   
+%  legend(UMDnames)
+ 
+ 
 %%
 
 cellID = soils(:,2);

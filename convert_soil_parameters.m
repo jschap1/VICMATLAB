@@ -58,9 +58,12 @@
 
 % writecsv_cell('varnames.txt', varnames);
 
+% infile = '/Volumes/HD3/VICParametersGlobal/Global_1_16/soils/soils_3L_MERIT_latest.txt';
+
 function [] = convert_soil_parameters(infile, varnames)
 
 soils = load(infile);
+disp('loaded soil parameter file')
 
 lat = soils(:,3);
 lon = soils(:,4);
@@ -80,7 +83,7 @@ R = georefcells(latlim,lonlim,rasterSize);
         % 444 rows (latitude) by 922 columns (longitude)
         
         outname = [varnames{k} '.tif'];
-        geotiffwrite(outname, A, R)
+        geotiffwrite(outname, flipud(A), R)
         disp(['Saved soil parameter data as ', outname])
         
     end

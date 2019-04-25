@@ -31,14 +31,14 @@ function [] = vicinputworkflow()
 % cd '/Volumes/HD3/SWOTDA/Data/IRB/'
 
 % Directory of daily CONUS met. forcing files
-forcingpath = '/Users/jschap/Box Sync/Margulis_Research_Group/Jacob/Shared_SWOTDA/MERRA2/Forc_onemonth';
+forcingpath = '/Users/jschap/Desktop/MERRA2/Forc';
 
 % Name of basin mask at VIC modeling resolution
 % basinmask = './Data/UMRB/Basin/basin.wgs.asc';
 % basinmask = './Data/UMRB/rout/umrb.fract';
 
 % Directory where clipped forcing files should be saved
-forcingsavedir = './VIC/FORC';
+forcingsavedir = './Data/IRB/VIC/Forc';
 
 % Number of forcings in the forcing file
 numforcings = 7;
@@ -48,18 +48,18 @@ numforcings = 7;
 
 % Beginning and ending years of simulation (must be included in the daily CONUS
 % met. forcing file)
-beginyear = 1980;
-endyear = 1980;
+beginyear = 2017;
+endyear = 2017;
 
 % Number of decimal points of precision to use for forcing file names
 grid_decimal = 5;
 
-% Directory of CONUS soil parameter file
-soilpath = '/Volumes/HD3/VICParametersGlobal/Global_1_16/soils';
-soilname = 'global_soils_1_16.txt'; 
+% Directory of global soil parameter file
+soilpath = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_0';
+soilname = 'soils_3L_MERIT.txt'; 
 
 % Directory where clipped soil parameter file should be saved
-soilsavedir = './VIC';
+soilsavedir = './Data/IRB/VIC/';
 
 %% Load the mask
 
@@ -101,9 +101,11 @@ for k=1:nforc
     tmp2 = strsplit(tmp1{3}, '.txt');
     forclon = str2double(tmp2{1});
     metlat(k) = forclat;
-    metlon(k) = forclon;
+    metlon(k) = forclon; 
+    if mod(k, 1e4) == 0
+        disp(k)
+    end
 end
-
 
 %%%
 % Run this code to convert lon coords if they use E/W, 
@@ -112,7 +114,7 @@ end
 %%%
 
 % Use r.out.xyz to generate this from the basin mask raster
-maskxyz = dlmread('basincoords.txt', '|');
+maskxyz = dlmread('./Data/IRB/basincoords.txt', '|');
 masklon = maskxyz(maskxyz(:,3) == 1,1);
 masklat = maskxyz(maskxyz(:,3) == 1,2);
 ncells = length(masklon);
@@ -127,11 +129,16 @@ ncells = length(masklon);
 lat_ind = zeros(ncells,1);
 lon_ind = zeros(ncells,1);
 for k=1:ncells
-        [~, lat_ind(k)] = min(abs(masklat(k) - metlat));
-        [~, lon_ind(k)] = min(abs(masklon(k) - metlon));
+    [~, lat_ind(k)] = min(abs(masklat(k) - metlat));
+    [~, lon_ind(k)] = min(abs(masklon(k) - metlon));
+    if mod(k, 1e4) == 0
+        disp(k)
+    end        
 end
 
 %% Extract the forcings whose lat/lon match those of the basin mask
+
+% skip this section if using MERRA-2 forcing files
 
 % Takes about 30 minutes to run for UMRB, five years.
 

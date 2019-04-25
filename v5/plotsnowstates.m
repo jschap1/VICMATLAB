@@ -1,7 +1,7 @@
 % Plots VIC snow outputs
 
-load('./Outputs/VIC_IRB/Processed/SNOW.mat') % load processed snow state data
-saveloc = './Figures/VIC_IRB/Snow';
+load('./Outputs/VIC_IRB/Processed_WB/SNOW.mat') % load processed snow state data
+saveloc = './Figures/VIC_IRB/Water_Balance_MERIT/Snow';
 invisible = 1;
 saveflag = 1;
 
@@ -10,7 +10,6 @@ saveflag = 1;
 % The basin average time series for swe and snow depth look strange.
 % After cell 19, the swe and snow depth time series increase each year.
 % Check the VIC model inputs and parameters for what may be causing this.
-
 
 ncells = length(fieldnames(SNOW.ts));
 cellnames = fieldnames(SNOW.ts);
@@ -62,6 +61,18 @@ for p=1:length(snowvarnames)
    if saveflag
         saveas(gcf, fullfile(saveloc, ['avg_' snowvarnames{p} '_map.png']));
 %         savefig(gcf, fullfile(saveloc, ['avg_' snowvarnames{p} '_map.fig']));
+
+    % save a geotiff version, as well
+    A = flipud(xyz2grid(SNOW.lon, SNOW.lat, SNOW.avgmaps.(snowvarnames{p})));
+    xres = 1/16;
+    yres = 1/16;
+    R = makerefmat(min(SNOW.lon), min(SNOW.lat), xres, yres);
+%     figure, imagesc(SNOW.lon, SNOW.lat, A)
+%     set(gca, 'ydir', 'normal')
+    geotiffwrite(fullfile(saveloc, ['avg_' snowvarnames{p} '_map.tif']), A, R)
+
     end
 
 end
+
+

@@ -1,8 +1,7 @@
 % Plots VIC flux outputs
 
-cd /Volumes/HD3/SWOTDA
-load('/Volumes/HD3/SWOTDA/Outputs/VIC_IRB/Processed/FLUXES.mat') % load processed flux data
-saveloc = './Figures/VIC_IRB/Fluxes/';
+load('./Outputs/VIC_IRB/Processed_WB/FLUXES.mat') % load processed flux data
+saveloc = './Figures/VIC_IRB/Water_Balance_MERIT/Fluxes';
 
 ncells = length(fieldnames(FLUXES.ts));
 nsteps = length(FLUXES.time);
@@ -10,7 +9,9 @@ cellnames = fieldnames(FLUXES.ts);
 fluxvarnames = FLUXES.ts.(cellnames{1}).Properties.VariableNames;
 invisible = 1; % flag to turn on/off plotting
 saveflag = 1;
-nlayers = 2;
+nlayers = 3;
+
+VICmode = 'WB';
 
 %% Plot basin average flux time series
 % fluxunitscell = struct2cell(FLUXES.units);
@@ -26,8 +27,38 @@ nlayers = 2;
 %   Columns 14 through 20
 %     'aero_resist'    'surf_temp'    'albedo'    'rel_humid'    'in_long'    'air_temp'    'wind'
 
-fluxunitscell = {'mm','mm','mm','mm','mm','mm','W/m^2','W/m^2','mm','mm','mm', ...
-    'mm','mm','s/m','deg. C','-','-','W/m^2','deg. C', 'm/s'};
+if strcmp(VICmode, 'WB') % Water balance, three soil layers
+    fluxunitscell = {'mm','mm','mm','mm','mm','mm','W/m^2','W/m^2','mm','mm','mm', ...
+        'mm','mm','s/m','deg. C','-','-','W/m^2','deg. C', 'm/s'};
+elseif strcmp(VICmode, 'EB') % Energy balance, three soil layers
+    fluxunitscell = {
+        'mm', % prec
+        'mm', % evap
+        'mm', % runoff
+        'mm', % baseflow
+        'mm', % wdew
+        'mm', % moist
+        'K', % rad_temp
+        'W/m^2', % net_short
+        'W/m^2', % r_net
+        'W/m^2', % latent
+        'mm', % evap_canop
+        'mm', % evap_veg
+        'mm', % evap_bare
+        'mm', % sub_canop
+        'mm', % sub_snow
+        'W/m^2', % sensible
+        'W/m^2', % ground heat flux
+        'W/m^2', % delta_h
+        'W/m^2', % fusion
+        's/m', % aero_resist
+        'deg. C', % surf_temp
+        '-', % albedo
+        '-', % relative_humidity
+        'W/m^2', % incoming_longwave
+        'deg. C',  % air_temp
+        'm/s'}; % wind speed
+end
 
 for p=1:length(fluxvarnames)
     
@@ -99,6 +130,14 @@ for p=1:length(fluxvarnames)
    if saveflag
         saveas(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} '_map.png']));
 %         savefig(gcf, fullfile(saveloc, ['avg_' fluxvarnames{p} '_map.fig']));
+
+    % save a geotiff version, as well
+    A = flipud(xyz2grid(FLUXES.lon, FLUXES.lat, FLUXES.avgmaps.(fluxvarnames{p})(:,1)));
+    xres = 1/16;
+    yres = 1/16;
+    R = makerefmat(min(FLUXES.lon), min(FLUXES.lat), xres, yres);
+    geotiffwrite(fullfile(saveloc, ['avg_' fluxvarnames{p} '_map.tif']), A, R)
+
    else
        pause;
    end
@@ -109,17 +148,20 @@ end
 
 runoff_sum = zeros(nsteps, 1);
 for k=1:ncells
-    runoff_sum = runoff_sum + FLUXES.ts.(cellnames{k}).runoff;
+    tmp = FLUXES.ts.(cellnames{k}).runoff;
+    tmp(isnan(tmp)) = 0;
+    runoff_sum = runoff_sum + tmp;
 end
 
 % === convert units from mm to cfs === %
 % this is only an approximate conversion
-A_bar = 13.67; % square miles
+% A_bar = 13.67; % square miles
+A_bar = 386000; % square miles
 A_bar_ft = A_bar*2.788e+7;
 runoff_sum_cfs = runoff_sum*39.37*A_bar_ft/(12*86400*1000);
 
 % convert to km^3 per year
-runoff_sum_km3 = (sum(runoff_sum_cfs)*3600*365*24*(12/39.37)^3)/1000^3
+runoff_sum_km3 = (nansum(runoff_sum_cfs)*3600*365*24*(12/39.37)^3)/1000^3;
 
 % Compare to USGS gauge data
 

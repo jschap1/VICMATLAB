@@ -34,7 +34,8 @@ end
 fine_res = R.CellExtentInLatitude;
 
 % number of fine resolution cells in a coarse resolution cell (approximately)
-numcells = floor(coarse_res/fine_res); 
+% numcells = floor(coarse_res/fine_res); 
+numcells = ceil(coarse_res/fine_res); 
 
 ncells = size(soils,1); % number of coarse resolution grid cells
 cellnum = soils(:,2);
@@ -58,12 +59,27 @@ for k=1:ncells
     corner_lat = lat(k) + coarse_res/2;
     corner_lon = lon(k) - coarse_res/2;
    
+%     corner_lat = lat(k);
+%     corner_lon = lon(k);
+    
     corner_lat_ind = rows - round((corner_lat - ymin)/fine_res);
     corner_lon_ind = round((corner_lon - xmin)/fine_res);
     
-    % accounts for rounding error
-    if corner_lon_ind == -1
+    % accounts for rounding error at the edges
+    if corner_lon_ind <= 0
         corner_lon_ind = 1;
+    end
+    
+    if corner_lat_ind <= 0
+        corner_lat_ind = 1;
+    end
+    
+    if corner_lon_ind > size(dem,2) - numcells
+        corner_lon_ind = size(dem,2) - numcells;
+    end
+    
+    if corner_lat_ind > size(dem,1) - numcells
+        corner_lat_ind = size(dem,1) - numcells;
     end
            
     % check
@@ -72,12 +88,12 @@ for k=1:ncells
 %     set(gca, 'ydir', 'normal')
 %     hold on
 %     plot(corner_lon, corner_lat, 'ro')
-
+% 
 % figure, imagesc([-180,180],[-90,90],dem)
 % 
 %     figure, imagesc(dem), hold on
 %     plot(i_corner, j_corner, 'ro')
-%         plot(corner_lon_ind, corner_lat_ind, 'ro')
+%     plot(corner_lon_ind+numcells, corner_lat_ind+numcells, 'ro')
         
     % initialize
     minval = 9999;
@@ -109,15 +125,27 @@ for k=1:ncells
     
 %     count = (numcells+1)^2; % should be equivalent
     
+
+
+%% If there are no fine-resolution data (due to georeferencing error), set one elevation band
     if count == 0
-        disp(['Error: no data in cell', num2str(k)])
+        disp(['Error: no data in cell ', num2str(k)])
+        disp(['Lat: ', num2str(lat(k)), '; Lon: ', num2str(lon(k))])
+        
+        area_fract = zeros(numbands,1);
+        area_fract(1) = 1;
+        avg_elev = zeros(numbands,1);
+        avg_elev(1) = soils(k,5);
+        pfactor = area_fract;
+        L(k,:) = [cellnum(k), area_fract', avg_elev', pfactor'];
+        
+%% Else (in the majority of cases), use the fine-resolution elevations to make elevation bands       
     else
         meanval = sum1/count; % mean elevation value within the coarse res cell
-    end
-    
-    % calculate difference in elevation, used to determine partitioning
+        
+            % calculate difference in elevation, used to determine partitioning
     % into elevation bands
-    if (meanval-meanval) > (meanval-minval)
+    if (maxval-meanval) > (meanval-minval)
         diff1 = maxval-meanval;
     else
         diff1 = meanval-minval;
@@ -270,6 +298,8 @@ for k=1:ncells
     
     if mod(k,1000)==0 % counter to display progress
         disp(round(100*k/ncells, 3));
+    end    
+        
     end
     
 end

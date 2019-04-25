@@ -27,7 +27,8 @@ vegnames = textscan(fID, '%s');
 vegnames = vegnames{1};
 fclose(fID);
 
-ncells = 3657751;
+ncells = 4141736;
+% ncells = 3657751;
 % ncells = 61345;
 VEGPAR(ncells) = struct(); % initializing a structure to a certain size
 

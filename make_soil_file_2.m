@@ -7,7 +7,6 @@
 % addpath(genpath('/Users/jschap/Documents/MATLAB/from_file_exchange'))
 % myregrid.m, soil_classification.m, pedotransfer_table.txt
 %
-%
 % Updated 3/12/2019 JRS - added fs_active to base set of soil parameters
 % since it's required to run VIC, even if not using frozen soils
 %
@@ -15,6 +14,12 @@
 %
 % Updated 4/4/2019 - complete global coverage (formerly just covered HWSD
 % region) (Well, actually from -60 S to 90 N)
+%
+% Updated 4/10/2019 - filled in missing HWSD soil data using PDE-based
+% inpainting method
+%
+% Updated 4/15/2019 - put lat/lons on a grid consistent with the downscaled
+% MERRA-2 data
 
 %% INPUTS
 
@@ -22,7 +27,7 @@ addpath(genpath('/Users/jschap/Documents/MATLAB/from_file_exchange'))
 addpath('/Volumes/HD3/SWOTDA/Codes')
 
 res = 1/16;
-grid_decimal = 4; % number of decimal points for forcing file names
+grid_decimal = 5; % number of decimal points for forcing file names
 
 % target lat lon for regridding (locations at cell centers)
 target_lon = -180+res/2:0.0625:180-res/2;
@@ -38,7 +43,7 @@ elev = flipud(elev);
 elev(elev==-9999) = NaN;
 
 % load land cover mask
-landmask = geotiffread('/Volumes/HD3/VICParametersGlobal/Global_1_16/merit_mask_1_16.tif');
+landmask = geotiffread('/Volumes/HD3/VICParametersGlobal/Global_1_16/landmask/merit_mask_1_16.tif');
 landmask = flipud(landmask);
 landmask = logical(landmask);
 landcells = find(landmask);
@@ -57,12 +62,22 @@ subplot(2,1,2)
 imagesc(target_lon, target_lat, elev), colorbar
 xlabel('Longitude')
 ylabel('Latitude')
-title('MERIT elevations')
+title('MERIT elevations (m)')
 set(gca, 'ydir', 'normal')
 set(gca, 'fontsize', 18)
 
 % compute slope
 [~, slope, ~, ~] = gradientm(elev, R);
+
+% find missing values of slope
+missing_slope = isnan(slope) & landmask==1;
+figure, imagesc(missing_slope)
+
+% fill missing values of slope
+slope1 = slope;
+slope1 = fillmissing(slope, 'nearest');
+slope1(~landmask) = NaN;
+slope = slope1;
 
 % plot slope
 figure
@@ -76,6 +91,11 @@ set(gca, 'fontsize', 18)
 % calculate lonlat for soil parameter file
 xyz_upscaled = raster2xyz(target_lon', target_lat', ones(size(elev)));
 lonlat = xyz_upscaled(landcells,1:2);
+
+% Perform surgery on soil parameter file....
+soils1 = load('/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_0/soils_3L_MERIT.txt');
+soils1(:,3) = lonlat(:,2); % lat
+soils1(:,4) = lonlat(:,1); % lon
 
 %% Part 2 - load HWSD data
 
@@ -115,24 +135,24 @@ s_org_rg = myregrid(lons, lats, rglons, rglats, s_org, 'linear')';
 %% Fill in missing data
 
 % mask of missing data (bulk density)
-missing_bulk_dens = isnan(t_bd_rg) & landmask==1;
+missing_bulk_dens = isnan(t_bd_rg_orig) & landmask==1;
 figure, imagesc(missing_bulk_dens)
 
 % mask of missing data (soil texture)
-missing_sand_percent = isnan(t_sand_rg) & landmask==1;
+missing_sand_percent = isnan(t_sand_rg_orig) & landmask==1;
 figure, imagesc(missing_sand_percent)
 
 % fill missing values
-t_sand_rg_filled = t_sand_rg;
-filled_values = fillmissing(t_sand_rg(landmask), 'nearest');
-t_sand_rg_filled(landmask) = filled_values;
+% t_sand_rg_filled = t_sand_rg;
+% filled_values = fillmissing(t_sand_rg(landmask), 'nearest');
+% t_sand_rg_filled(landmask) = filled_values;
 
 % inpaint missing values
-nodatavalue = 9999;
-t_sand_orig = t_sand_rg;
-t_sand_rg(~landmask) = nodatavalue;
-t_sand_rg_filled = inpaint_nans(t_sand_rg);
-t_sand_rg_filled(~landmask) = NaN;
+% nodatavalue = 9999;
+% t_sand_orig = t_sand_rg;
+% t_sand_rg(~landmask) = nodatavalue;
+% t_sand_rg_filled = inpaint_nans(t_sand_rg);
+% t_sand_rg_filled(~landmask) = NaN;
 
 figure, subplot(2,1,1); imagesc(t_sand_orig), colorbar, title('original')
 subplot(2,1,2); imagesc(t_sand_rg_filled), colorbar, title('inpainted')
@@ -141,28 +161,66 @@ subplot(2,1,2); imagesc(t_sand_rg_filled), colorbar, title('inpainted')
 % to fill all the missing values, then mask out the ones I wish to keep as
 % NaN
 
-t_sand_rg_filled = inpaint_hwsd(t_sand_rg, landmask); % takes ~4 minutes
+t_sand_rg = inpaint_hwsd(t_sand_rg, landmask); % takes ~4 minutes
+t_clay_rg = inpaint_hwsd(t_clay_rg, landmask);
+s_sand_rg = inpaint_hwsd(s_sand_rg, landmask);
+s_clay_rg = inpaint_hwsd(s_clay_rg, landmask);
+t_bd_rg = inpaint_hwsd(t_bd_rg, landmask);
+s_bd_rg = inpaint_hwsd(s_bd_rg, landmask);
+t_org_rg = inpaint_hwsd(t_org_rg, landmask);
+s_org_rg = inpaint_hwsd(s_org_rg, landmask);
 
+% plot before, after, and difference for the filled images
+figure
 
+subplot(2,3,1)
+imagesc(target_lon, target_lat, t_sand_rg_orig), colorbar
+title('Percent sand (topsoil) - original'), xlabel('Lon'), ylabel('Lat')
+set(gca, 'ydir', 'normal')
+set(gca, 'fontsize', 18)
 
-% nodatavalue = 9999;
-% t_sand_rg(~landmask) = nodatavalue;
-% t_sand_rg_filled = inpaintnans(t_sand_rg)
+subplot(2,3,2)
+imagesc(target_lon, target_lat, t_sand_rg), colorbar
+title('Percent sand (topsoil) - filled'), xlabel('Lon'), ylabel('Lat')
+set(gca, 'ydir', 'normal')
+set(gca, 'fontsize', 18)
 
-figure, imagescnan(t_sand_rg), colorbar
-figure, imagesc(t_sand_rg_filled), colorbar
+subplot(2,3,3)
+imagesc(target_lon, target_lat, missing_sand_percent), colorbar
+title('Locations of missing values'), xlabel('Lon'), ylabel('Lat')
+set(gca, 'ydir', 'normal')
+set(gca, 'fontsize', 18)
+
+subplot(2,3,4)
+imagesc(target_lon, target_lat, 1000*t_bd_rg_orig), colorbar
+title('Bulk density (topsoil, kg/m^3) - original'), xlabel('Lon'), ylabel('Lat')
+set(gca, 'ydir', 'normal')
+set(gca, 'fontsize', 18)
+
+subplot(2,3,5)
+imagesc(target_lon, target_lat, 1000*t_bd_rg), colorbar
+title('Bulk density (topsoil, kg/m^3) - filled'), xlabel('Lon'), ylabel('Lat')
+set(gca, 'ydir', 'normal')
+set(gca, 'fontsize', 18)
+
+subplot(2,3,6)
+imagesc(target_lon, target_lat, missing_bulk_dens), colorbar
+title('Locations of missing values'), xlabel('Lon'), ylabel('Lat')
+set(gca, 'ydir', 'normal')
+set(gca, 'fontsize', 18)
+
 
 % testing the "fillmissing" method
-landmask1 = [1,1,1,1,1,0;
-    1,1,1,1,0,1;
-    1,1,1,1,0,1;
-    0,1,1,1,0,0];
-sand1 = [2,2,3,7,9,4;
-    3, NaN, 3,3,3,0;
-    7, NaN, 3,4,4,9;
-    9, NaN, NaN, NaN, NaN, NaN];
-sand_filled = fillmissing(sand1, 'nearest');
-sand_filled(~landmask1) = NaN;
+% landmask1 = [1,1,1,1,1,0;
+%     1,1,1,1,0,1;
+%     1,1,1,1,0,1;
+%     0,1,1,1,0,0];
+% sand1 = [2,2,3,7,9,4;
+%     3, NaN, 3,3,3,0;
+%     7, NaN, 3,4,4,9;
+%     9, NaN, NaN, NaN, NaN, NaN];
+% sand_filled = fillmissing(sand1, 'nearest');
+% sand_filled(~landmask1) = NaN;
 % not optimal because it chooses the nearest neighbor by column, so it does
 % not take into account the 2D nature of the data
 % but it does basically fill in the missing values, just could be more
@@ -171,10 +229,10 @@ sand_filled(~landmask1) = NaN;
 %
 % Try the inpainting method from John D'Arrico
 
-sand_filled = inpaint_nans(sand1); % takes ~4 minutes
-sand_filled(~landmask1) = NaN;
-sand_filled(sand_filled>100) = 100;
-sand_filled(sand_filled<0) = 0;
+% sand_filled = inpaint_nans(sand1); % takes ~4 minutes
+% sand_filled(~landmask1) = NaN;
+% sand_filled(sand_filled>100) = 100;
+% sand_filled(sand_filled<0) = 0;
 
 % t_sand_rg = inpaintn(t_sand_rg); % takes about 2 minutes
 % t_sand_rg(~landmask) = NaN;
@@ -217,9 +275,9 @@ sand_filled(sand_filled<0) = 0;
 % It might vary somewhat depending on the specific HWSD variable
 
 % output masks showing where missing data were filled in
-R = makerefmat(target_lon(1), target_lat(1), res, res);
-geotiffwrite('/Volumes/HD3/VICParametersGlobal/Global_1_16/missing_bd.tif', missing_bulk_dens, R)
-geotiffwrite('/Volumes/HD3/VICParametersGlobal/Global_1_16/missing_texture.tif', missing_sand_percent, R)
+% R = makerefmat(target_lon(1), target_lat(1), res, res);
+% geotiffwrite('/Volumes/HD3/VICParametersGlobal/Global_1_16/missing_bd.tif', missing_bulk_dens, R)
+% geotiffwrite('/Volumes/HD3/VICParametersGlobal/Global_1_16/missing_texture.tif', missing_sand_percent, R)
 
 % figure, imagesc(target_lon, target_lat, t_sand_rg_nom)
 % sum(isnan(t_sand_rg(landmask)))/sum(~isnan(t_sand_rg(landmask))); % about 5% of land cells are missing HWSD data
@@ -394,6 +452,14 @@ ann_T(~landmask) = NaN;
 figure, imagesc(target_lon, target_lat, ann_T)
 set(gca, 'ydir', 'normal')
 
+% find missing values of temperature
+missing_T = isnan(ann_T) & landmask==1;
+figure, imagesc(missing_T)
+
+% fill missing values of temperature
+ann_T = fillmissing(ann_T, 'nearest');
+ann_T(~landmask) = NaN;
+
 % size(mean([avgT(1).m; avgT(2).m]))
 % 
 % avgT.y = mean([avgT.m]);
@@ -419,6 +485,10 @@ geotiffwrite('worldclim_tavg.tif', ann_T, R)
 
 JT_rg = myregrid(Tlons, Tlats, rglons, rglats, avgT.m7', 'linear');
 JT_rg = JT_rg';
+
+% fill missing values of temperature
+JT_rg = fillmissing(JT_rg, 'nearest');
+JT_rg(~landmask) = NaN;
 
 %% Part 5 
 
@@ -497,6 +567,10 @@ ann_P(~landmask) = NaN;
 figure, imagesc(target_lon, target_lat, ann_P)
 set(gca, 'ydir', 'normal')
 
+% fill missing values of precipitation
+ann_P = fillmissing(ann_P, 'nearest');
+ann_P(~landmask) = NaN;
+
 % Save the annual precipitation map
 R = makerefmat(target_lon(1), target_lat(1), res, res);
 geotiffwrite('worldclim_prec.tif', ann_P, R)
@@ -551,6 +625,16 @@ geotiffwrite('worldclim_prec.tif', ann_P, R)
 % msds = maximum slope of the snow depth distribution (optional, needed for
 % SPATIAL_SNOW) (m)
 
+%% Flip the rasters to the correct direction
+% 
+% figure, imagesc(target_lon, target_lat, slope)
+% set(gca, 'ydir', 'normal')
+% 
+% elev = flipud(elev);
+% 
+% geotiffwrite('elev.tif', elev, R)
+
+
 %% Make the soil parameter file
 
 % Two-layer soil parameter file
@@ -599,12 +683,26 @@ soils(:,4) = lonlat(:,1); % lon
 soils(:,5) = 0.2; % b_infilt
 soils(:,6) = 0.001; % Ds
 
-dsmax = mean([ksat1, ksat2],2).*slope(landmask); % Dsmax
-soils(:,7) = fillmissing(dsmax, 'nearest');
-%
+% calculate mean ksat for the soil column
+
+ksat_bar = ksat1.*0.1 + ksat1*0.2 + ksat1*0.7;
+% ksat_simple_mean =  mean([ksat1, ksat2, ksat2],2);
+% figure, subplot(2,1,1), plot(ksat_simple_mean);
+% subplot(2,1,2), plot(ksat_bar);
+% isequal(ksat_simple_mean, ksat_bar);
+% mean(ksat_bar)
+% mean(ksat_simple_mean)
+
+dsmax = ksat_bar.*slope(landmask); % Dsmax
+
 % There are some very high values of dsmax
 % The max value is 9200*6; where there is exceptionally high conductivity and
 % also a very steep slope
+
+% quality control on dsmax - may want to do this, unclear if necessary
+% set high values equal to a maximum threshold value
+% dsmax(dsmax>1e4) = 1e4;
+soils(:,7) = dsmax;
 
 soils(:,8) = 0.9; % Ws
 soils(:,9) = 2; % c
@@ -632,8 +730,7 @@ soils(:,23) = 0.1;
 soils(:,24) = 0.2;
 soils(:,25) = 0.7;
 
-soils(:,26) = fillmissing(avgT_rg(landmask), 'nearest'); % avg_T
-
+soils(:,26) = ann_T(landmask); % avg_T !!!
 soils(:,27) = 4; % dp
 
 soils(:,28) = 0.32*expt1 + 4.3; % bubble1
@@ -665,7 +762,7 @@ soils(:,46) = wpwp_fract2; % wpwp_fract3
 soils(:,47) = 0.001; % rough
 soils(:,48) = 0.0005; % snow_rough
 
-soils(:,49) = fillmissing(avgP_rg(landmask), 'nearest'); % annual_prec
+soils(:,49) = ann_P(landmask); % annual_prec
 
 soils(:,50) = 0; % resid_moist1 (leaving it as 0...)
 soils(:,51) = 0; % resid_moist2
@@ -673,7 +770,7 @@ soils(:,52) = 0; % resid_moist3
 
 soils(:,53) = 1; % fs_active
 
-soils(:,54) = fillmissing(JT_rg(landmask), 'nearest'); % july_Tavg
+soils(:,54) = JT_rg(landmask); % july_Tavg
 
 % Use if frozen soils = TRUE
 % soils(:,42) = NaN; % frost_slope
@@ -720,9 +817,10 @@ fstring = ['%.' num2str(grid_decimal) 'f'];
 % fspec = ['%d %d ' fstring ' ' fstring ' ' '%.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %d %d %.3f %.3f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d\n'];
 
 % This is used VIC-3L w no optional variables (54 columns in the soil parameter file).
-fspec = ['%d %d ' fstring ' ' fstring ' ' '%.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %d %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %d %d\n'];
+fspec = ['%d %d ' fstring ' ' fstring ' ' '%.4f %.4f %.4f %.4f %d %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %d %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.2f %.2f %.2f %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d %d %d %d %.2f\n'];
 
-fID = fopen(savename,'w');
-fprintf(fID, fspec, soils');
+fID = fopen('/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_0/soils.txt','w');
+% fID = fopen(savename,'w');
+fprintf(fID, fspec, soils1');
 fclose(fID);
 display(['Soils data saved as ' savename])

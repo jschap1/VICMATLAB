@@ -18,6 +18,7 @@
 
 function [] = convert_veg_parameters(VEGPAR, soils)
 
+soils = soils(:,1:5);
 lat = soils(:,3);
 lon = soils(:,4);
 
@@ -47,6 +48,8 @@ vegmask = xyz2grid(lon, lat, mask_vect);
 geotiffwrite('nveg_map.tif', flipud(nveg_map), R)
 geotiffwrite('veg_mask.tif', flipud(vegmask), R)
 
+figure, imagesc(vegmask), title('vegetation mask')
+figure, imagesc(nveg_map), title('number of vegetation classes')
 
 %% Create cover fraction maps for each vegetation type
 
@@ -73,6 +76,8 @@ for k=1:ntypes
     fname_map = [vegnames{k} '_coverfract_map.tif'];
     geotiffwrite(fname_map, flipud(cv_map), R)
 end
+
+clear cv_map cv_mat
 
 %% Create root depth and root fraction maps for each vegetation type
 

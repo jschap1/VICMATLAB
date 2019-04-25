@@ -2,7 +2,7 @@ function [rows, cols] = stnloc_prep(xy, r)
 % Prepares station location file for VIC routing model
 %
 % INPUTS
-% Coordinates of locations gages where output is desired
+% Coordinates of locations/gages where output is desired
 % r = filename for a raster with the same dimensions and coordinate system as the flow
 % direction file (could just use flow direction direction file)
 %
