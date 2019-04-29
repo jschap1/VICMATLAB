@@ -1,11 +1,29 @@
 % Loads and plots ASCII forcing data
 %
+% Kind of glitchy. Better to plot the forcing variables in a different way,
+% if at all possible. It's also very computationally intensive, for what it
+% is.
+%
 % VIC 5 classic
 %
 % Dependencies:
 % GetCoords.m
 %
 % addpath(genpath('/Users/jschap/Documents/Codes/VICMATLAB/'))
+
+% create a datastore of MERRA-2 HDF files
+% addpath('/Users/jschap/Documents/MATLAB/from_file_exchange/H5DatastoreML')
+% ds = H5Datastore('/Volumes/HD_ExFAT/MERRA2/MERRA2_400.tavg1_2d_slv_Nx.20150520.SUB.hdf');
+% This did not work. There is an error about 'The specified superclass 'matlab.io.Datastore' contains a parse error,
+% cannot be found on MATLAB's search path, or is shadowed by another file with the same name'
+
+% need to add the class definition to the Matlab path
+% addpath('/Applications/MATLAB_R2017a.app/mcr/toolbox/matlab/datastoreio/')
+
+fcn = @hdfread;
+ds = fileDatastore('/Volumes/HD_ExFAT/MERRA2/MERRA2_400.tavg1_2d_slv_Nx.20150520.SUB.hdf', 'ReadFcn', fcn, 'FileExtensions', '.hdf');
+
+% fileDatastore(location,'ReadFcn',@fcn,Name,Value)
 
 %% Specify inputs
 

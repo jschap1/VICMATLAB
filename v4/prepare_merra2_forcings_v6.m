@@ -15,8 +15,14 @@
 % d5 - double checked units, added comments, modified conversion formulas
 % Updated 4/15/2019 JRS to perform cropping before interpolating to
 % speed up runtime.
-% Updated 4/24/2019 JRS to dramatically increase speed by changing the way
-% it writes out the forcing input files (but introduced a bug, see v5)
+% Updated 4/24/2019 v4 JRS to dramatically increase speed by changing the way
+% it writes out the forcing input files
+%
+% Updated 4/24/2019 v5
+% To reduce RAM-pressure, it runs over one variable at a time
+%
+% Updated 4/25/2019 v6 
+% Uses tall arrays to avoid having to load in all the data at once
 
 %% Set working directory
 
@@ -26,6 +32,7 @@ user = 'jschap';
 if strcmp(user, 'jschap')
     cd('/Volumes/HD_ExFAT/MERRA2')
     addpath('/Users/jschap/Desktop/MERRA2/Codes')
+    addpath('/Users/jschap/Documents/Codes/VICMATLAB')
 elseif strcmp(user, 'Gurjot Kohli')
     cd('C:\Users\Gurjot Kohli\Box\Shared_SWOTDA')
 elseif strcmp(user, 'elqui')
@@ -75,71 +82,292 @@ lat = sort(unique(lonlat(:,2)));
 
 %% Make cropping rectangle
 
-    % must use grid cell centers for makerefmat
-    R1 = makerefmat(min(lon), min(lat), xres, yres);
-       
+% must use grid cell centers for makerefmat
+R1 = makerefmat(min(lon), min(lat), xres, yres);
+
 %     this formulation guarantees whole number indices
 %     [ymin, xmin] = latlon2pix(R1, min(lat)+yres*10, min(lon)+xres*5) % lat, lon
-       
-    % find appropriate minimum values for the cropping rectangle
-    minval_opt_1 = 10;
-    minval_opt_2 = 10;
-    for p=1:400
-        tmp1 = abs(min(lon)+ p*xres - lon_range(1));
-        tmp2 = abs(min(lat)+ p*yres - lat_range(1));
-        if tmp1 < minval_opt_1
-            minval_opt_1 = tmp1;
-            p_opt_1 = p;
-        end
-        if tmp2 < minval_opt_2
-            minval_opt_2 = tmp2;
-            p_opt_2 = p;
-        end
-    end
-    minlon = min(lon)+ p_opt_1*xres;
-    minlat = min(lat)+ p_opt_2*yres;
-    
-    % make a 1-pixel border just to be safe
-    minlon = minlon - xres;
-    minlat = minlat - yres;
-    
-    % find appropriate maximum values for the cropping rectangle
-    maxval_opt_1 = 10;
-    maxval_opt_2 = 10;
-    for p=1:400
-        tmp1 = abs(minlon + p*xres - lon_range(2));
-        tmp2 = abs(minlat + p*yres - lat_range(2));
-        if tmp1 < maxval_opt_1
-            maxval_opt_1 = tmp1;
-            p_opt_1 = p;
-        end
-        if tmp2 < maxval_opt_2
-            maxval_opt_2 = tmp2;
-            p_opt_2 = p;
-        end
-    end
-    maxlon = minlon + p_opt_1*xres;
-    maxlat = minlat + p_opt_2*yres;  
-    
-    % make a 1-pixel border just to be safe
-    maxlon = maxlon + xres;
-    maxlat = maxlat + yres;
-    
-    [ymin, xmin] = latlon2pix(R1, minlat, minlon);
-    [ymax, xmax] = latlon2pix(R1, maxlat, maxlon);
-    width = xmax - xmin;
-    height = ymax - ymin;
-    
-%     rect = [floor(xmin), floor(ymin), ceil(width), ceil(height)];
-    rect = [xmin, ymin, width, height];
 
-    % I have to do this to get the code to work...
-    height = height+1;
-    width = width+1;
+% find appropriate minimum values for the cropping rectangle
+minval_opt_1 = 10;
+minval_opt_2 = 10;
+for p=1:400
+    tmp1 = abs(min(lon)+ p*xres - lon_range(1));
+    tmp2 = abs(min(lat)+ p*yres - lat_range(1));
+    if tmp1 < minval_opt_1
+        minval_opt_1 = tmp1;
+        p_opt_1 = p;
+    end
+    if tmp2 < minval_opt_2
+        minval_opt_2 = tmp2;
+        p_opt_2 = p;
+    end
+end
+minlon = min(lon)+ p_opt_1*xres;
+minlat = min(lat)+ p_opt_2*yres;
+
+% make a 1-pixel border just to be safe
+minlon = minlon - xres;
+minlat = minlat - yres;
+
+% find appropriate maximum values for the cropping rectangle
+maxval_opt_1 = 10;
+maxval_opt_2 = 10;
+for p=1:400
+    tmp1 = abs(minlon + p*xres - lon_range(2));
+    tmp2 = abs(minlat + p*yres - lat_range(2));
+    if tmp1 < maxval_opt_1
+        maxval_opt_1 = tmp1;
+        p_opt_1 = p;
+    end
+    if tmp2 < maxval_opt_2
+        maxval_opt_2 = tmp2;
+        p_opt_2 = p;
+    end
+end
+maxlon = minlon + p_opt_1*xres;
+maxlat = minlat + p_opt_2*yres;  
+
+% make a 1-pixel border just to be safe
+maxlon = maxlon + xres;
+maxlat = maxlat + yres;
+
+[ymin, xmin] = latlon2pix(R1, minlat, minlon);
+[ymax, xmax] = latlon2pix(R1, maxlat, maxlon);
+width = xmax - xmin;
+height = ymax - ymin;
+
+%     rect = [floor(xmin), floor(ymin), ceil(width), ceil(height)];
+rect = [xmin, ymin, width, height];
+
+% I have to do this to get the code to work...
+height = height+1;
+width = width+1;
+
+out_lat = minlat:yres:maxlat;
+out_lon = minlon:xres:maxlon;
     
 %% Downscale the meteorological forcings
 
 prec_fine = cell(ndays, 1);
+ps_fine = cell(ndays, 1);
+swdn_fine = cell(ndays, 1);
+lwdn_fine = cell(ndays, 1);
+vp_fine = cell(ndays, 1);
+wind_fine = cell(ndays, 1);
+
+%% get datetime information for the MERRA-2 data
+datetimearray = zeros(ndays, 4);
+for d=1:ndays
+    air_name = air_names(d).name;
+    mn_split = strsplit(air_name, '.');
+    mn_date = mn_split{3};
+    yr = str2double(mn_date(1:4));
+    mon = str2double(mn_date(5:6));
+    day = str2double(mn_date(7:8));
+    datetimearray(d,:) = [yr, mon, day, 0];
+end
+forc_dates = datetime(datetimearray(:,1), datetimearray(:,2), datetimearray(:,3));
+forc_date_string = datestr(forc_dates); % useful for making filenames
+
+%% Crop, downscale the forcing data (temperature)
+
+% temporary location to store the downscaled, cropped forcing data as text files
+intermediate_dir = '/Volumes/HD_ExFAT/downscaled_cropped_forcings';
+
+return_cell = 0;
+for d=1:ndays
+    
+    temperature = hdfread(fullfile(merra_dir, air_names(d).name), 'EOSGRID', 'Fields', 'T2M');
+
+    temp_crop = zeros(nhours, height, width);
+    for h=1:24
+        temp_crop(h,:,:) = imcrop(squeeze(temperature(h,:,:)), rect);
+    end
+
+    if d==1
+        [temp_fine, target_lon, target_lat] = interpolate_merra2(temp_crop, target_res, out_lon, out_lat, return_cell);
+        [nr, nc, ~] = size(temp_fine);
+    else
+        temp_fine = interpolate_merra2(temp_crop, target_res, out_lon, out_lat, return_cell);
+    end
+    
+    % write out temp_fine arrays for each day, then read them back in as a
+    % datastore in order to manipulate them and write VIC input files
+    
+    temp_fine_mat = reshape(temp_fine, nr*nc, 24); % converting to 2D
+    savename = ['temperature_', forc_date_string(d,:), '.txt'];
+    dlmwrite(fullfile(intermediate_dir, savename), temp_fine_mat')
+    
+%     temp_fine2 = reshape(temp_fine_mat, 240, 304, 24); % converting back to 3D
+    
+end
+
+%% Load the cropped, downscaled forcing data and prepare VIC input files
+
+ds = tabularTextDatastore(fullfile(intermediate_dir, 'temperature*'), 'FileExtension', '.txt');
+
+mapreducer(gcp); % start a parallel processing pool
+ta = tall(ds); % the more columns there are (ncells), the longer this step takes
+% took 29 minutes with 6 processors for ndays = 2
+% took 22 minutes with one processor (lots of overhead time for // pool)
+
+% make list of 72960 latlon values corresponding to each grid cell, and in
+% the order they appear in each of the saved temperature.txt files
+xyz = raster2xyz(target_lon', target_lat', ones(nr, nc));
+lonlat = xyz(:,1:2);
+% hopefully the order is correct; plotting will show whether it worked
+
+ncells = nr*nc; % number of cells in the cropped, downscaled forcing data
+precision = '%3.5f';
+
+for x=1:ncells
+
+    savename = fullfile(forcdir, ['Forcings_' num2str(lonlat(x,2), precision) '_' num2str(lonlat(x,1), precision) '.txt']);    
+    forcings_out = zeros(24*ndays, 7); % each of these will be large, but should fit into memory OK
+    
+    forcing_temp = ta(:,x);
+    forcings_out(1,:) = ta(:,x); % try using gather outside the loop (it will take too long otherwise)
+    forcings_out(1,:) = gather(ta(:,x)); % took about 12 minutes on one processor
+   
+    
+%     mapreducer(0) w/// toolbox, this seems to take a while (30 min.). Profile it.
+%     forcings_out(1,:) = ta(:,x);
+    
+    
+    % get temperature for a grid cell all the way across the array
+    
+    for d=1:ndays
+        temp_day = zeros(24, 1);
+        for h=1:24
+            temp_day(h) = ta();
+            temp_day(h) = temp_fine{d}{h}(row1, col1); % avoid reading the datastore ndays times
+        end
+        temp_day = temp_day - 273.15; % Kelvin to Celsius
+        d1 = 24*(d-1)+1;
+        d2 = 24*d;
+        forcings_out(d1:d2,:) = [temp_day, prec_day, ps_day, swdn_day, lwdn_day, vp_day, wind_day];        
+    end
+    
+end
+
+for x=1:nx % loop over grid cells
+    for y=1:ny 
+    
+        for k=1:ndays   % loop over days      
+            [row1, col1] = latlon2pix(R, target_lat(y), target_lon(x));
+            temp_day = zeros(24, 1);
+            for h=1:24
+                temp_day(h) = temp_fine{k}{h}(row1, col1);
+            end
+            temp_day = temp_day - 273.15; % Kelvin to Celsius
+            
+            d1 = 24*(k-1)+1;
+            d2 = 24*k;
+            forcings_out(d1:d2,:) = [temp_day, prec_day, ps_day, swdn_day, lwdn_day, vp_day, wind_day];
+        end
+        % write forcing data for this gridcell to file
+        fID = fopen(savename, 'w');
+        formatstring = '%0.5f %0.5f %0.5f %0.5f %0.5f %0.5f %0.5f\n';
+        fprintf(fID, formatstring, forcings_out');
+        fclose(fID);     
+    end
+end
+
+
+
+% fcn = @(fname) hdfread(fname, 'EOSGRID', 'Fields', 'T2M');
+
+% Good resource: https://slideplayer.com/slide/12846850/
+
+% fds = fileDatastore('/Volumes/HD_ExFAT/Sample', 'ReadFcn', @h5readAll);
+% Turn off the parallel computing option for now
+% See https://www.mathworks.com/help/parallel-computing/run-tall-arrays-on-a-parallel-pool.html
+mapreducer(0);
+
+% create a tall array of the temperature data
+merra_dir = '/Volumes/HD_ExFAT/Sample';
+merra_dir = '/Volumes/HD_ExFAT/MERRA2';
+convert_hdf_to_mat(merra_dir) % I don't think this is necessary. Can just read HDF files directly
+fds = fileDatastore(merra_dir, 'ReadFcn', @load, 'FileExtensions', '.mat');
+
+temp_fine = zeros(240, 304, 24); % need to get 240, 304 programmatically
+% cannot actually make temp_fine the full size (24*ndays); it would be too large
+% combine multiples?
+
+reset(fds)
+temperature_tall = tall(fds);
+
+
+a = readall(fds);
+a{1}
+
+
+ta2 = cell2underlying(ta);
+
+ta = tall(fds);
+ta(1) % data for day 1
+ta(2) % data for day 2
+
+m = gather(mean(ta));
+
+% crop each one
+nhours = 24;
+temp_crop = zeros(nhours, height, width);
+for h=1:nhours
+    temp_crop(h,:,:) = imcrop(squeeze(ta(1)(h,:,:)), rect);
+end
+% note: tall cell arrays are less useful than tall tabular arrays
+
+
+% crop the data
+fds.ReadSize = 'file';
+raw_merra = read(fds);
+raw_merra = raw_merra.dat1;
+
+
+
+[temp_fine{k}, target_lon, target_lat] = interpolate_merra2(temp_crop, target_res, out_lon, out_lat);
+
+
+temp_fine = cell(ndays, 1); % quickly grows to 10s of GB... Not OK. 
+
+for k=1:ndays
+        
+    air_name = air_names(k).name;
+    temp = hdfread(air_name, 'EOSGRID', 'Fields', 'T2M');
+    
+    nhours = size(temp,1);
+    temp_crop = zeros(nhours, height, width);
+    for h=1:nhours
+        temp_crop(h,:,:) = imcrop(squeeze(temp(h,:,:)), rect);
+    end
+    
+    [temp_fine{k}, target_lon, target_lat] = interpolate_merra2(temp_crop, target_res, out_lon, out_lat);
+
+    nx = length(target_lon);
+    ny = length(target_lat);
+    R = makerefmat(target_lon(1), target_lat(1), target_res, target_res);
+    
+    % Write dates to file
+    % This is a check to make sure the VIC forcing files are in the
+    % right order and aren't missing any data
+    fID2 = fopen(fullfile(forcdir, 'forcing_dates.txt'), 'a');
+    dates_out = [str2double(yr), str2double(mon), str2double(day)];
+    formatstring = '%d %d %d\n';
+    fprintf(fID2, formatstring, dates_out');
+    fclose(fID2);
+    
+    disp(['Interpolated data for day ' num2str(k) ' of ' num2str(ndays)]) % progress tracker
+    
+    % Compile files for each pixel across times
+    % Write data to files for each pixel
+       
+end
+
+save('temperature_fine_interp.mat', temp_fine, '-v7.3')
+save('temperature_fine_interp.mat', temp_fine)
+  
 
 %%
 for k=1:ndays % do in parallel for individual MERRA-2 files?
@@ -231,12 +459,12 @@ for k=1:ndays % do in parallel for individual MERRA-2 files?
     
     % this can use a lot of RAM depending on the target_resolution
     [prec_fine{k}, target_lon, target_lat] = interpolate_merra2(prec_crop, target_res, out_lon, out_lat);
-    temp_fine = interpolate_merra2(temp_crop, target_res, out_lon, out_lat);
-    ps_fine = interpolate_merra2(ps_crop, target_res, out_lon, out_lat);
-    vp_fine = interpolate_merra2(vp_crop, target_res, out_lon, out_lat);
-    wind_fine = interpolate_merra2(wind_crop, target_res, out_lon, out_lat);
-    swdn_fine = interpolate_merra2(swdn_crop, target_res, out_lon, out_lat);
-    lwdn_fine = interpolate_merra2(lwdn_crop, target_res, out_lon, out_lat);
+    temp_fine{k} = interpolate_merra2(temp_crop, target_res, out_lon, out_lat);
+    ps_fine{k} = interpolate_merra2(ps_crop, target_res, out_lon, out_lat);
+    vp_fine{k} = interpolate_merra2(vp_crop, target_res, out_lon, out_lat);
+    wind_fine{k} = interpolate_merra2(wind_crop, target_res, out_lon, out_lat);
+    swdn_fine{k} = interpolate_merra2(swdn_crop, target_res, out_lon, out_lat);
+    lwdn_fine{k} = interpolate_merra2(lwdn_crop, target_res, out_lon, out_lat);
     
     % Write out a GeoTIFF (optional)   
     nx = length(target_lon);
@@ -284,12 +512,12 @@ for x=1:nx % loop over grid cells
             lwdn_day = zeros(24, 1);
             for h=1:24
                 prec_day(h) = prec_fine{k}{h}(row1, col1);
-                temp_day(h) = temp_fine{h}(row1, col1);
-                ps_day(h) = ps_fine{h}(row1, col1);
-                vp_day(h) = vp_fine{h}(row1, col1);
-                wind_day(h) = wind_fine{h}(row1, col1);
-                swdn_day(h) = swdn_fine{h}(row1, col1);
-                lwdn_day(h) = lwdn_fine{h}(row1, col1);
+                temp_day(h) = temp_fine{k}{h}(row1, col1);
+                ps_day(h) = ps_fine{k}{h}(row1, col1);
+                vp_day(h) = vp_fine{k}{h}(row1, col1);
+                wind_day(h) = wind_fine{k}{h}(row1, col1);
+                swdn_day(h) = swdn_fine{k}{h}(row1, col1);
+                lwdn_day(h) = lwdn_fine{k}{h}(row1, col1);
             end
 
             % MERRA-2 original units
@@ -323,8 +551,6 @@ for x=1:nx % loop over grid cells
             d1 = 24*(k-1)+1;
             d2 = 24*k;
             forcings_out(d1:d2,:) = [temp_day, prec_day, ps_day, swdn_day, lwdn_day, vp_day, wind_day];
-            % currently, this does not depend on the day. This is a bug.
-            % Need to fix it, but also need to stay within RAM constraint.
 
         end
         
