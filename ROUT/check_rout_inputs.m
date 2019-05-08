@@ -1,10 +1,10 @@
 % June 25, 2018, JRS
 % Double check routing model inputs
 
-[fract, ~] = arcgridread('/Volumes/HD3/SWOTDA/Data/UMRB/ROUT/umrb.fract');
-[fdir, ~] = arcgridread('/Volumes/HD3/SWOTDA/Data/UMRB/ROUT/umrb.flowdir');
+[fract, ~] = arcgridread('./Data/IRB/ROUT/irb.fract.asc');
+[fdir, ~] = arcgridread('./Data/IRB/ROUT/irb.flowdir.asc');
 
-stationsfile = '/Volumes/HD3/SWOTDA/Data/UMRB/ROUT/umrb.stations';
+stationsfile = './Data/IRB/ROUT/irb.stnloc';
 f1 = fopen(stationsfile);
 stations = textscan(f1, '%d %s %f %f %f');
 fclose(f1);

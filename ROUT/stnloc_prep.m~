@@ -22,14 +22,17 @@ function [rows, cols] = stnloc_prep(xy, r)
 %% inputs
 
 % comment this out
-r = './Data/IRB/ROUT/irb.flowdir.asc';
-latlon = load('./Data/IRB/gauge_lat_lons.txt');
-latlon = [latlon(:,2), latlon(:,1)];
+r = './Data/IRB/ROUT/irb.flowdir';
+latlon = [-94.34375, 47.21875; 
+    -87.0938, 44.7810; 
+    -89.22, 37.03;
+    -90.41, 38.47]; % read these off a map
+A = dlmread('./Data/Dams/IRB_reservoir_metadata.txt', 1, 3L:4);
 
 %% Get gauge coordinates from latlon data
 
 [rast, R] = arcgridread(r);
-[row, col] = latlon2pix(R, latlon(:,1), latlon(:,2));
+[row, col] = latlon2pix(R, latlon(:,2), latlon(:,1));
 [nrow, ~] = size(rast);
 rows = nrow - round(row) + 1;
 cols = round(col);
@@ -37,9 +40,9 @@ cols = round(col);
 %% Finish making the stnloc file
 
 nstations = length(rows);
-fID = fopen('./Data/IRB/Rout/irb.stnloc', 'w');
+fID = fopen('umrb.stnloc', 'w');
 for k=1:nstations
-    fprintf(fID, '%d \t %s \t %d \t %d \t %d\n', 1, ['IRB' num2str(k)], cols(k), rows(k), -9999);
+    fprintf(fID, '%d \t %s \t %d \t %d \t %d\n', 1, ['UMRB' num2str(k)], cols(k), rows(k), -9999);
     fprintf(fID, '%s\n', 'NONE');
 end
 fclose(fID);

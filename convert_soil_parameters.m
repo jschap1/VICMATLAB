@@ -54,11 +54,13 @@
 %     'dp','bubble1','bubble2','bubble3','quartz1','quartz2','quartz3','bulk_dens1','bulk_dens2','bulk_dens3', ...
 %     'soil_dens1','soil_dens2','soil_dens3', ...
 %     'off_gmt','wcr_fract1','wcr_fract2','wcr_fract3','wpwp_fract1','wpwp_fract2','wpwp_fract3','rough','snow_rough', ...
-%     'annual_prec','resid_moist1','resid_moist2','resid_moist3', 'fs_active'};
+%     'annual_prec','resid_moist1','resid_moist2','resid_moist3', 'fs_active', 'July_Tavg'};
 
 % writecsv_cell('varnames.txt', varnames);
 
 % infile = '/Volumes/HD3/VICParametersGlobal/Global_1_16/soils/soils_3L_MERIT_latest.txt';
+
+% infile = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/soils_clipped.txt';
 
 function [] = convert_soil_parameters(infile, varnames)
 

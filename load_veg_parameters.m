@@ -17,19 +17,25 @@
 % soils = load('/Volumes/HD3/VICParametersGlobal/Global_1_16/soils/second_attempt/global_soils_1_16.txt');
 % ncells = size(soils, 1)
 
-function VEGPAR = load_veg_parameters(vegfile)
+% vegfile = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_1/global_vegetation_1_16.txt';
+
+% get number of grid cells by looking at the number of lines with 
+% [q,w] = system(['tail -n ',num2str(10),' ',vegfile]);
+
+% ncells = 4141736; % v1_1 global
+% ncells = 3657751;
+% ncells = 61345;
+
+function VEGPAR = load_veg_parameters(vegfile, ncells)
 
 % initialize variables
 
 % load names of vegetation types (get them from the vegetation library)
-fID = fopen('vegnames.txt');
+fID = fopen('/Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation/vegnames.txt');
 vegnames = textscan(fID, '%s');
 vegnames = vegnames{1};
 fclose(fID);
 
-ncells = 4141736;
-% ncells = 3657751;
-% ncells = 61345;
 VEGPAR(ncells) = struct(); % initializing a structure to a certain size
 
 for i=1:ncells

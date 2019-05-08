@@ -29,7 +29,8 @@ run_type = 'WATER_BALANCE'; % FULL_ENERGY or WATER_BALANCE or FROZEN_SOIL
 rec_interval = 'daily';
 
 saveflag = 1;
-saveloc = '/Volumes/HD3/SWOTDA/Outputs/VIC_IRB/WATER_BALANCE';
+% saveloc = '/Volumes/HD3/SWOTDA/Outputs/VIC_IRB/WB_05012019/Raw';
+saveloc = '/Volumes/HD3/SWOTDA/Outputs/VIC_IRB/WB_corrected_veg_Raw';
 
 %%
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -153,6 +154,10 @@ if saveflag
 %     save(fullfile(saveloc,'FLUXES.mat'),'FLUXES', '-v7.3')
     save(fullfile(saveloc,'../SNOW.mat'),'SNOW')
 end
+
+%     save(fullfile(saveloc,'./timevector.mat'),'timevector')
+%     save(fullfile(saveloc,'./FLUXES.mat'),'FLUXES')
+%     save(fullfile(saveloc,'./SNOW.mat'),'SNOW')
 
 
 %%

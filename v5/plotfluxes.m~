@@ -144,5 +144,62 @@ for p=1:length(fluxvarnames)
 
 end
 
+%% Summed runoff comparison
+
+runoff_sum = zeros(nsteps, 1);
+for k=1:ncells
+    tmp = FLUXES.ts.(cellnames{k}).runoff;
+    tmp(isnan(tmp)) = 0;
+    runoff_sum = runoff_sum + tmp;
+end
+
+% === convert units from mm to cfs === %
+% this is only an approximate conversion
+% A_bar = 13.67; % square miles
+A_bar = 386000; % square miles
+A_bar_ft = A_bar*2.788e+7;
+runoff_sum_cfs = runoff_sum*39.37*A_bar_ft/(12*86400*1000);
+
+% convert to km^3 per year
+runoff_sum_km3 = (nansum(runoff_sum_cfs)*3600*365*24*(12/39.37)^3)/1000^3;
+
+% Compare to USGS gauge data
+
+% Gage 07020500 Mississippi River at Chester, IL
+% The USGS gauge is about 80 miles north of the UMRB outlet at Cairo, IL, with no major
+% tributaries in between; there's probably a gauge at Cairo, too.
+
+gageq = readtable('./Data/Flows/usgs07020500.txt');
+gageq.Properties.VariableNames = {'Y','M','D','Q'};
+
+% Subset the USGS data to match the modeled time period
+gagetimes = datetime(gageq.Y, gageq.M, gageq.D);
+[~, ind2] = ismember(gagetimes, FLUXES.time);
+qind = find(ind2);
+gage_subset = gageq(qind,:);
+
+%% Make plot
+
+figure, hold on
+plot(FLUXES.time, runoff_sum_cfs)
+xlabel('time')
+ylabel('spatially-summed runoff (cfs)')
+gca(set
+
+plot(FLUXES.time, gage_subset.Q)
+
+figure, plot(FLUXES.time, runoff_sum)
+xlabel('time')
+ylabel('runoff (mm)')
+
+legend('VIC','Gauge')
+
+% Repeat for monthly discharge
+
+FLUXES.time
+round(runoff_sum_cfs)
+
+FLUXES.time
+gage_subset.Q
 
 %% Calculate water balance components (in meaningful units)

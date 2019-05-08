@@ -17,8 +17,14 @@
 % soilfile = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_1/soils_3L_MERIT.txt'
 % modisfile = '/Volumes/HD3/MODIS/MCD12C1/MCD12C1.A2017001.006.2018257171411.hdf'
 % meritmaskfile = '/Volumes/HD3/VICParametersGlobal/Global_1_16/landmask/merit_mask_1_16.tif';
+% lcroppedfile = '/Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation/landcover_umd_cropped2merit.tif';
+% savename = '/Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation/updated_vegparamfile.txt';
+%
+% TODO
+% Someone should make a Matlab function that crops a map to a bounding box
+% and upload it to the File Exchange.
 
-function make_vegparam_2(soilfile, modisfile, meritmaskfile, savename)
+function make_vegparam_3(soilfile, modisfile, lcroppedfile, meritmaskfile, savename)
 
 %% Load input data
 
@@ -47,21 +53,6 @@ target_lat = -90+tres/2:tres:90-tres/2;
 [tlons, tlats] = ndgrid(target_lon, target_lat);
 lc_rg = myregrid(lons, lats, tlons, tlats, lc', 'nearest');
 
-% target_lon = -180+tres/2:tres:180-tres/2;
-% target_lat = -60+tres/2:tres:85-tres/2;
-
-%%%%%%%%
-% Tres = 0.0416667;
-% Tlat = -90:Tres:90-0.5*Tres; % 2.5 minute resolution
-% Tlon = -180:Tres:180-0.5*Tres;
-% [Tlons, Tlats] = ndgrid(Tlon, Tlat);
-% avgP_rg = myregrid(Tlons, Tlats, rglons, rglats, double(avgP.y'), 'linear');
-% avgP_rg = avgP_rg';
-% 
-% ann_P = avgP_rg;
-% ann_P(~landmask) = NaN;
-%%%%%%%
-
 lc1 = lc_rg';
 lc2 = flipud(lc1);
 figure, imagesc(target_lon, target_lat, lc2)
@@ -70,15 +61,13 @@ set(gca, 'ydir', 'normal')
 R = makerefmat(target_lon(1), target_lat(1), -tres, tres);
 geotiffwrite('landcover_umd.tif', lc2, R); % save intermediate result
 
+[landmask, R_merit] = geotiffread(meritmaskfile);
+minlat = R_merit.LatitudeLimits(1);
+maxlat = R_merit.LatitudeLimits(2);
+minlon = R_merit.LongitudeLimits(1);
+maxlon = R_merit.LongitudeLimits(2);
+landmask = flipud(logical(landmask));
 
-
-% Someone should make a Matlab function that crops a map to a bounding box
-% and upload it to the File Exchange.
-% [landmask, R_merit] = geotiffread(meritmaskfile);
-% % minlat = R_merit.LatitudeLimits(1);
-% % maxlat = R_merit.LatitudeLimits(2);
-% % minlon = R_merit.LongitudeLimits(1);
-% % maxlon = R_merit.LongitudeLimits(2);
 % [rmin, cmin] = latlon2pix(R_modis, -60, -180);
 % [rmax, cmax] = latlon2pix(R_modis, 85, 180);
 % width = cmax - cmin;
@@ -94,9 +83,18 @@ geotiffwrite('landcover_umd.tif', lc2, R); % save intermediate result
 % This is where the vegetation parameter file went wrong. Big issue with
 % extents and images that are upside down, but shouldn't be, etc.
 
-lc3 = geotiffread('/Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation/landcover_umd_cropped2merit.tif');
+lc3 = geotiffread(lcroppedfile);
 lc3 = flipud(lc3);
-figure, imagesc(target_lon, target_lat, lc3)
+
+figure, 
+subplot(2,1,1)
+imagesc([minlon maxlon], [minlat maxlat], lc3) 
+title('land cover')
+set(gca, 'ydir', 'normal')
+
+subplot(2,1,2)
+imagesc([minlon maxlon], [minlat maxlat], landmask)
+title('land mask')
 set(gca, 'ydir', 'normal')
 
 %% Re-assign land cover types as needed
@@ -119,15 +117,6 @@ lcnames = {'EvergreenNeedleleaf', 'EvergreenBroadleaf', ...
     'Woodland', 'WoodedGrasslands', 'ClosedShrublands', 'OpenShrublands', 'Grasslands', ...
     'CroplandCorn'};
 lcnumbers = 1:11;
-
-[landmask, R] = geotiffread('/Volumes/HD3/VICParametersGlobal/Global_1_16/landmask/merit_mask_1_16.tif');
-landmask = logical(landmask);
-figure, imagesc(landmask)
-
-figure, subplot(2,1,1)
-imagesc(lc3), title('land cover')
-subplot(2,1,2)
-imagesc(landmask), title('land mask')
 
 vegtype = lc3(landmask); % land cover for HWSD land cells
 
@@ -154,56 +143,33 @@ ntypes = length(unique(vegtype)); % number of land cover types
 
 %% Plot the original and reclassified vegetation covers
 
-lc3 = flipud(lc3);
+% lc3 = flipud(lc3);
 vegtype_raster = lc3;
 vegtype_raster(~landmask) = NaN;
 vegtype_raster(landmask) = vegtype;
 
 figure, subplot(2,1,1)
-h1 = imagesc(target_lon, target_lat, lc3);
+h1 = imagesc([minlon maxlon], [minlat maxlat], lc3);
 title('Original classification')
 xlabel('Lon'), ylabel('Lat')
 set(gca, 'ydir', 'normal')
 set(gca, 'fontsize', 18)
 
 subplot(2,1,2)
-imagesc(target_lon, target_lat, vegtype_raster)
+imagesc([minlon maxlon], [minlat maxlat], vegtype_raster)
 title('New classification')
 xlabel('Lon'), ylabel('Lat')
 set(gca, 'ydir', 'normal')
 set(gca, 'fontsize', 18)
 
-% diff = lc3 ~= vegtype_raster;
-% 
-% subplot(3,1,3)
-% imagesc(target_lon, target_lat, diff)
-% title('Reclassified bare soil pixels')
-% xlabel('Lon'), ylabel('Lat')
-% set(gca, 'ydir', 'normal')
-% set(gca, 'fontsize', 18)
-
 % Going to do this in R, actually
-
-% R = makerefmat(lon, lat, 0.0625, 0.0625);
-geotiffwrite('umd_modis_land_cover.tif', flipud(lc3), R)
-geotiffwrite('umd_land_cover_reclassified.tif', flipud(vegtype_raster), R)
-
-% 
-%  N=16;                       %  # of data types, hence legend entries
-%  imagesc(lc3)              % image it
-%  cmap = jet(N);             % assigen colormap
-%  colormap(cmap)
-%  hold on
-% 
-%  markerColor = mat2cell(cmap,ones(1,N),3);
-%  L = plot(ones(N), 'LineStyle','none','marker','s','visible','off');      
-%  set(L,{'MarkerFaceColor'},markerColor,{'MarkerEdgeColor'},markerColor);   
-%  legend(UMDnames)
+geotiffwrite('/Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation/umd_modis_land_cover.tif', flipud(lc3), R_merit)
+geotiffwrite('/Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation/umd_land_cover_reclassified.tif', flipud(vegtype_raster), R_merit)
  
  
-%%
+%% Write the vegetation parameter file
 
-cellID = soils(:,2);
+cellID = latlontable(:,1);
 ncells = length(cellID);
 nveg = ones(ncells,1); % always 1 for the current setup
 
@@ -226,7 +192,7 @@ for cl=1:(ntypes-1)
     lai(vegtype == cl,:) = repmat(lookuptable(row, 6:17), n_of_type, 1);
 end
 
-%% Write the vegetation parameter file
+%% Loop through the file, line by line
 
 fID = fopen(savename, 'w');
 
@@ -263,7 +229,7 @@ while current_cellID<=ncells
     current_cellID = current_cellID + 1;
         
     % show progress
-    if mod(current_cellID, 1e5)==0
+    if mod(current_cellID, 1e4)==0
         disp(round(current_cellID/ncells*100))
     end
     

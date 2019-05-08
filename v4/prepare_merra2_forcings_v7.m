@@ -23,6 +23,10 @@
 %
 % Updated 4/25/2019 v6 
 % Uses tall arrays to avoid having to load in all the data at once
+%
+% Updated 4/29/2019 v67
+% Using plain old datastores, instead of tall arrays. This seems the best
+% solution.
 
 %% Set working directory
 
@@ -42,6 +46,9 @@ elseif strcmp(user, 'elqui')
 end
 
 %% Inputs
+
+delete(gcp('nocreate')) % remove any existing parallel pools
+% p = parpool(); % start a parallel pool
 
 lat_range = [24 37.125];
 lon_range = [66 82.875];
@@ -203,7 +210,8 @@ for d=1:ndays
     
     temp_fine_mat = reshape(temp_fine, nr*nc, 24); % converting to 2D
     savename = ['temperature_', forc_date_string(d,:), '.txt'];
-    dlmwrite(fullfile(intermediate_dir, savename), temp_fine_mat')
+%     dlmwrite(fullfile(intermediate_dir, savename), temp_fine_mat') % nt by ncells
+    dlmwrite(fullfile(intermediate_dir, savename), temp_fine_mat) % ncells by nt
     
 %     temp_fine2 = reshape(temp_fine_mat, 240, 304, 24); % converting back to 3D
     
@@ -213,7 +221,7 @@ end
 
 ds = tabularTextDatastore(fullfile(intermediate_dir, 'temperature*'), 'FileExtension', '.txt');
 
-% mapreducer(0); % start a parallel processing pool
+mapreducer(0); % do not use parallel pool
 % took 29 minutes with 6 processors for ndays = 2
 % took 22 minutes with one processor (lots of overhead time for // pool)
 
@@ -229,9 +237,6 @@ precision = '%3.5f';
 % forcings_out = cell(ncells, 1);
 % mapreducer(gcp);
 
-delete(gcp('nocreate')) % remove any existing parallel pools
-p = parpool(); % start a parallel pool
-
 tic; % this step takes a while, on the order of an hour
 ta = tall(ds); % the more columns there are (ncells), the longer this step takes
 toc % took 400 seconds for the full IRB domain and ndays=5
@@ -240,6 +245,66 @@ toc % took 400 seconds for the full IRB domain and ndays=5
 % If necessary for computational considerations, change the shape of the tall array to npix by nt and
 % use fewer timesteps. Disaggregate to 3-hourly and use a shorter modeling
 % period, instead of the full record.
+
+% Make forcing file for one grid cell
+tic; 
+forcing_out = zeros(ndays*24,7);
+reset(ds);
+ds.ReadSize = 'file';
+for d=1:ndays
+    aa = read(ds);
+    d1 = 24*(d-1)+1;
+    d2 = 24*d;    
+    forcing_out(d1:d2,1) = table2array(aa(1,:))';
+end
+toc
+% 1.56 seconds
+% BOOM. Done.
+% Over more days, this will take a bit longer, but should still be
+% reasonable.
+
+% Do for all grid cells
+
+
+% calculate indices ahead of time
+d1 = zeros(ndays,1);
+d2 = zeros(ndays,1);
+for d=1:ndays
+    d1(d) = 24*(d-1)+1;
+    d2(d) = 24*d;   
+end
+        
+% This will take a couple of days for the full domain
+% A parfor loop might be helpful for cutting execution time 
+tic; 
+% parpool()
+ds.ReadSize = 'file';
+parfor x=1:ncells
+    savename1 = fullfile(forcdir, ['Forcings_' num2str(lonlat(x,2), precision) '_' num2str(lonlat(x,1), precision) '.txt']);
+    forcing_out = zeros(ndays*24,7);
+    reset(ds);
+    for d=1:ndays
+        aa = read(ds);
+        forcing_out(d1(d):d2(d),1) = table2array(aa(x,:))'; % temperature
+    end
+    dlmwrite(savename1, forcing_out)
+end
+toc;
+% 148.5 s for 100 cells
+% 30.5 hours for 73000 cells
+
+forcing_out = zeros(ndays*24,7);
+reset(ds);
+ds.ReadSize = 'file';
+for d=1:ndays
+    aa = read(ds);
+    d1 = 24*(d-1)+1;
+    d2 = 24*d;    
+    forcing_out(d1:d2,1) = table2array(aa(1,:))';
+end
+toc
+
+
 
 tic
 for x=1:ncells
