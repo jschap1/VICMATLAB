@@ -42,27 +42,58 @@
 %
 % Updated 4/30/2019 v10
 % Now using binary inputs and outputs for speed
+%
+% v11
+% Final working version of MERRA-2 interpolation/VIC forcing prep code
+% Note: had trouble with binary forcing files for VIC, but it works when I
+% convert them to ASCII format in Matlab, then load into VIC.
+% Note: Do not cd into the data directory, or Matlab will become very, very slow!
+%
+% v12 Minor updates to v11 5/13/2019
+% Made it possible to not specify an extension for the output VIC forcing files; 
+% VIC doesn't read in forcing files properly if they have extensions
+%
+% Added option to just perform downscaling for certain days
+%
+% Added topographic downscaling capability (except for SW radiation)
+%
+% 7/16/2019 Improvements to flow and readability of code
 
 %% Set up environment
 
+cd('/Volumes/HD3/SWOTDA')
 addpath('/Users/jschap/Desktop/MERRA2/Codes')
 addpath('/Users/jschap/Documents/Codes/VICMATLAB')
+addpath('/Volumes/HD3/SWOTDA/Codes/SW_Disagg')
+addpath(genpath('/Users/jschap/Documents/Classes/CEE150 Intro to Hydrology/MOD_WET_2017a'))
 
 delete(gcp('nocreate')) % remove any existing parallel pools
 p = parpool(); % start a parallel pool
 
 %% Inputs
 
-lat_range = [24 37.125];
-lon_range = [66 82.875];
+lat_range = [24 37.1875]; % full IRB domain
+lon_range = [66 84];
+ 
+% lat_range = [28 29]; % a subdomain
+% lon_range = [70 71];
 
 target_res = 1/16; % can change this if not enough RAM
+
+% choose days to perform downscaling:
+begin_day = datetime(2018, 1, 1);
+end_day = datetime(2019, 3, 31);
+% end_day = datetime(2019, 10, 31);
+
+% maskfile = './Data/IRB/Experimental/cropped_basinmask_for_downscaling_1_16.tif';
+maskfile = './FDT/Rout/smaller/basinmask_coarse.asc';
 
 % MERRA-2 static file with lat/lon info
 static_file = '/Users/jschap/Desktop/MERRA2/Processed/static_file_MERRA2.in'; 
 
 % Directory to save the downscaled forcing files
-forcdir = '/Users/jschap/Desktop/MERRA2/Forc_1980-2019'; 
+% forcdir = '/Users/jschap/Desktop/MERRA2/Forc_1980-2019'; 
+forcdir = './Data/IRB/VIC/Forc_2018-2019'; 
 
 % temporary location to store the downscaled, cropped forcing data as text files
 % intermediate_dir = '/Users/jschap/Desktop/MERRA2/Downscaled';
@@ -70,10 +101,9 @@ intermediate_dir = '/Volumes/HD_ExFat/downscaled_cropped_forcings';
 merra_dir = '/Volumes/HD_ExFat/MERRA2';
 
 % MERRA-2 filenames
-cd(merra_dir)
-prec_names = dir('MERRA2*flx*.hdf');
-rad_names = dir('MERRA2*rad*.hdf');
-air_names = dir('MERRA2*slv*.hdf');
+prec_names = dir(fullfile(merra_dir, 'MERRA2*flx*.hdf'));
+rad_names = dir(fullfile(merra_dir, 'MERRA2*rad*.hdf'));
+air_names = dir(fullfile(merra_dir, 'MERRA2*slv*.hdf'));
 
 ndays = length(prec_names);
 
@@ -85,6 +115,15 @@ A = load(static_file);
 lonlat = [A(:,3), A(:,2)];
 lon = sort(unique(lonlat(:,1)));
 lat = sort(unique(lonlat(:,2)));
+elev = A(:,4);
+elev_raster = flipud(xyz2grid(lonlat(:,1), lonlat(:,2), elev));
+
+basinmask = flipud(arcgridread(maskfile));
+% basinmask = flipud(geotiffread(maskfile));
+basinmask(basinmask<0) = 0;
+
+figure, imagesc(elev_raster), set(gca, 'ydir', 'normal'), title('Elevation (m)'), colorbar
+figure, imagesc(basinmask), set(gca, 'ydir', 'normal'), title('Basin mask')
 
 %% Make cropping rectangle
 
@@ -161,13 +200,16 @@ for d=1:ndays
     mn_date = mn_split{3};
     yr = str2double(mn_date(1:4));
     mon = str2double(mn_date(5:6));
-    day = str2double(mn_date(7:8));
-    datetimearray(d,:) = [yr, mon, day, 0];
+    dd = str2double(mn_date(7:8));
+    datetimearray(d,:) = [yr, mon, dd, 0];
 end
 forc_dates = datetime(datetimearray(:,1), datetimearray(:,2), datetimearray(:,3));
 forc_date_string = datestr(forc_dates); % useful for making filenames
 
-%% Crop, downscale the forcing data (temperature)
+[~, begin_ind] = ismember(begin_day, forc_dates);
+[~, end_ind] = ismember(end_day, forc_dates);
+
+%% Crop, downscale the forcing data (temperature, for one day)
 
     % variables to output
 %     [temperature, precipitation, pressure, shortwave, longwave, vapor_pressure, wind_speed]
@@ -190,6 +232,9 @@ end
 [nr, nc, ~] = size(temp_fine);
 ncells = nr*nc;
 
+% figure, imagesc(target_lon, target_lat, basinmask)
+% set(gca, 'ydir', 'normal')
+
 % make list of the latlon values corresponding to each grid cell, and in
 % the order they appear in each of the saved temperature.txt files
 xyz = raster2xyz(target_lon', target_lat', ones(nr, nc));
@@ -198,7 +243,6 @@ lonlat = xyz(:,1:2);
 
 % extens = '.txt';
 extens = '.bin';
-
 M = [2^8, 2^5, 2^6, 2^3, 2^3, 2^7, 2^7];
 M_TEMP = M(1);
 M_PREC = M(2);
@@ -212,18 +256,80 @@ M_WIND = M(7);
 % https://en.wikipedia.org/wiki/Scale_factor_(computer_science)
 % Also, take into account the range of values you're working with
 
-for d=1:31 % 68 minutes for 1000 days on 6 workers
-% parfor d=1:ndays
-% (Takes on the order of one day to run on my machine)
+%% Loop through MERRA-2 files, day by day
 
+% constants
+sigma_sb = 5.670e-8; % Stephen-Boltzmann constant
+gamma_lapse = 6.5/1000; % moist adiabatic lapse rate, K/m
+Rd = 286.9; % J/kgK
+Rv = 461.4; % J/kgK
+g = 9.81; % gravitational acceleration m/s^2
+
+% function handles
+qv2vp = @(qv,ps) (qv.*ps)./(qv+0.622); % vp units are same as ps units
+vp2qv = @(vp, ps) 0.622*vp./(ps - vp);
+get_resultant = @(x,y) (x.^2 + y.^2).^(1/2);
+vp2tdew = @(vp) (log(vp) + 0.49299)./(0.0707 - 0.00421.*log(vp)); % kPa/deg. C
+tdew2vp = @(tdew) 0.6108*exp((17.27*tdew)./(237.3+tdew)); % kPa/deg. C
+
+elev_crop = imcrop(elev_raster, rect); % elevation data from MERRA-2
+
+% Load fine-resolution elevation data
+[elev_fine_crop, R_elev_fine_crop] = geotiffread('./Data/IRB/Experimental/cropped_DEM_for_downscaling_1_16.tif');
+elev_fine_crop = flipud(elev_fine_crop);
+elev_fine_crop(elev_fine_crop < -9999) = NaN;
+
+% parfor d=1:ndays
+for d=begin_ind:end_ind
+
+    % Temperature ---------------------------------------------------
     temperature = hdfread(fullfile(merra_dir, air_names(d).name), 'EOSGRID', 'Fields', 'T2M');
+    temperature = temperature - 273.15; % Kelvin to Celsius
+    
+    % crop coarse resolution MERRA-2 temperature to study region
+    temp_crop = zeros(24, height, width);
+    for h=1:24
+        temp_crop(h,:,:) = imcrop(squeeze(temperature(h,:,:)), rect);
+    end
+
+    % lapse temperature to a reference level (z=0)
+    temp_0 = zeros(size(temp_crop));
+    for k=1:24
+        temp_0(k, :, :) = squeeze(temp_crop(k,:,:)) + gamma_lapse*elev_crop;
+    end    
+    
+    % downscale temperature to fine resolution
+    [temp0_fine, target_lon, target_lat] = interpolate_merra2(temp_0, target_res, out_lon, out_lat, 'linear', return_cell);
+    [nr, nc, ~] = size(temp_fine);  
+    
+    % use fine resolution elevation data to "un-lapse" temperature
+    temp_fine = zeros(size(temp0_fine));
+    for k=1:24
+        temp_fine(:, :, k) = squeeze(temp0_fine(:,:,k)) - gamma_lapse*elev_fine_crop;
+    end
+    temp_fine = temp_fine - 273.15; % convert from Kelvin to deg. C    
+    
+    % Precipitation -------------------------------------------------
     precipitation = hdfread(fullfile(merra_dir, prec_names(d).name), 'EOSGRID', 'Fields', 'PRECTOT');
+    
+    % Vapor pressure ------------------------------------------------
     pressure = hdfread(fullfile(merra_dir, air_names(d).name), 'EOSGRID', 'Fields', 'PS');
-    shortwave = hdfread(fullfile(merra_dir, rad_names(d).name), 'EOSGRID', 'Fields', 'SWGDN');
+    
+    % Longwave ------------------------------------------------------
+    
+    
+    % Pressure ------------------------------------------------------
     specific_humidity = hdfread(fullfile(merra_dir, air_names(d).name), 'EOSGRID', 'Fields', 'QV2M');
+    
+    % Wind ----------------------------------------------------------
     wind_speed_x = hdfread(fullfile(merra_dir, air_names(d).name), 'EOSGRID', 'Fields', 'U2M');
     wind_speed_y = hdfread(fullfile(merra_dir, air_names(d).name), 'EOSGRID', 'Fields', 'V2M');
 
+    % Shortwave -----------------------------------------------------
+    shortwave = hdfread(fullfile(merra_dir, rad_names(d).name), 'EOSGRID', 'Fields', 'SWGDN');
+    
+    
+    
     % calculate vapor pressure
     vapor_pressure = qv2vp(specific_humidity, pressure);
     
@@ -231,7 +337,7 @@ for d=1:31 % 68 minutes for 1000 days on 6 workers
     wind_speed = get_resultant(wind_speed_x, wind_speed_y); % get resultant wind vector
     
     % unit conversions
-    temperature = temperature - 273.15; % Kelvin to Celsius
+    
     pressure = pressure./1000; % Pascal to kPa
     vapor_pressure = vapor_pressure./1000; % Pascal to kPa
     precipitation = 3600.*precipitation; % kg/m2/s to mm/hr   
@@ -289,6 +395,8 @@ for d=1:31 % 68 minutes for 1000 days on 6 workers
     savename_WIND = ['wind_', forc_date_string(d,:), extens];
         
     % takes about _ s to write each file with fwrite
+    % this could be speed up by writing just one output file per day, with
+    % all seven forcing variables
     fID_TEMP = fopen(fullfile(intermediate_dir, savename_TEMP),'w');
     fID_PREC = fopen(fullfile(intermediate_dir, savename_PREC),'w');
     fID_PS = fopen(fullfile(intermediate_dir, savename_PS),'w');
@@ -351,7 +459,16 @@ for y=1:nyears
 end
 
 
-%% Reading the data one year at a time
+%% Reformat data and write to VIC input files
+
+% Could split this script in two: the following code could be made 
+% independent of the above sections, though it is not right now
+
+% Choose years for which to write data
+startyear = 2009;
+endyear = 2012;
+
+years2run = [find(years_w_data == startyear):find(years_w_data == endyear)];
 
 forc_name = cell(ncells, 1);
 for x=1:ncells
@@ -359,10 +476,12 @@ for x=1:ncells
 end
 
 day_index = 1; % for assigning the correct filename
+firstyearflag = 1;
 
-% nyears = 3; 
-
-for y=1:nyears
+%%
+% Reading the data one year at a time
+% Note: cannot use a parfor loop bc there is dependence btw successive iterations
+for y=years2run 
     
     TEMP = zeros(ncells, 24*ndays_in_year(y));
     PREC = zeros(ncells, 24*ndays_in_year(y));
@@ -405,6 +524,12 @@ for y=1:nyears
         VP(:, d1:d2) = fread(fID_VP, [ncells, 24], 'short');
         WIND(:, d1:d2) = fread(fID_WIND, [ncells, 24], 'short');
         
+        % remove any spurious negative values
+        PREC(PREC<0) = 0;
+        WIND(WIND<0) = -WIND(WIND<0);
+        % later, figure out how to make these values not appear in the
+        % first place
+        
         fclose(fID_TEMP);
         fclose(fID_PREC);
         fclose(fID_PS);
@@ -414,18 +539,21 @@ for y=1:nyears
         fclose(fID_WIND);
         
     end
-    
-    % This loop should take about 2 hours for all (ncells) cells
-    if y==1
-        for x=1:10
+
+    % produces about 8 GB per year
+    if firstyearflag
+        for x=1:ncells % takes about 15 minutes
             fID_FORC = fopen(forc_name{x}, 'w');
             forcing_out = [TEMP(x,:)', PREC(x,:)', PS(x,:)', SW(x,:)', LW(x,:)', VP(x,:)', WIND(x,:)'];
             fwrite(fID_FORC, forcing_out, 'short');
-            fclose(fID_FORC);
+            fclose(fID_FORC);            
         end
+        firstyearflag = 0;
         sz_old = size(forcing_out);
     else
-        for x=1:10
+        % takes on the order of hours; computation time increases as the
+        % files grow larger in successive years
+        for x=1:ncells
             % read the previous file
             fID_FORC = fopen(forc_name{x}, 'r');
             forcing_out = fread(fID_FORC, sz_old, 'short');
@@ -441,8 +569,40 @@ for y=1:nyears
 
 end
 
+
+%% Convert binary files to ASCII files
+
+ascii_forc_dir = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/Forc_2009-2012_ascii';
+
+% parpool()
+
+parfor x=1:ncells
+    
+    fID_FORC = fopen(forc_name{x}, 'r');
+    forcing_in = fread(fID_FORC, sz_old, 'short');
+    fclose(fID_FORC);
+    
+    temp_in = forcing_in(:,1)/M_TEMP;
+    prec_in = forcing_in(:,2)/M_PREC;
+    ps_in = forcing_in(:,3)/M_PS;
+    sw_in = forcing_in(:,4)/M_SW;
+    lw_in = forcing_in(:,5)/M_LW;
+    vp_in = forcing_in(:,6)/M_VP;
+    wind_in = forcing_in(:,7)/M_WIND;
+    
+    forcing_out = [temp_in, prec_in, ps_in, sw_in, lw_in, vp_in, wind_in];
+        
+    ascii_forc_savename = fullfile(ascii_forc_dir, ['Forcings_' num2str(lonlat(x,2), precision) '_' num2str(lonlat(x,1), precision)]);
+    fID = fopen(ascii_forc_savename, 'w');
+    fprintf(fID, '%f %f %f %f %f %f %f \n', forcing_out');
+    fclose(fID);
+
+end
+
+
 %% Plot forcing data for the last grid cell (as a check)
 
+% x=10000;
 fID_FORC = fopen(forc_name{x}, 'r');
 forcing_out = fread(fID_FORC, sz_old, 'short');
 fclose(fID_FORC);
@@ -478,215 +638,3 @@ plot(forcing_out(:,7)/M_WIND), title('Wind Speed'), xlabel('Time'), ylabel('m/s'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%
-for x=1:ncells
-    
-    
-    % read binary files for each day
-    
-    savename_TEMP = ['temperature_', forc_date_string(d,:), extens];
-    savename_PREC = ['precip_', forc_date_string(d,:), extens];
-    savename_PS = ['ps_', forc_date_string(d,:), extens];
-    savename_SW = ['shortwave_', forc_date_string(d,:), extens];
-    savename_LW = ['longwave_', forc_date_string(d,:), extens];
-    savename_VP = ['vp_', forc_date_string(d,:), extens];
-    savename_WIND = ['wind_', forc_date_string(d,:), extens];    
-    
-    fID_TEMP = fopen(fullfile(intermediate_dir, savename_TEMP),'r');
-    fID_PREC = fopen(fullfile(intermediate_dir, savename_PREC),'r');
-    fID_PS = fopen(fullfile(intermediate_dir, savename_PS),'r');
-    fID_SW = fopen(fullfile(intermediate_dir, savename_SW),'r');
-    fID_LW = fopen(fullfile(intermediate_dir, savename_LW),'r');
-    fID_VP = fopen(fullfile(intermediate_dir, savename_VP),'r');
-    fID_WIND = fopen(fullfile(intermediate_dir, savename_WIND),'r');
-    
-    TEMP = fread(fID_TEMP, [ncells, 24], 'short'); % temperature for all grid cells for day d
-    PREC = fread(fID_PREC, [ncells, 24], 'ushort');
-    PS = fread(fID_PS, [ncells, 24], 'ushort');
-    SW = fread(fID_SW, [ncells, 24], 'ushort');
-    LW = fread(fID_LW, [ncells, 24], 'short');
-    VP = fread(fID_VP, [ncells, 24], 'ushort');
-    WIND = fread(fID_WIND, [ncells, 24], 'short');
-    
-    fclose(fID_TEMP);
-    fclose(fID_PREC);
-    fclose(fID_PS);
-    fclose(fID_SW);
-    fclose(fID_LW);
-    fclose(fID_VP);
-    fclose(fID_WIND);   
-    
-    % Make a forcing file for the grid cell
-    
-    TEMP = ta_temp(:,x); % temperature for grid cell x
-    forcings_out = [TEMP, PREC, PS, SW, LW, VP, WIND];
-    
-    % Write the forcing data to file
-    fID_FORC = fopen(forc_name, 'w');
-    fwrite(fID_FORC, forcings_out, 'short')
-    fclose(fID_FORC);
-      
-end
-
-%% Write (speed) test
-
-A = rand(14335*24, 7);
-
-% dlmwrite
-tic
-for k=1:5
-    savename = ['test_file_' num2str(k), '.txt'];
-    dlmwrite(fullfile('/Volumes/HD_ExFAT/speedtest', savename), A, 'delimiter', '\t', 'precision', 5)
-end
-toc
-% 125.8 seconds for 10
-% 62.5 s for 5
-% 12.5 s per file
-
-% fprintf (writes to text file)
-tic
-for k=1:10
-    savename = ['test_file_' num2str(k), '.txt'];
-    fileID = fopen(fullfile('/Volumes/HD_ExFAT/speedtest_low_level', savename),'w');
-    fmt = '%.4f %.4f %.4f %.4f %.4f %.4f %.4f\n';
-    fprintf(fileID,fmt, A);
-    fclose(fileID);
-end
-toc
-% 29.02 s for 20
-% 14.65 seconds for 10
-% 7.48 seconds for 5
-% 1.5 s per file
-
-% fwrite (writes to binary file)
-tic
-for k=1:10
-    savename = ['test_file_' num2str(k), '.bin'];
-    fileID = fopen(fullfile('/Volumes/HD_ExFAT/speedtest', savename),'w');
-    fwrite(fileID, A, 'double');
-    fclose(fileID);
-end
-toc
-% 1.4 s for 10 (8-bit unsigned)
-% 2.4 s for 20
-% 10.3 s for 100
-% 6.6 s for 10 (double precision)
-
-% Conclusion: in each case, the computation time scales linearly with the
-% number of files. For ncells = 72960 files, dlmwrite would take 253 hours
-% and fprintf would take 30.4 hours. fwrite is the clear winner.
-
-% With six processors, fprintf will take about 5 hours, which is totally
-% reasonable, but binary files are seem to be much faster to read and
-% write, so there is a strong case for using them. Especially if I can use
-% the bare minimum of precision.
-
-
-%%
-
-% Perhaps this will read and write faster in FORTRAN
-%
-% Or using low level i/o
-
-%%
-% idx = 1:ncells:ndays*ncells;
-idx = 1:ncells:100*ncells;
-
-% Do for all grid cells
-
-
-        
-
-
-% This will take a couple of days for the full domain
-% A parfor loop might be helpful for cutting execution time 
-% ds_temp.ReadSize = 'file';
-% ds_prec.ReadSize = 'file';
-% ds_ps.ReadSize = 'file';
-% ds_sw.ReadSize = 'file';
-% ds_lw.ReadSize = 'file';
-% ds_vp.ReadSize = 'file';
-% ds_wind.ReadSize = 'file';
-
-%%
-
-% trying this without datastores
-% temp_names = dir(fullfile(intermediate_dir, 'temperature*'));
-% prec_names = dir(fullfile(intermediate_dir, 'precip*'));
-% ps_names = dir(fullfile(intermediate_dir, 'ps*'));
-% shortwave_names = dir(fullfile(intermediate_dir, 'shortwave*'));
-% longwave_names = dir(fullfile(intermediate_dir, 'longwave*'));
-% vp_names = dir(fullfile(intermediate_dir, 'vp*'));
-% wind_names = dir(fullfile(intermediate_dir, 'wind*'));
-
-tic
-for x=1:10
-    savename1 = fullfile(forcdir, ['Forcings_' num2str(lonlat(x,2), precision) '_' num2str(lonlat(x,1), precision) '.txt']);
-    forcing_out = zeros(ndays*24,7);
-    
-    % temperature
-    t_sub = ta_temp(idx+(x-1), :);
-    t_sub_gather = gather(t_sub);
-    t_sub_reshape = reshape(table2array(t_sub_gather)', 24*ndays, 1);    
-    forcing_out(:,1) = t_sub_reshape;
-    
-    % precipitation
-    
-    
-    dlmwrite(savename1, forcing_out)
-end
-toc
-% 3.35 seconds per cell
-% seconds per cell to hours per IRB: multiply by (72960/3600)*7/6
-
-% 96.6 minutes per cell -> 2284 hours -> 95 days of processing for 100 days of forcing
-% data
-% It will be faster for a shorter time period?
-% This is just ridiculous. Maybe FORTRAN is the way to go? Or I could
-% strategically use compiled code for something?
-
-ncells = 10;
-% for x=1:ncells
-for x=1:ncells
-    savename1 = fullfile(forcdir, ['Forcings_' num2str(lonlat(x,2), precision) '_' num2str(lonlat(x,1), precision) '.txt']);
-    forcing_out = zeros(ndays*24,7);
-    
-    reset(ds_temp);
-    reset(ds_prec);
-    reset(ds_ps);
-    reset(ds_sw);
-    reset(ds_lw);
-    reset(ds_vp);
-    reset(ds_wind);
-    
-    % read everything in before the loop, eliminate the d loop
-    
-    for d=1:ndays
-        TEMP = read(ds_temp);
-        PREC = read(ds_prec);
-        PS = read(ds_ps);
-        SW = read(ds_sw);
-        LW = read(ds_lw);
-        VP = read(ds_vp);
-        WIND = read(ds_wind);   
-        
-        forcing_out(d1(d):d2(d),1) = TEMP(x,:)'; % temperature
-        forcing_out(d1(d):d2(d),2) = PREC(x,:)'; % precip
-        forcing_out(d1(d):d2(d),3) = PS(x,:)'; % air pressure
-        forcing_out(d1(d):d2(d),4) = table2array(SW(x,:))'; % shortwave
-        forcing_out(d1(d):d2(d),5) = table2array(LW(x,:))'; % longwave
-        forcing_out(d1(d):d2(d),6) = VP(x,:)'; % vapor pressure
-        forcing_out(d1(d):d2(d),7) = table2array(WIND(x,:))'; % wind speed
-    end
-    dlmwrite(savename1, forcing_out)
-end
-toc;
-
-% takes about 16 seconds per grid cell per processor
-% 474.7 seconds to do 100 grid cells using six workers
-% 4.74 seconds per grid cell
-% For 72960 grid cells, it will take 96 hours (4 days) but this is only for
-% d=5. It should increase with the square of d...
-% This may not be computationally feasible, either. The nested loops make
-% it slow.

@@ -2,7 +2,7 @@
 % Double check routing model inputs
 
 [fract, ~] = arcgridread('./Data/IRB/ROUT/irb.fract.asc');
-[fdir, ~] = arcgridread('./Data/IRB/ROUT/irb.flowdir.asc');
+[fdir, ~] = arcgridread('./Data/IRB/ROUT/irb.flowdir');
 
 stationsfile = './Data/IRB/ROUT/irb.stnloc';
 f1 = fopen(stationsfile);

@@ -122,14 +122,34 @@ set(gca, 'ydir', 'normal')
 % convert units from mm to cfs
 sq_m_per_gridcell = (6.9e3)^2; % very approximate
 basin_area = numpix*sq_m_per_gridcell;
-runoff_sum_cfs = runoff_sum*basin_area/(86400*1000);
-baseflow_sum_cfs = baseflow_sum*basin_area/(86400*1000);
-% A_bar = 386000; % approximate area of a grid cell (sq. miles)
-% A_bar_ft = A_bar*2.788e+7;
-% runoff_sum_cfs = runoff_sum*39.37*A_bar_ft/(12*86400*1000);
-% baseflow_sum_cfs = baseflow_sum*39.37*A_bar_ft/(12*86400*1000);
+
+% runoff_sum/1000 % meters/day
+runoff_sum_cms = (sq_m_per_gridcell*runoff_sum/1000)/(24*3600); % cubic meters per second
+runoff_sum_cfs = runoff_sum_cms*(39.37/12)^3; % cubic feet per second
+
+baseflow_sum_cms = (sq_m_per_gridcell*baseflow_sum/1000)/(24*3600); % cubic meters per second
+baseflow_sum_cfs = baseflow_sum_cms*(39.37/12)^3; % cubic feet per second
+
+% fixed!
+% my error was that I multiplied the runoff sum by the total basin area,
+% instead of the area for an individual grid cell.
+
+% convert units to km^3/year
+runoff_sum_km = sum(runoff_sum_cms)*86400/(1000^3); % over the whole simulation period
+nyears = round(nsteps/365);
+avg_ann_runoff_sum_km = runoff_sum_km/nyears; % per year, assuming three years
+% about 20200 km^3 per year
+
+% Indus River statistics from Wikipedia
+% average discharge
+% 6600 cms, or 208 km^3/year
+
 
 %% Compare to gauge data
+
+% axis limits
+ymin = 0;
+ymax = 6e5;
 
 figure
 
@@ -139,6 +159,7 @@ title('Runoff (cfs)')
 xlabel('Time');
 ylabel('Runoff')
 grid on
+ylim([ymin, ymax]);
 set(gca, 'FontSize', 18)
 
 subplot(2,2,2)
@@ -147,6 +168,7 @@ title('Baseflow (cfs)')
 xlabel('Time');
 ylabel('Baseflow')
 grid on
+ylim([ymin, ymax])
 set(gca, 'FontSize', 18)
 
 subplot(2,2,3)
@@ -155,6 +177,7 @@ title('Runoff and Baseflow (cfs)')
 xlabel('Time');
 ylabel('Flow (cfs)')
 grid on
+ylim([ymin, ymax])
 set(gca, 'FontSize', 18)
 
 subplot(2,2,4)
@@ -163,6 +186,7 @@ title('Tarbela Inflow (cfs)')
 xlabel('Time');
 ylabel('Flow (cfs)')
 grid on
+ylim([ymin, ymax])
 set(gca, 'FontSize', 18)
 
 %% Summed runoff comparison

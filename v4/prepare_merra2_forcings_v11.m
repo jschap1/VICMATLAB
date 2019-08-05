@@ -45,13 +45,19 @@
 %
 % v11
 % Final working version of MERRA-2 interpolation/VIC forcing prep code
+% Note: had trouble with binary forcing files for VIC, but it works when I
+% convert them to ASCII format in Matlab, then load into VIC.
+% Note: Do not cd into the data directory, or Matlab will become very, very slow!
 %
 % TODO: make it possible to not specify an extension; VIC doesn't read in
 % forcing files properly if they have extensions
-% Do not cd into the data directory, or Matlab will become very, very slow!
+%
+% Add topographic downscaling capability
+
 
 %% Set up environment
 
+cd('/Volumes/HD3/SWOTDA')
 addpath('/Users/jschap/Desktop/MERRA2/Codes')
 addpath('/Users/jschap/Documents/Codes/VICMATLAB')
 
@@ -60,8 +66,8 @@ p = parpool(); % start a parallel pool
 
 %% Inputs
 
-lat_range = [24 37.125];
-lon_range = [66 82.875];
+lat_range = [24 37.1875];
+lon_range = [66 84];
 
 target_res = 1/16; % can change this if not enough RAM
 
@@ -70,7 +76,7 @@ static_file = '/Users/jschap/Desktop/MERRA2/Processed/static_file_MERRA2.in';
 
 % Directory to save the downscaled forcing files
 % forcdir = '/Users/jschap/Desktop/MERRA2/Forc_1980-2019'; 
-forcdir = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/Forc_1980-2019'; 
+forcdir = './Data/IRB/VIC/Forc_2009-2019'; 
 
 % temporary location to store the downscaled, cropped forcing data as text files
 % intermediate_dir = '/Users/jschap/Desktop/MERRA2/Downscaled';
@@ -78,10 +84,9 @@ intermediate_dir = '/Volumes/HD_ExFat/downscaled_cropped_forcings';
 merra_dir = '/Volumes/HD_ExFat/MERRA2';
 
 % MERRA-2 filenames
-cd(merra_dir)
-prec_names = dir('MERRA2*flx*.hdf');
-rad_names = dir('MERRA2*rad*.hdf');
-air_names = dir('MERRA2*slv*.hdf');
+prec_names = dir(fullfile(merra_dir, 'MERRA2*flx*.hdf'));
+rad_names = dir(fullfile(merra_dir, 'MERRA2*rad*.hdf'));
+air_names = dir(fullfile(merra_dir, 'MERRA2*slv*.hdf'));
 
 ndays = length(prec_names);
 

@@ -2,6 +2,8 @@
 %
 % Adapted from vicinputworkflow 3/12/2019 JRS
 %
+% Modified to take a DEM as input 8/5/2019 JRS
+%
 % INPUTS
 % Soil parameter file encompassing a region at least as large as the basin
 % List of coordinates in basin
@@ -12,20 +14,37 @@
 % Double check that this is working properly, especially for elevation
 % 4/4/2019
 
-cd '/Volumes/HD3/SWOTDA/Data/IRB/'
+% cd '/Volumes/HD3/SWOTDA/Data/IRB/'
 
-soilpath = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_0';
+soilpath = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_2';
 soilname = 'soils_3L_MERIT.txt'; 
-soilsavedir = './VIC';
+soilsavedir = './Data/IRB/VIC/MiniDomain2';
 grid_decimal = 5; % precision used in forcing filenames
 
 % Use r.out.xyz to generate this from the basin mask raster
-maskxyz = dlmread('basincoords.txt', '|');
+
+dem_input = 1;
+
+if dem_input
+    demfile = './Data/IRB/VIC/MiniDomain2/MERIT_small_extent_1_16.tif';
+    [dem, Rdem] = geotiffread(demfile);
+    Rdemmat = georefobj2mat(Rdem);
+    [lon_dem, lat_dem] = pixcenters(Rdemmat, size(dem));
+    maskxyz = raster2xyz(lon_dem, lat_dem, dem);
+    nancells = maskxyz(:,3) == -9999;
+    maskxyz(nancells, 3) = 0;
+    maskxyz(~nancells, 3) = 1;
+else
+    maskxyz = dlmread('./Data/IRB/Experimental/basinmask_coarse.txt', '|');
+end
+
 masklon = maskxyz(maskxyz(:,3) == 1,1);
 masklat = maskxyz(maskxyz(:,3) == 1,2);
 ncells = length(masklon);
 
+disp('Loading soil parameter file')
 soils = load(fullfile(soilpath, soilname));
+disp('Soil parameter file has been loaded')
 slat = soils(:,3);
 slon = soils(:,4);
 

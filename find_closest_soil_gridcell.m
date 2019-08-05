@@ -1,5 +1,7 @@
-
-%%
+% For each met. forcing file, finds the closest grid cell from the soil
+% parameter file and renames the forcing file to match the grid cell
+% coordinates from the soil parameter file
+%
 % Need to be on the correct grid (the same grid as the soil parameter file)
 % for the VIC model to run
 %
@@ -12,6 +14,29 @@
 % This is VERY slow if you run it in the directory with all the forcing
 % files. Use relative paths instead. See https://www.mathworks.com/matlabcentral/answers/112086-matlab-slow-when-too-many-files-in-directory
 
+% soils = load('/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_2/soils_3L_MERIT.txt');
+% forcingdir = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain2/2018-2018_ascii';
+% target_res = 1/16;
+% precision = '%3.5f';
+
+function find_closest_soil_gridcell(soils, forcingdir, target_res, precision)
+
+copyloc = './Data/IRB/VIC/MiniDomain2/aligned_forcings';
+
+% Location to write outputs
+if ~exist(copyloc, 'dir')
+   mkdir(copyloc)
+   disp(['Created directory for outputs: ' copyloc])
+else
+    disp(['Outputs will be written to: ' copyloc])
+end
+
+forcnames = dir(fullfile(forcingdir, 'Forcings_*'));
+% soils = load(soilparamfile);
+
+slat = soils(:,3);
+slon = soils(:,4);
+
 % cd /Volumes/HD3/SWOTDA/Data/IRB/VIC
 % forcnames = dir('./Forc_halfyear/Forcings_*');
 % soils = load('/Volumes/HD3/SWOTDA/Data/IRB/VIC/soils.SB');
@@ -20,9 +45,8 @@
 % slon = soils(:,4);
 
 % find closest
-target_res = 1/16;
-precision = '%3.5f';
-copyloc = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/Forc_halfyear_input';
+% target_res = 1/16;
+% precision = '%3.5f';
 
 for k=1:length(forcnames)
     
@@ -45,7 +69,7 @@ for k=1:length(forcnames)
     newlon = slon(cellnumber);
     
     forcname_new = ['Forcings_' num2str(newlat, precision) '_' num2str(newlon, precision)];
-    copyfile(fullfile('./Forc_halfyear/', forcnames(k).name), fullfile(copyloc, forcname_new))
+    copyfile(fullfile(forcingdir, forcnames(k).name), fullfile(copyloc, forcname_new))
      
     disp(forcname_new)
 
@@ -55,3 +79,5 @@ for k=1:length(forcnames)
 %     end
     
 end
+
+return

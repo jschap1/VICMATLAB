@@ -1,4 +1,8 @@
 % Converts soil parameter file to geotiff files
+%
+% Updated 8/5/2019
+% Changed georefcell usage to specify resolution instead of raster size
+% (which introduced an error, so I need to look into this more)
 % 
 % INPUTS
 % infile = soil parameter file
@@ -60,9 +64,11 @@
 
 % infile = '/Volumes/HD3/VICParametersGlobal/Global_1_16/soils/soils_3L_MERIT_latest.txt';
 
-% infile = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/soils_clipped.txt';
+% infile = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain2/soils.SB';
 
 function [] = convert_soil_parameters(infile, varnames)
+
+outdir = './Data/IRB/VIC/MiniDomain2/soil_pars_2';
 
 soils = load(infile);
 disp('loaded soil parameter file')
@@ -73,10 +79,18 @@ lon = soils(:,4);
 nlat = length(unique(lat));
 nlon = length(unique(lon));
 
-rasterSize = [nlat, nlon];
+% rasterSize = [nlat, nlon];
 latlim = [min(lat), max(lat)];
 lonlim = [min(lon), max(lon)];
-R = georefcells(latlim,lonlim,rasterSize);
+
+ulat = unique(lat);
+ulon = unique(lon);
+
+xres = ulon(2)-ulon(1);
+yres = ulat(2)-ulat(1);
+
+% R = georefcells(latlim,lonlim,rasterSize);
+R = georefcells(latlim, lonlim, xres, yres);
     
     for k=5:length(varnames)
 
@@ -84,8 +98,10 @@ R = georefcells(latlim,lonlim,rasterSize);
         A = xyz2grid(lon, lat, soils(:,k)); 
         % 444 rows (latitude) by 922 columns (longitude)
         
-        outname = [varnames{k} '.tif'];
+        outname = fullfile(outdir, [varnames{k} '.tif']);
         geotiffwrite(outname, flipud(A), R)
+        
+        
         disp(['Saved soil parameter data as ', outname])
         
     end

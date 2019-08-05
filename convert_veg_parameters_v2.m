@@ -2,6 +2,7 @@
 %
 % INPUTS
 % Outputs from load_veg_parameters
+% veglib = name of vegetation library file. Must be in numeric only format. Can leave blank.
 %
 % OUTPUTS
 % geotiffs containing:
@@ -12,7 +13,7 @@
 % -nveg (1*ntypes)
 % -landmask (1*ntypes)
 
-function [] = convert_veg_parameters_v2(nvegtable, vegparamtable, latlontable)
+function [] = convert_veg_parameters_v2(nvegtable, vegparamtable, latlontable, veglib)
 
 lat = latlontable(:,2);
 lon = latlontable(:,3);
@@ -80,9 +81,39 @@ subplot(3,2,5), imagesc(LAI1_map), title('January LAI')
 
 % END
 
+%% Use vegetation library to make maps of other variables
+
+if ~isempty(veglib)
+    
+    vegetation_library = load(veglib);
+    
+    % albedo
+    mean_albedo_per_vegtype = mean(vegetation_library(:,17:28), 2);
+    
+    vegmask = xyz2grid(lon, lat, mask_vect);
+    geotiffwrite('nveg_map.tif', flipud(vegmask), R)
+    
+    % calculate albedo for the vegetation type
+    albedo_vect = zeros(size(vegtype_vect));
+    nvegtypes = 11;
+    for i=1:nvegtypes
+        albedo_vect(vegtype_vect == i) = mean_albedo_per_vegtype(i);
+    end
+    
+    albedo_map = xyz2grid(lon, lat, albedo_vect);
+    geotiffwrite('/Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation/tiffs/albedo_map.tif', flipud(albedo_map), R)
+
+
+% Need to account for bare soils somehow.
+% Also, the albedo values seem kind of low.
+    
+end
+
 %% Write out to geotiffs
 
-fname_map = [vegnames{k} '_' months{m} '_LAI_map.tif'];
-geotiffwrite(fname_map, flipud(lai_map), R)
+% fname_map = [vegnames{k} '_' months{m} '_LAI_map.tif'];
+% geotiffwrite(fname_map, flipud(lai_map), R)
 
+
+return
 

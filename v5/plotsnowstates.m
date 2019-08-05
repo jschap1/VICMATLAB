@@ -1,6 +1,6 @@
 % Plots VIC snow outputs
 
-load('./Outputs/VIC_IRB/Processed_WB/SNOW.mat') % load processed snow state data
+load('./Outputs/VIC_IRB/WB_corrected_veg/SNOW.mat') % load processed snow state data
 saveloc = './Figures/VIC_IRB/Water_Balance_MERIT/Snow';
 invisible = 1;
 saveflag = 1;
@@ -18,6 +18,30 @@ snowunitscell = struct2cell(SNOW.units);
 timevector = SNOW.time;
 lat = SNOW.lat;
 lon = SNOW.lon;
+
+%% Answering a question from Dennis about snow accumulation
+
+% how many cells are accumulating snow?
+% cells with at least seasonal snow (mean max exceeding 25 cm per year)
+
+SNOW.ts.cell_37_03125_74_84375_txt
+
+% Plot maps of mean snow depth in each cell
+
+map1 = flipud(xyz2grid(SNOW.lon, SNOW.lat, SNOW.avgmaps.snow_depth));
+figure
+imagesc(SNOW.lon, SNOW.lat, map1./10)
+set(gca, 'ydir', 'normal')
+xlabel('Lon')
+ylabel('Lat')
+title('Average snow depth (cm)')
+
+% cells with average snow depth higher than 25 cm
+
+% Which cells reach at least 25 cm of snow depth during a typical year?
+% Of these cells, how many experience runaway snow accumulation?
+
+%% Plotting all snow variables
 
 for p=1:length(snowvarnames)
     

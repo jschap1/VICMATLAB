@@ -1,7 +1,7 @@
 % Plots VIC flux outputs
 
-load('./Outputs/VIC_IRB/WB_corrected_veg/FLUXES.mat') % load processed flux data
-saveloc = './Outputs/VIC_IRB/WB_corrected_veg/Plots';
+load('/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain/FLUXES.mat') % load processed flux data
+saveloc = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain/Plots/';
 
 ncells = length(fieldnames(FLUXES.ts));
 nsteps = length(FLUXES.time);
@@ -143,6 +143,54 @@ for p=1:length(fluxvarnames)
    end
 
 end
+
+
+%% Make nice plots of water balance components
+
+lwd = 2;
+% load('./Outputs/VIC_IRB/WB_corrected_veg/SNOW.mat')
+
+figure
+
+subplot(4,2,1)
+plot(FLUXES.time, FLUXES.avgts.prec, 'linewidth', lwd)
+title('Precipitation'), xlabel('Time'), ylabel('P (mm)')
+set(gca, 'fontsize', 18)
+
+subplot(4,2,2)
+plot(FLUXES.time, FLUXES.avgts.evap, 'linewidth', lwd)
+title('Evaporation'), xlabel('Time'), ylabel('E (mm)')
+set(gca, 'fontsize', 18)
+
+subplot(4,2,3)
+plot(FLUXES.time, FLUXES.avgts.runoff, 'linewidth', lwd)
+title('Runoff'), xlabel('Time'), ylabel('Q_r (mm)')
+set(gca, 'fontsize', 18)
+
+subplot(4,2,4)
+plot(FLUXES.time, FLUXES.avgts.baseflow, 'linewidth', lwd)
+title('Baseflow'), xlabel('Time'), ylabel('Q_b (mm)')
+set(gca, 'fontsize', 18)
+
+subplot(4,2,5)
+plot(FLUXES.time, FLUXES.avgts.moist(:,1), 'linewidth', lwd)
+title('Soil moisture (layer 1)'), xlabel('Time'), ylabel('SM (mm)')
+set(gca, 'fontsize', 18)
+
+subplot(4,2,6)
+plot(FLUXES.time, FLUXES.avgts.moist(:,2), 'linewidth', lwd)
+title('Soil moisture (layer 2)'), xlabel('Time'), ylabel('SM (mm)')
+set(gca, 'fontsize', 18)
+
+subplot(4,2,7)
+plot(FLUXES.time, FLUXES.avgts.moist(:,3), 'linewidth', lwd)
+title('Soil moisture (layer 3)'), xlabel('Time'), ylabel('SM (mm)')
+set(gca, 'fontsize', 18)
+
+subplot(4,2,8)
+plot(FLUXES.time, SNOW.avgts.swe, 'linewidth', lwd)
+title('Snow-water equivalent'), xlabel('Time'), ylabel('SWE (mm)')
+set(gca, 'fontsize', 18)
 
 
 %% Calculate water balance components (in meaningful units)

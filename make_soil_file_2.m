@@ -29,21 +29,26 @@ addpath('/Volumes/HD3/SWOTDA/Codes')
 res = 1/16;
 grid_decimal = 5; % number of decimal points for forcing file names
 
-% target lat lon for regridding (locations at cell centers)
-target_lon = -180+res/2:0.0625:180-res/2;
-target_lat = -60+res/2:0.0625:85-res/2;
+% target lat lon for regridding (locations at cell centers) (old)
+% target_lon2 = -180+res/2:0.0625:180-res/2;
+% target_lat2 = -60+res/2:0.0625:85-res/2;
 
 savename = 'mysoilparam.txt';
 
 %% Part 1 - load elevation and land fraction data
 
 % load elevation data from MERIT
-[elev, R] = geotiffread('/Volumes/HD3/VICParametersGlobal/Global_1_16/merged_merit_dem_1_16.tif');
+[elev, Rdem] = geotiffread('/Volumes/HD3/VICParametersGlobal/Global_1_16/merged_merit_dem_1_16.tif');
+
+% target lat lon for regridding (locations at cell centers)
+Rdem_mat = georefobj2mat(Rdem);
+[target_lon, target_lat] = pixcenters(Rdem_mat, size(elev));
+
 elev = flipud(elev);
 elev(elev==-9999) = NaN;
 
 % load land cover mask
-landmask = geotiffread('/Volumes/HD3/VICParametersGlobal/Global_1_16/landmask/merit_mask_1_16.tif');
+[landmask, Rmask] = geotiffread('/Volumes/HD3/VICParametersGlobal/Global_1_16/landmask/merit_mask_1_16.tif');
 landmask = flipud(landmask);
 landmask = logical(landmask);
 landcells = find(landmask);
@@ -71,7 +76,8 @@ set(gca, 'fontsize', 18)
 
 % find missing values of slope
 missing_slope = isnan(slope) & landmask==1;
-figure, imagesc(missing_slope)
+figure
+plotraster(target_lon, target_lat, missing_slope, 'Missing slope locations', 'Lon', 'Lat')
 
 % fill missing values of slope
 slope1 = slope;
@@ -93,7 +99,7 @@ xyz_upscaled = raster2xyz(target_lon', target_lat', ones(size(elev)));
 lonlat = xyz_upscaled(landcells,1:2);
 
 % Perform surgery on soil parameter file....
-soils1 = load('/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_0/soils_3L_MERIT.txt');
+soils1 = load('/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_2/soils_3L_MERIT.txt');
 soils1(:,3) = lonlat(:,2); % lat
 soils1(:,4) = lonlat(:,1); % lon
 
@@ -801,8 +807,6 @@ soils(:,54) = JT_rg(landmask); % july_Tavg
 % soils(:,47) = NaN; % fs_active
 % soils(:,48) = NaN; % frost_slope
 % soils(:,49) = NaN; % msds
-
-
 
 %% Write out the soil parameter file
 

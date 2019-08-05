@@ -22,8 +22,12 @@ function [rows, cols] = stnloc_prep(xy, r)
 %% inputs
 
 % comment this out
-r = './Data/IRB/ROUT/irb.flowdir.asc';
-latlon = load('./Data/IRB/gauge_lat_lons.txt');
+% r = './Data/IRB/ROUT/irb.flowdir';
+r = './FDT/Rout/smaller/flowdir_wu_vic.asc';
+latlon = load('./Data/Gauges/irb_stations_rgm_snap2.txt');
+% latlon = load('./Data/Gauges/irb_reservoirs_snapped.txt');
+
+% latlon = xy;
 latlon = [latlon(:,2), latlon(:,1)];
 
 %% Get gauge coordinates from latlon data
@@ -37,7 +41,7 @@ cols = round(col);
 %% Finish making the stnloc file
 
 nstations = length(rows);
-fID = fopen('./Data/IRB/Rout/irb.stnloc', 'w');
+fID = fopen('./FDT/Rout/smaller/stnloc_mansnapped.txt', 'w');
 for k=1:nstations
     fprintf(fID, '%d \t %s \t %d \t %d \t %d\n', 1, ['IRB' num2str(k)], cols(k), rows(k), -9999);
     fprintf(fID, '%s\n', 'NONE');
