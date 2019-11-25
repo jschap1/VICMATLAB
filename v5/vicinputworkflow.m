@@ -12,19 +12,18 @@ function [] = vicinputworkflow()
 % each variable and year (e.g. prec.1965.nc, wind.1990.nc)
 % Basin mask with using appropriate resolution, geographic coordinates
 % Soil parameter file covering >= the domain of interest
-% Designed for use with Livneh met. forcing data. 
+% Designed for use with Livneh met. forcing data.
 % Adapted from VIC 4 version 2/22/2019 JRS
-% 
+%
 % OUTPUTS
 % Met. forcing file, clipped to basin boundaries
 % Soil parameter file, clipped to basin boundaries
 %
 % Generic workflow for creating VIC input files
 %
-% Clips daily forcing and soil parameter data for CONUS to just the cells within 
+% Clips daily forcing and soil parameter data for CONUS to just the cells within
 % a specified basin shapefile. Saves the subsetted forcing and soil
 % parameter data in an appropriate format to use for VIC input.
-
 
 %% Specify inputs
 
@@ -56,7 +55,7 @@ grid_decimal = 5;
 
 % Directory of global soil parameter file
 soilpath = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_0';
-soilname = 'soils_3L_MERIT.txt'; 
+soilname = 'soils_3L_MERIT.txt';
 
 % Directory where clipped soil parameter file should be saved
 soilsavedir = './Data/IRB/VIC/';
@@ -68,11 +67,11 @@ soilsavedir = './Data/IRB/VIC/';
 % metlon = ncread(['prec.' num2str(beginyear) '.nc'], 'lon');
 
 % metlat = 1; % list of coordinates where forcing data are available
-% metlon = 1; 
+% metlon = 1;
 % % Ask GK to get this for me...
-% 
+%
 % fnames = dir(fullfile(forcingpath, '*.out'));
-% 
+%
 % % Get list of pixel numbers --------------------
 % n_merra = length(fnames);
 % pixelno = zeros(n_merra,1);
@@ -81,7 +80,7 @@ soilsavedir = './Data/IRB/VIC/';
 %     temp2 = split(temp1{1}, 'pixel_');
 %     pixelno(k) = str2double(temp2{2});
 % end
-% 
+%
 % % Use static file to get lat and lon from pixel numbers
 % static_file = load('/Users/jschap/Box Sync/Margulis_Research_Group/Jacob/Shared_SWOTDA/MERRA2/Processed/static_file_MERRA2.in');
 % % [~, basin_inds] = ismember(pixelno, static_file(:,1));
@@ -95,20 +94,20 @@ nforc = length(forcnames);
 metlat = zeros(nforc, 1);
 metlon = zeros(nforc, 1);
 
-for k=1:nforc 
+for k=1:nforc
     tmp1 = strsplit(forcnames(k).name, '_');
     forclat = str2double(tmp1{2});
     tmp2 = strsplit(tmp1{3}, '.txt');
     forclon = str2double(tmp2{1});
     metlat(k) = forclat;
-    metlon(k) = forclon; 
+    metlon(k) = forclon;
     if mod(k, 1e4) == 0
         disp(k)
     end
 end
 
 %%%
-% Run this code to convert lon coords if they use E/W, 
+% Run this code to convert lon coords if they use E/W,
 % instead of absolute value system
 % metlon = metlon - 360;
 %%%
@@ -133,7 +132,7 @@ for k=1:ncells
     [~, lon_ind(k)] = min(abs(masklon(k) - metlon));
     if mod(k, 1e4) == 0
         disp(k)
-    end        
+    end
 end
 
 %% Extract the forcings whose lat/lon match those of the basin mask
@@ -149,28 +148,28 @@ t_ind = 1;
 cum_days = 0;
 
 for t = beginyear:endyear
-    
+
     if t==beginyear, tic, end
     prec = ncread(['prec.' num2str(t) '.nc'], 'prec');
     tmax = ncread(['tmax.' num2str(t) '.nc'], 'tmax');
     tmin = ncread(['tmin.' num2str(t) '.nc'], 'tmin');
     wind = ncread(['wind.' num2str(t) '.nc'], 'wind');
-       
+
     info = ncinfo(['prec.' num2str(t) '.nc']);
     ndays = info.Dimensions(1).Length; % get number of days in the year
     data = NaN(ndays, numforcings, ncells);
-        
+
     for k=1:ncells
         % Get the index of the met. forcing data that matches the basin mask
 %         [Lia,lat_ind] = ismember(masklat(k),metlat);
 %         [Lia,lon_ind] = ismember(masklon(k),metlon);
-               
-        data(:,1,k) = prec(lon_ind(k),lat_ind(k), :);        
+
+        data(:,1,k) = prec(lon_ind(k),lat_ind(k), :);
         data(:,2,k) = tmin(lon_ind(k),lat_ind(k), :);
         data(:,3,k) = tmax(lon_ind(k),lat_ind(k), :);
         data(:,4,k) = wind(lon_ind(k),lat_ind(k), :);
     end
-    
+
     if t_ind~=1
         data_cum = vertcat(data_cum, data);
     else
@@ -179,12 +178,12 @@ for t = beginyear:endyear
 
     t_ind = t_ind + 1;
     cum_days = size(prec,3) + cum_days;
-    
-    if t==beginyear 
+
+    if t==beginyear
         disp(['About ' num2str(toc*nyears/60) ...
             ' minutes remaining.'])
     end
-    
+
 end
 
 % % Save met. forcings as .mat file
@@ -192,7 +191,7 @@ end
 % save('METFORC.mat', 'data_cum');
 
 fstring = ['%.' num2str(grid_decimal) 'f'];
-for k=1:ncells     
+for k=1:ncells
 %     filename = ['data_' num2str(masklat(k),fstring) '_' num2str(masklon(k),fstring)];
     filename = ['data_' num2str(metlat(lat_ind(k)),fstring) '_' num2str(metlon(lon_ind(k)),fstring)];
     dlmwrite(fullfile(forcingsavedir, filename), data_cum(:,:,k), ' ')

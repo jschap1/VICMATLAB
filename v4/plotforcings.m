@@ -7,8 +7,9 @@
 %% Specify inputs
 
 % forcingpath = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Forcings/Disagg_Forc/'; 
-forcingpath = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/fullextent_2018-2019_ascii_flipped/';
-% the final slash is needed
+% forcingpath = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain2/aligned_forcings';
+forcingpath = '/Volumes/HD4/SWOTDA/Data/Tuolumne/forc_ascii';
+forcingpath = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain2/2018-2018_forc_lasttest';
 
 precision = 5;
 
@@ -21,7 +22,7 @@ varunits = {'deg C','m','kPa', 'W/m^2', 'W/m^2', 'Pa', 'm/s'};
 
 % invisible = 1;
 saveflag = 1;
-saveloc = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/fullextent_2018-2019_figures';
+saveloc = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain2/figures';
 
 % mkdir(saveloc)
 
@@ -29,7 +30,7 @@ saveloc = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/fullextent_2018-2019_figures';
 
 %% Load forcing data
 
-forcenames = dir([forcingpath 'Forcings_*']);
+forcenames = dir(fullfile(forcingpath, 'Forcings_*'));
 
 ncells = length(forcenames);
 addpath(forcingpath)
@@ -50,14 +51,75 @@ for k=1:ncells
 end
 %%%
 
-[lat, lon] = GetCoords(gridcells, precision, 0);
+[lat, lon] = GetCoords(gridcells, precision);
 
 %% Read in data for all grid cells and times (OK for a relatively small domain)
 
-FORC = NaN(nsteps, nvars, 1000);
-for k=1:1000
+FORC = NaN(nsteps, nvars, 688);
+for k=1:ncells
     FORC(:,:,k) = dlmread(forcenames(k).name);
 end
+
+%% Plot basin-average precipitation
+
+% ASCII forcings for the classic driver
+avg_precip = squeeze(mean(FORC(:,2,:),1));
+avg_maps.precip = fliplr(xyz2grid(lon, lat, avg_precip));
+figure, plotraster(lon, lat, avg_maps.precip, 'Precipitation (mm)', 'Lon', 'Lat')
+
+% Do the same for the image driver forcings
+forc_image = '/Volumes/HD4/SWOTDA/Data/Tuolumne/Image_VICGlobal/forc_image.1999.nc';
+lon_image = ncread(forc_image, 'lon');
+lat_image = ncread(forc_image, 'lat');
+prec_image = ncread(forc_image, 'prcp');
+prec_image = permute(prec_image, [2,1,3]);
+avg_maps_image.precip = mean(prec_image, 3);
+figure, plotraster(lon_image, lat_image, avg_maps_image.precip, 'Precipitation (mm)', 'Lon', 'Lat')
+
+% OK, now read in the image driver output precipitation as a check
+output_image = '/Volumes/HD4/SWOTDA/Data/Tuolumne/Image_VICGlobal/Results_WB_SB/fluxes.1999-01-01.nc';
+lon_output = ncread(output_image, 'lon');
+lat_output = ncread(output_image, 'lat');
+prec_image_out = ncread(output_image, 'OUT_PREC');
+prec_image_out = permute(prec_image_out, [2,1,3]);
+avg_maps_image_output.precip = mean(prec_image, 3);
+figure, plotraster(lon_output, lat_output, avg_maps_image_output.precip, 'Precipitation (mm)', 'Lon', 'Lat')
+
+% What if I rotate it?
+prec_rot = rot90(avg_maps_image_output.precip);
+figure, plotraster(lon_output, lat_output, prec_rot, 'Precipitation (mm)', 'Lon', 'Lat')
+% nope
+
+% What if I calculate the daily average myself? Does it match?
+prec_daily = prec_image(:,:,1:365);
+for dd=1:365
+    d1 = 1+24*(dd-1);
+    d2 = 24*dd;
+    prec_daily(:,:,dd) = sum(prec_image(:,:,d1:d2),3);
+end
+daily_mean = mean(prec_daily,3);
+figure, plotraster(lon_output, lat_output, daily_mean, 'Precipitation (mm)', 'Lon', 'Lat')
+% For image driver, it matches
+% However, the output precipitation from the image driver remains shifted
+
+% OK, so if I specify the plot area to match, then the images should be
+% identical.
+
+figure, plotraster(lon_output, lat_output, avg_maps_image_output.precip, 'Output (mm)', 'Lon', 'Lat')
+axis([min(lon_output), max(lon_output), min(lat_output), max(lat_output)])
+figure, plotraster(lon_output, lat_output, daily_mean, 'Input (mm)', 'Lon', 'Lat')
+axis([min(lon_output), max(lon_output), min(lat_output), max(lat_output)])
+
+% Write them out to NetCDF
+out_netcdf = '/Volumes/HD4/SWOTDA/Data/Tuolumne/Image_VICGlobal/prec_out.nc';
+nccreate(out_netcdf, 'lon', 'Dimensions', {'lon', 31})
+nccreate(out_netcdf, 'lat', 'Dimensions', {'lat', 10})
+nccreate(out_netcdf, 'time', 'Dimensions', {'time', 365})
+nccreate(out_netcdf, 'daily_precip', 'Datatype', 'double', 'Dimensions', {'lon', 31, 'lat', 10, 'time', 365})
+ncwrite(out_netcdf, 'lon', lon_output)
+ncwrite(out_netcdf, 'lat', lat_output)
+ncwrite(out_netcdf, 'time', 1:365)
+ncwrite(out_netcdf, 'daily_precip', permute(prec_image_out, [2,1,3]))
 
 %% Read in data for all grid cells and one specific time (for large domains)
 

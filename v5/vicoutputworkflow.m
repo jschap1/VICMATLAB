@@ -30,7 +30,7 @@ rec_interval = 'daily';
 
 saveflag = 1;
 % saveloc = '/Volumes/HD3/SWOTDA/Outputs/VIC_IRB/WB_05012019/Raw';
-saveloc = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain/Raw';
+saveloc = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain2/Raw';
 
 %%
 % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv

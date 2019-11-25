@@ -38,22 +38,22 @@ forcingpath = '/Volumes/HD3/Livneh_2013/MetNC';
 % basinmask = './Data/UMRB/rout/umrb.fract';
 
 % Directory where clipped forcing files should be saved
-forcingsavedir = './forc';
+forcingsavedir = './Livneh_Forc_1980-2011';
 
 % Number of forcings in the daily CONUS met. forcing file
 numforcings = 4;
 
 % Beginning and ending years of simulation (must be included in the daily CONUS
 % met. forcing file)
-beginyear = 2008; % 1948;
+beginyear = 1980;
 endyear = 2011;
 
 % Number of decimal points of precision to use for forcing file names
 grid_decimal = 5;
 
 % Directory of CONUS soil parameter file
-soilpath = '/Volumes/HD3/SWOTDA/Data/Global/second_attempt';
-soilname = 'global_soils_1_16.txt'; 
+soilpath = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/Classic/';
+soilname = 'soils_3L_MERIT.txt'; 
 
 % Directory where clipped soil parameter file should be saved
 soilsavedir = '.';
@@ -70,10 +70,16 @@ metlon = ncread(['prec.' num2str(beginyear) '.nc'], 'lon');
 metlon = metlon - 360;
 %%%
 
+% Can use a DEM to define the mask area
+[mask1, R1] = geotiffread('/Volumes/HD4/SWOTDA/Data/Tuolumne/v1_3/dem.tif');
+R1mat = georefobj2mat(R1, 'LL');
+[masklon1, masklat1] = pixcenters(R1mat, size(mask1));
+[masklon, masklat, ~] = grid2xyz(masklon1', masklat1', mask1);
+
 % Use r.out.xyz to generate this from the basin mask raster
-maskxyz = dlmread('/Volumes/HD3/SWOTDA/Data/UMRB_2018/Basin/basincoords.txt', '|');
-masklon = maskxyz(maskxyz(:,3) == 1,1);
-masklat = maskxyz(maskxyz(:,3) == 1,2);
+% maskxyz = dlmread('/Volumes/HD3/SWOTDA/Data/UMRB_2018/Basin/basincoords.txt', '|');
+% masklon = maskxyz(maskxyz(:,3) == 1,1);
+% masklat = maskxyz(maskxyz(:,3) == 1,2);
 ncells = length(masklon);
 
 % masklat = list of latitudes of the nonzero mask pixels. Must have four

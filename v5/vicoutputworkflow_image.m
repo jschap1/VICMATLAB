@@ -6,21 +6,21 @@ clear, clc
 %% Inputs
 
 % Path to VICMATLAB codes
-addpath('/Users/jschapMac/Documents/Codes/VICMATLAB')
+addpath('/Users/jschap/Documents/Codes/VICMATLAB')
 
 % Directory of VIC outputs
-cd /Users/jschapMac/Desktop/VICPractice/Stehekin_5/image/sample_image
+cd /Volumes/HD4/SWOTDA/Data/Tuolumne/Image_VICGlobal/Results_EB_SB
 
 % Name of fluxes file
-fluxname = 'fluxes.1949-01-01.nc';
+fluxname = 'fluxes.1999-01-01.nc';
 
-invisible = 1;
+invisible = 0;
 
 nlayers = 3; % number of soil layers
 
 saveflag = 1;
 
-saveloc = '/Users/jschapMac/Desktop/VICPractice/Stehekin_5/image/sample_image/Plots';
+saveloc = '/Volumes/HD4/SWOTDA/Data/Tuolumne/Image_VICGlobal/Results_EB_SB/Figures';
 
 %%
 
@@ -31,7 +31,11 @@ varnames = cell(numvars,1);
 
 for p=1:numvars
     varnames{p} = info.Variables(p).Name;
-    FLUXES.(varnames{p}) = ncread(fluxname, varnames{p});    
+    var = ncread(fluxname, varnames{p});
+    if p==10
+        continue;
+    end
+    FLUXES.(varnames{p}) = permute(var, [2,1,3]);
 end
 
 % Convert to datetime:
@@ -46,11 +50,11 @@ FLUXES.time = datetime(FLUXES.time);
 for q = 1:nlayers
     name1 = ['OUT_SOIL_MOIST_' num2str(q)];
     name2 = ['OUT_SOIL_TEMP_' num2str(q)];
-    FLUXES.(name1) = squeeze(FLUXES.OUT_SOIL_MOIST(:,:,q,:));
-    FLUXES.(name2) = squeeze(FLUXES.OUT_SOIL_TEMP(:,:,q,:));
+%     FLUXES.(name1) = squeeze(FLUXES.OUT_SOIL_MOIST(:,:,q,:));
+%     FLUXES.(name2) = squeeze(FLUXES.OUT_SOIL_TEMP(:,:,q,:));
 end
-FLUXES = rmfield(FLUXES, 'OUT_SOIL_MOIST');
-FLUXES = rmfield(FLUXES, 'OUT_SOIL_TEMP');
+% FLUXES = rmfield(FLUXES, 'OUT_SOIL_MOIST');
+% FLUXES = rmfield(FLUXES, 'OUT_SOIL_TEMP');
 
 % Update varnames, remove time, lat, lon, etc.
 allnames = fieldnames(FLUXES);
@@ -64,7 +68,7 @@ timevector = FLUXES.time;
 for p=1:numvars
     
     % Time average maps
-    FLUXES.avgmaps.(varnames{p}) = mean(FLUXES.(varnames{p}),3);
+    FLUXES.avgmaps.(varnames{p}) = nanmean(FLUXES.(varnames{p}),3);
     
     % Basin average time series
     for t=1:length(timevector)
@@ -107,7 +111,11 @@ for p=1:numvars
         set(h, 'Visible', 'off');
     end
       
-    imagesc(FLUXES.lon, FLUXES.lat, FLUXES.avgmaps.(varnames{p}));
+    if p==6
+       continue
+    end
+    plotraster(FLUXES.lon, FLUXES.lat, FLUXES.avgmaps.(varnames{p}), varnames{p}, 'Lon', 'Lat');
+%     imagesc(FLUXES.lon, FLUXES.lat, FLUXES.avgmaps.(varnames{p}));
     set(gca,'YDir','normal')
     titletext = [datestr(timevector(1)) ' to ' datestr(timevector(end)) ...
     ' average ' varnames{p}];

@@ -1,7 +1,7 @@
 % Plots VIC flux outputs
 
-load('/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain/FLUXES.mat') % load processed flux data
-saveloc = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain/Plots/';
+load('/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain2/Processed_Results/FLUXES.mat') % load processed flux data
+saveloc = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain2/Plots/';
 
 ncells = length(fieldnames(FLUXES.ts));
 nsteps = length(FLUXES.time);

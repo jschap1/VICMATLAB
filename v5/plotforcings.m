@@ -27,7 +27,7 @@ ds = fileDatastore('/Volumes/HD_ExFAT/MERRA2/MERRA2_400.tavg1_2d_slv_Nx.20150520
 
 %% Specify inputs
 
-forcingpath = '/Users/jschap/Desktop/MERRA2/Forc/'; 
+forcingpath = '/Volumes/HD3/SWOTDA/Data/UIB/VIC/Forc_2009-2019_ascii/'; 
 
 precision = 5;
 
@@ -242,9 +242,14 @@ netcdf.close(ncid)
 
 %%
 
-FORC = NaN(nsteps, nvars, ncells); % this variable is LARGE. Too large.
+FORC = NaN(2160, nvars, ncells); % this variable is LARGE. Too large.
 for k=1:ncells
     FORC(:,:,k) = dlmread(forcenames(k).name); 
+    
+    if mod(k,100)==0
+        disp(k)
+    end
+    
 end
 
 if saveflag

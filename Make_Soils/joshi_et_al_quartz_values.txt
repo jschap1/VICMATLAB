@@ -1,0 +1,13 @@
+Number	Quartz	Soil_Type
+1	0.95	Sa
+2	0.85	LoSa
+3	0.69	SaLo
+4	0.19	LoSa
+5	0.05	SiLo
+6	0.41	SiLo
+7	0.61	SaClLo
+8	0.09	ClLo
+9	0.25	SiClLo
+10	0.5	SaCl
+11	0.08	SiCl
+12	0.25	Cl
