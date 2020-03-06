@@ -16,8 +16,9 @@ headerlines = 3;
 % Get metadata (lat, lon, time, names)
 wbnames = dir(fullfile(wb_out_dir, 'wb*'));
 ebnames = dir(fullfile(eb_out_dir, 'eb*'));
-[lon, lat] = get_coordinates_from_VIC_file(wb_out_dir, 'wb', 'fluxes');
-% [lon, lat] = get_coordinates_from_VIC_file(wb_out_dir, 'wb', 'forcings');
+
+% [lon, lat] = get_coordinates_from_VIC_file(wb_out_dir, 'wb', 'fluxes');
+[lon, lat] = get_coordinates_from_VIC_file(wb_out_dir, 'wb', 'forcings');
 
 sample_wb_file = fullfile(wb_out_dir, wbnames(1).name);
 sample_eb_file = fullfile(eb_out_dir, ebnames(1).name);

@@ -35,14 +35,14 @@ grid_decimal = 5; % number of decimal points for forcing file names
 elevname = '/Volumes/HD2/MERIT/DEM/Merged_1_16/merged_merit_dem_1_16.tif';
 maskname = '/Volumes/HD2/MERIT/DEM/Merged_1_16/merit_mask_1_16.tif';
 hwsd_dir = '/Volumes/HD3/HWSD/HWSD_1247/data';
-pedo_name = '/Users/jschap/Documents/Codes/VICMATLAB/pedotransfer_table.txt';
-quartz_table = '/Users/jschap/Documents/Codes/VICMATLAB/peters-lidard_quartz_values';
+pedo_name = '/Users/jschap/Documents/Codes/VICMATLAB/Make_Soils/pedotransfer_table.txt';
+quartz_table = '/Users/jschap/Documents/Codes/VICMATLAB/Make_Soils/peters-lidard_quartz_values';
 prec_names = dir(fullfile('/Volumes/HD3/WorldClim/wc2.0_2.5m_prec', '*tif'));
 temp_names = dir(fullfile('/Volumes/HD3/WorldClim/wc2.0_2.5m_tavg', '*tif'));
 prec_dir = '/Volumes/HD3/WorldClim/wc2.0_2.5m_prec';
 tavg_dir = '/Volumes/HD3/WorldClim/wc2.0_2.5m_tavg';
 
-outdir = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/';
+outdir = '/Volumes/HD3/VICParametersGlobal/VICGlobal/v1_5/Classic/';
 savename = 'soils_3L_MERIT.txt';
 
 %% Part 1 - load elevation and land fraction data
@@ -418,7 +418,7 @@ disp(['Saved annual average temperature map to ' fullfile(outdir, 'worldclim_Jul
 
 %% Part 5 
 
-% quartz content - use a pedotransfer function
+% quartz content - use a pedotransfer function?
 % this one is from "Estimation of Periodic Water Balance Components...",
 % cited on the UW VIC website (2016)
 
@@ -442,6 +442,8 @@ end
 % gdal_rasterize -te -179.9750 -89.9750 179.9750 89.9750 -ts 5760 2880 -a zone /Volumes/HD3/TimeZones/ne_10m_time_zones/ne_10m_time_zones.shp time_zones.tif
 % gdal_rasterize -te -179.9750 -59.9750 179.9750 89.9750 -ts 5760 2320 -a zone /Volumes/HD3/TimeZones/ne_10m_time_zones/ne_10m_time_zones.shp time_zones_above_60.tif
 
+% "Political" time zones
+
 tz = geotiffread('/Volumes/HD3/TimeZones/time_zones_above_60.tif');
 tz = flipud(tz);
 figure, imagesc(target_lon, target_lat, tz)
@@ -451,6 +453,9 @@ tz_mask = tz;
 tz_mask(~landmask) = NaN;
 figure, imagesc(target_lon, target_lat, tz_mask)
 set(gca, 'ydir', 'normal')
+
+% Should use "natural" time zones for the VIC model -- I think that makes
+% more sense than political time zones.
 
 %% Part 7 
 
@@ -519,7 +524,9 @@ soils(:,5) = 0.2; % b_infilt
 soils(:,6) = 0.001; % Ds
 
 % calculate mean ksat for the soil column
-ksat_bar = ksat1.*0.1 + ksat1*0.2 + ksat1*0.7;
+% This also had an error before, where ksat_bar was calculated from ksat1
+% only, neglecting ksat2
+ksat_bar = ksat1.*0.1 + ksat1*0.2 + ksat2*0.7;
 dsmax = ksat_bar.*slope(landmask); % Dsmax
 
 % quality control on dsmax - may want to do this, unclear if necessary
@@ -542,8 +549,10 @@ soils(:,16) = -999; % phi_s1
 soils(:,17) = -999; % phi_s2
 soils(:,18) = -999; % phi_s3
 
-soils(:,19) = 1000.*wcr_fract1.*0.3.*porosity1; % init_moist1
-soils(:,20) = 1000.*wcr_fract1.*0.7.*porosity1; % init_moist2
+% There might be an error here (JRS, 1/8/2020)
+% Yeah, there was an error here. Fixed now.
+soils(:,19) = 1000.*wcr_fract1.*0.1.*porosity1; % init_moist1
+soils(:,20) = 1000.*wcr_fract1.*0.2.*porosity1; % init_moist2
 soils(:,21) = 1000.*wcr_fract2.*0.7.*porosity2; % init_moist3
 
 soils(:,22) = elev(landmask); % elev
@@ -572,7 +581,8 @@ soils(:,37) = 2685; % soil_dens1
 soils(:,38) = 2685; % soil_dens2
 soils(:,39) = 2685; % soil_dens3
 
-soils(:,40) = tz(landmask); % off_gmt
+% soils(:,40) = tz(landmask); % off_gmt
+soils(:,40) = lonlat(:,1)*24/360; % "natural" time zones
 
 soils(:,41) = wcr_fract1; % wcr_fract1
 soils(:,42) = wcr_fract1; % wcr_fract2

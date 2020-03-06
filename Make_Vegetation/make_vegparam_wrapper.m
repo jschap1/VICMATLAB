@@ -40,7 +40,7 @@ figure, imagesc(target_lon, target_lat, lc2(:,:,17))
 set(gca, 'ydir', 'normal')
 
 R = makerefmat(target_lon(1), target_lat(1), tres, tres);
-outdir = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4';
+outdir = '/Volumes/HD3/VICParametersGlobal/VICGlobal/v1_5/Classic';
 geotiffwrite(fullfile(outdir, 'open_water_lc.tif'), flipud(lc1), R)
 
 % IGBP land cover classes (key)
@@ -56,7 +56,7 @@ figure
 plotraster(target_lon, target_lat, lc2(:,:,i), LC.classes{i}, 'Lon', 'Lat')
 
 % save the resampled vegetation cover fraction data as geotiffs
-resampled_modis_dir = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/Data/Vegetation';
+resampled_modis_dir = '/Volumes/HD3/VICParametersGlobal/VICGlobal/v1_5/Classic';
 for k=1:nclasses
     fname = [LC.classes{k} '_fraction.tif'];
     geotiffwrite(fullfile(resampled_modis_dir, fname), lc2(:,:,k), R); 
@@ -69,7 +69,8 @@ disp(['Saved resampled vegetation cover fraction data to ', resampled_modis_dir]
 
 %% Load soil parameter file
 
-soilfile = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/Classic/soils_3L_MERIT.txt';
+soilfile = '/Volumes/HD3/VICParametersCONUS/vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt';
+% soilfile = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/Classic/soils_3L_MERIT.txt';
 disp('Loading soil parameter file')
 soils = load(soilfile);
 disp('Soil parameter file has been loaded')
@@ -78,27 +79,42 @@ soils = soils(:,1:5); % only the first five columns are needed
 
 %% Write vegetation parameter file
 
-cropped_modis_dir = '/Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation/Vegetation_Fractions/Cropped2MERIT';
+% There is something going on with the land classification. The vegpar file
+% that I wrote out 1/13/20 is only 256 MB, whereas the v1_4 vegpar file was
+% 418 MB. Figure this out.
+
+cropped_modis_dir = '/Volumes/HD3/VICParametersGlobal/VICGlobal/vegetation/Vegetation_Fractions/Cropped2MERIT';
+% cropped_modis_dir = '/Volumes/HD3/VICParametersGlobal/VICGlobal/v1_5/Classic';
 maskfile = '/Volumes/HD2/MERIT/DEM/Merged_1_16/merit_mask_1_16.tif';
-savename = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/Classic/global_vegetation_1_16_IGBP_d.txt';
+savename = fullfile(outdir, 'global_vegetation_1_16_IGBP_d2.txt');
 checkflag = 1;
+
+addpath('/Users/jschap/Documents/Codes/VICMATLAB/Make_Vegetation')
 
 root_data = write_vegparam(soils, cropped_modis_dir, maskfile, savename, checkflag);
 
-save('/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/Data/root_data.mat', 'root_data');
+save('/Volumes/HD3/VICParametersGlobal/VICGlobal/v1_4/Data/root_data_3.mat', 'root_data', '-v7.3');
+
+% load('/Volumes/HD3/VICParametersGlobal/VICGlobal/v1_4/Data/root_data.mat')
 
 %% Read vegetation parameter file (to check)
 
-vegfile = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/Classic/global_vegetation_1_16_IGBP.txt';
+indir = '/Volumes/HD3/VICParametersCONUS';
+vegfile = fullfile(indir, 'vic.veg.0625.new.cal.adj.can');
+
+% indir = '/Volumes/HD3/VICParametersGlobal/VICGlobal/v1_5/Classic';
+% vegfile = fullfile(indir, '/global_vegetation_1_16_IGBP.txt');
 ncells = size(soils, 1);
 
 % name to use to save the outputs of read_vegparam (formatted vegetation
 % parameter data)
-savename = '/Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation/Vegetation_Fractions/mats/vegparamtable_IGBP.mat';
+savename = '/Volumes/HD3/VICParametersCONUS/Vegetation/vegparamtable.mat';
+% savename = '/Volumes/HD3/VICParametersGlobal/VICGlobal/v1_5/Data/Vegetation/vegparamtable_IGBP.mat';
 
 % ncells = 139589;
 % Note: read_vegparam saves nvegtable, etc. under savename
-[nvegtable, vegparamtable, latlontable, LC] = read_vegparam(vegfile, soils, ncells, savename);
+% [nvegtable, vegparamtable, latlontable, LC] = read_vegparam(vegfile, soils, ncells, savename);
+[nvegtable, vegparamtable, latlontable, LC] = read_vegparam_w_LAI(vegfile, soils, ncells, savename);
 
 % dat = load(savename);
 % ind2 = find(dat.vegparamtable.Woody_Savannas(:,2)>0);
@@ -110,32 +126,51 @@ savename = '/Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation/Vegetation_F
 % 
 % dat.vegparamtable.Evergreen_Broadleaf(1:10,:)
 
-load(savename)
+load(savename);
 
 %% Make Geotiffs
 
-veglib = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_3/Old/veglib_nh_nohead.txt';
+veglib = '/Volumes/HD3/VICParametersCONUS/vic_veglib_nohead.txt';
+
 
 % Since we're using the northern hemisphere vegetation library, the
 % southern hemisphere portions of the maps should be thrown out...
 
-outdir = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/Data/Vegetation/Lib/';
+outdir = '/Volumes/HD3/VICParametersCONUS/Vegetation/';
 plotflag = 0;
 saveflag = 1;
 
-clearvars -except nvegtable vegparamtable latlontable veglib LC outdir plotflag saveflag
+% clearvars -except nvegtable vegparamtable latlontable veglib LC outdir plotflag saveflag
 
 VEGPARAMS = convert_veg_parameters_v3(nvegtable, vegparamtable, latlontable, veglib, LC, outdir, plotflag, saveflag);
+
+VEGPARAMS = load('/Volumes/HD3/VICParametersCONUS/Vegetation/VEGPARAM.mat');
+VEGPARAMS = VEGPARAMS.VEGPARAM;
 
 % Remove unnecessary parts of VEGPARAMS
 % rmfield(VEGPARAMS, 'sdfdf')
 % There are none :(
 % It is big.
 
-savename = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/Data/VEGPARAMS.mat';
-save(savename, 'VEGPARAMS', '-v7.3')
+% savename = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/Data/VEGPARAMS.mat';
+% save(savename, 'VEGPARAMS', '-v7.3')
 
 % This uses a stupid amount of memory.
+
+%% Plot root fractions
+
+everneedle_rf1 = flipud(geotiffread(fullfile(outdir, 'Evergreen_Needleleaf_rf1.tif')));
+figure
+
+latmax = max(latlontable(:,2));
+latmin = min(latlontable(:,2));
+lonmax = max(latlontable(:,3));
+lonmin = min(latlontable(:,3));
+
+lonlim = [lonmin, lonmax];
+latlim = [latmin, latmax];
+
+plotraster(lonlim, latlim, everneedle_rf1, 'Root fraction (layer 1)', '', '')
 
 %% Plot LAI
 

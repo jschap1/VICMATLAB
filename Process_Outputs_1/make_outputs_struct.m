@@ -9,15 +9,66 @@ function OUTPUTS = make_outputs_struct(info, wb_avg_ts, wb_avg_map, eb_avg_ts, e
 % time series
 
 % [lon, lat] = get_coordinates_from_VIC_file(info.eb_out_dir, 'eb_', 'fluxes');
-[lon, lat] = get_coordinates_from_VIC_file(info.eb_out_dir, 'eb_', 'forcings');
+% [lon, lat] = get_coordinates_from_VIC_file(info.eb_out_dir, 'eb_', 'forcings');
+
+lon = info.lon;
+lat = info.lat;
 
 OUTPUTS = struct();
 for p=4:length(info.wbvars)
     OUTPUTS.WB.ts.(info.wbvars{p}) = wb_avg_ts(:,p);
 %     map1 = fliplr(xyz2grid(info.lon, info.lat, wb_avg_map(:,p)));
-    map1 = xyz2grid(lon, lat, wb_avg_map(:,p)); % IRB
+
+    regular = 1;
+    if regular
+        % note: this only works for regularly-spaced data
+        % if the domain is irregular (e.g. masked to a basin), it might not
+        % work...
+        
+        map1 = xyz2grid(lon, lat, wb_avg_map(:,p)); % IRB
+        OUTPUTS.WB.maps.(info.wbvars{p}) = map1;
+    else
+        % This workflow needs work. It still doesn't work.
+        %
+        % But actually, there might be an issue somewhere upstream
+        % When I use rasterFromXYZ in R, I get the same issue.
+        [mask1, R1, lon1, lat1] = geotiffread2('/Volumes/HD4/SWOTDA/Data/Colorado/colo_mask.tif');
+        mask1 = double(mask1);
+        mask1(mask1==0) = NaN;
+        
+        p=13; % precipitation
+        precipitation_map = wb_avg_map(:,p);
+        
+        writetable(table(lon, lat, precipitation_map), '/Volumes/HD4/SWOTDA/Data/Colorado/EB_2000-2011_L13/processed/precipitation_xyz.txt');
+        
+        figure, plotraster(lon1, lat1, mask1, 'Mask', '', '')
+        
+        masklatvect = lat;
+        masklonvect = lon;
+        [LON, LAT] = ndgrid(lon1, lat1);
+        
+%         [lonvect, latvect] = grid2xyz(LON', LAT', mask1);
+        
+        x = reshape(LON',[numel(LON'),1]); % from grid2xyz
+        y = reshape(LAT',[numel(LAT'),1]);
+        
+        var1 = mask1;
+        var1(mask1==1) = wb_avg_map(:,p);
+
+        figure, plotraster(lon1, lat1, var1, 'var1', '', '')
+
+        map1 = xyz2grid(lon, lat, wb_avg_map(:,p)); % IRB
+        figure, plotraster(lon1, lat1, map1, 'var1', '', '')
+        
+%         R1 = makerefmat(lon(1), lat(1), 1/16, 1/16);
+%         [Z, R2] = vec2mtx(lat, lon, map1, R1)        
+        var = NaN(size(map1));
+        var(mask1==1) = wb_avg_map(:,p);
+        OUTPUTS.WB.maps.(info.wbvars{p}) = var;
+    end
+
 %     map1 = fliplr(xyz2grid(lon, lat, wb_avg_map(:,p))); % UMRB
-    OUTPUTS.WB.maps.(info.wbvars{p}) = map1;  
+   
 end
 
 % A = load('/Volumes/HD4/SWOTDA/Data/UMRB/Classic_Livneh_met_L15/Raw/Processed/readVIC_outputs.mat');

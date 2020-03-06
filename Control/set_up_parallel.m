@@ -33,6 +33,11 @@ function outname = set_up_parallel(control_params)
 
 %% Inputs
 
+% Specify lines of the global parameter file for the following:
+log_line_ind = 182; % 181, 195
+out_line_ind = 183; % 182, 196
+soil_line_ind = 154; % 153, 167
+
 mkdir(control_params.out_dir)
 disp(['Created directory ' control_params.out_dir ' to store the subsetted soil parameter files'])
 
@@ -66,15 +71,16 @@ for jj=1:n
     A = read_global_param_file(control_params.global_param);
 
     % change the soil parameter line
-    A{153} = ['SOIL ' fullfile(control_params.vic_in_dir, [soil_basename, '_', num2str(jj), '.txt'])];
-
+    
+    A{soil_line_ind} = ['SOIL ' fullfile(control_params.vic_in_dir, [soil_basename, '_', num2str(jj), '.txt'])];
+   
     % change the output directory
     if control_params.multidir
-        A{181} = ['LOG_DIR ' outdir_names{jj}];
-        A{182} = ['RESULT_DIR ' outdir_names{jj}];
+        A{log_line_ind} = ['LOG_DIR ' outdir_names{jj} '/'];
+        A{out_line_ind} = ['RESULT_DIR ' outdir_names{jj} '/'];
     else
-        A{181} = ['LOG_DIR ' outdir_names];
-        A{182} = ['RESULT_DIR ' outdir_names];
+        A{log_line_ind} = ['LOG_DIR ' outdir_names '/'];
+        A{out_line_ind} = ['RESULT_DIR ' outdir_names '/'];
     end
 
     sn = fullfile(control_params.out_dir, [global_basename, '_', num2str(jj), '.txt']);

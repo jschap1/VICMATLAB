@@ -12,6 +12,7 @@
 function [avg_map, avg_ts, sum_ts, t, ds] = readVIC_ds(indir, nvars, ncells, nt)
 
 ds = tabularTextDatastore(indir);
+
 t = tall(ds);
 
 ds.ReadSize = 'file';
@@ -63,6 +64,6 @@ end
 avg_ts = sum_ts/(ncells-count_missing);
 disp(['There were ' num2str(count_missing) ' missing days for the temporal average']);
 
-save('/Volumes/HD4/SWOTDA/Data/UMRB/Classic_Livneh_met_L15/Raw/Processed/readVIC_outputs.mat', 'avg_map', 'avg_ts', 'sum_ts', 't', 'ds')
+% save('/Volumes/HD4/SWOTDA/Data/UMRB/Classic_Livneh_met_L15/Raw/Processed/readVIC_outputs.mat', 'avg_map', 'avg_ts', 'sum_ts', 't', 'ds')
 
 return

@@ -34,10 +34,22 @@
 % convert_soil_parameters(soils, '3L-no-org-frost-msds', outdir)
 
 % VICGlobal
-% soils = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_3/soils_3L_MERIT.txt';
+% soils = '/Volumes/HD3/VICParametersGlobal/VICGlobal/v1_4/Classic/soils_3L_MERIT.txt';
 % outdir = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/34N_75E/soil_plots';
 % template = '/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/slope.tif';
 % convert_soil_parameters(soils, '3L-no-org-frost-msds', outdir)
+
+% Upper Colorado
+% soils = '/Volumes/HD4/SWOTDA/Data/Colorado/colo_soils_vg.txt';
+% outdir = '/Volumes/HD4/SWOTDA/Data/Colorado/soils';
+% setup = '3L-no-org-frost-msds';
+% maskname = '/Volumes/HD4/SWOTDA/Data/Colorado/colo_mask.tif';
+
+% soils = '/Volumes/HD4/SWOTDA/Data/UpperMiss/umrb_soils_L15.txt';
+% outdir = '/Volumes/HD4/SWOTDA/Data/UpperMiss/L15/soils';
+% mkdir(outdir)
+% setup = 'livneh';
+% maskname = '/Volumes/HD4/SWOTDA/Data/UpperMiss/umrb_mask.tif';
 
 function [] = convert_soil_parameters(soils, setup, outdir, maskname)
 
@@ -81,9 +93,12 @@ landcells = find(landmask == 1);
 %         nodataval = -9999;
 %         A = ones(size(landmask))*nodataval;
         
-        
-        A(landcells) = soils(:,k);
-        
+%         A(landcells) = soils(:,k);
+        A(landcells) = soils(landcells,k);
+% landcells(end) = [];
+
+%         
+         
 %         A = xyz2grid(lon, lat, soils(:,k)); 
         % 444 rows (latitude) by 922 columns (longitude)
         

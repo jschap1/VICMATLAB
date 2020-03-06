@@ -38,14 +38,14 @@ forcingpath = '/Volumes/HD3/Livneh_2013/MetNC';
 % basinmask = './Data/UMRB/rout/umrb.fract';
 
 % Directory where clipped forcing files should be saved
-forcingsavedir = './Livneh_Forc_1980-2011';
+forcingsavedir = '/Users/jschap/Documents/Research/Glaciers/Skagit/forc_1979-2011';
 
 % Number of forcings in the daily CONUS met. forcing file
 numforcings = 4;
 
 % Beginning and ending years of simulation (must be included in the daily CONUS
 % met. forcing file)
-beginyear = 1980;
+beginyear = 1979;
 endyear = 2011;
 
 % Number of decimal points of precision to use for forcing file names
@@ -71,7 +71,7 @@ metlon = metlon - 360;
 %%%
 
 % Can use a DEM to define the mask area
-[mask1, R1] = geotiffread('/Volumes/HD4/SWOTDA/Data/Tuolumne/v1_3/dem.tif');
+[mask1, R1] = geotiffread('/Users/jschap/Documents/Research/Glaciers/Skagit/skagit_mask.tif');
 R1mat = georefobj2mat(R1, 'LL');
 [masklon1, masklat1] = pixcenters(R1mat, size(mask1));
 [masklon, masklat, ~] = grid2xyz(masklon1', masklat1', mask1);
@@ -143,8 +143,11 @@ for t = beginyear:endyear
             ' minutes remaining.'])
     end
     
+    disp(t)
+    
 end
 
+%%
 % % Save met. forcings as .mat file
 % % The dimensions are [numdays, numforcings, ncells]
 % save('METFORC.mat', 'data_cum');

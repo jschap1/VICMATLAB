@@ -17,8 +17,13 @@
 %
 % OUTPUTS
 % Vegetation parameter file
+%
+% Example:
+% root_data = write_vegparam(soils, cropped_modis_dir, maskfile, savename, checkflag);
 
 function LC = write_vegparam(soils, modis_dir, meritmaskfile, savename, checkflag)
+
+outdir = '/Volumes/HD3/VICParametersGlobal/VICGlobal/v1_5/Classic';
 
 %% Prepare to write vegetation parameter file
 
@@ -32,7 +37,7 @@ cellID = soils(:,2);
 landmask = flipud(logical(landmask));
 
 % Load MODIS land cover data
-lc_names = dir(fullfile(modis_dir, '*.tif'));
+lc_names = dir(fullfile(modis_dir, '*fraction.tif'));
 lc_names_full = lc_names;
 nclasses = length(lc_names);
 for i=1:nclasses
@@ -74,6 +79,10 @@ for k=1:ncells
         disp(k)
     end
 end
+
+% save('/Volumes/HD3/VICParametersGlobal/Global_1_16/vegetation/Vegetation_Fractions/mats/vgn.mat', 'vgn');
+% outdir = '/Volumes/HD3/VICParametersGlobal/VICGlobal/v1_5/Classic';
+save(fullfile(outdir, 'vgn.mat'), 'vgn');
 
 %% Calculate root depth and root fraction values
 
@@ -121,6 +130,10 @@ for i=1:nclasses
 %     d = [0.1, 0.7, zeng_table.dr(i)];
     
     Y = cum_root_fract(zeng_table.a(i), zeng_table.b(i), d);
+    
+    % Fix the cumulative root fraction at dr to be 1
+    Y(3) = 1;
+    
     LC.root_fract.(LC.names{i}) = [Y(1), Y(2) - Y(1), Y(3) - Y(2)];
     LC.root_depth.(LC.names{i}) = d;
 end
@@ -130,7 +143,7 @@ end
 if checkflag
 
     % Plot a sample vegetation cover map
-    ii = 15;
+    ii = 1;
     lc = geotiffread(fullfile(modis_dir, lc_names_full(ii).name));
     lc = flipud(lc);    
     minlat = R_merit.LatitudeLimits(1);

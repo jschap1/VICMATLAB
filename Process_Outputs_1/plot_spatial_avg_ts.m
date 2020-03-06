@@ -12,19 +12,23 @@ width1 = 700;
 % Water balance variables
 % Fluxes
 f1 = figure;
-upper1 = 20;
+upper1 = 40;
 set(f1, 'Position',  [100, 100, 100+width1, 100+height1])
 subplot(2,2,1)
 jsplot(OUTPUTS.time, OUTPUTS.WB.ts.OUT_PREC, 'Precipitation', 'Time', 'Precipitation (mm)', fontsize)
-ylim([0,upper1])
+grid on
+ylim([0,125])
 subplot(2,2,2)
 jsplot(OUTPUTS.time, OUTPUTS.WB.ts.OUT_EVAP, 'Evaporation', 'Time', 'Evaporation (mm)', fontsize)
+grid on
 ylim([0,upper1])
 subplot(2,2,3)
 jsplot(OUTPUTS.time, OUTPUTS.WB.ts.OUT_RUNOFF, 'Runoff', 'Time', 'Runoff (mm)', fontsize)
+grid on
 ylim([0,upper1])
 subplot(2,2,4)
 jsplot(OUTPUTS.time, OUTPUTS.WB.ts.OUT_BASEFLOW, 'Baseflow', 'Time', 'Baseflow (mm)', fontsize)
+grid on
 ylim([0,upper1])
 saveas(f1, fullfile(figdir, 'water_balance_fluxes.png'))
 
@@ -32,12 +36,12 @@ saveas(f1, fullfile(figdir, 'water_balance_fluxes.png'))
 % Water balance variables
 % States
 f2 = figure;
-upper2 = 300;
+upper2 = 200;
 set(f2, 'Position',  [100, 100, 100+width1, 100+height1])
 subplot(2,2,1)
 jsplot(OUTPUTS.time, OUTPUTS.WB.ts.OUT_SWE, 'SWE', 'Time', 'SWE (mm)', fontsize)
 grid on
-ylim([0,upper2])
+ylim([0,3000])
 subplot(2,2,2)
 jsplot(OUTPUTS.time, OUTPUTS.WB.ts.OUT_SOIL_MOIST_0, 'Soil moisture (layer 1)', 'Time', 'Soil moisture (mm)', fontsize)
 grid on
@@ -49,33 +53,37 @@ ylim([0,upper2])
 subplot(2,2,4)
 jsplot(OUTPUTS.time, OUTPUTS.WB.ts.OUT_SOIL_MOIST_2, 'Soil moisture (layer 3)', 'Time', 'Soil moisture (mm)', fontsize)
 grid on
-ylim([0,upper2])
+ylim([0,850])
 saveas(f2, fullfile(figdir, 'water_balance_states.png'))
 
 % Spatial average time series
 % Energy balance variables
 % Fluxes
 f3 = figure;
-lower3 = -100;
-upper3 = 300;
+lower3 = -50;
+upper3 = 250;
 set(f3, 'Position',  [100, 100, 100+width1, 100+height1])
 subplot(2,2,1)
 jsplot(OUTPUTS.time, OUTPUTS.EB.ts.OUT_R_NET, 'Net radiation', 'Time', 'Rnet (W/m^2)', fontsize)
+grid on
 ylim([lower3, upper3])
 hold on 
 line([OUTPUTS.time(1),OUTPUTS.time(end)],[0,0], 'Color', 'black', 'LineStyle', '--')
 subplot(2,2,2)
 jsplot(OUTPUTS.time, OUTPUTS.EB.ts.OUT_LATENT, 'Latent heat', 'Time', 'LE (W/m^2)', fontsize)
+grid on
 ylim([lower3, upper3])
 subplot(2,2,3)
 hold on 
 line([OUTPUTS.time(1),OUTPUTS.time(end)],[0,0], 'Color', 'black', 'LineStyle', '--')
 jsplot(OUTPUTS.time, OUTPUTS.EB.ts.OUT_SENSIBLE, 'Sensible heat', 'Time', 'H (W/m^2)', fontsize)
+grid on
 ylim([lower3, upper3])
 subplot(2,2,4)
 hold on 
 line([OUTPUTS.time(1),OUTPUTS.time(end)],[0,0], 'Color', 'black', 'LineStyle', '--')
 jsplot(OUTPUTS.time, OUTPUTS.EB.ts.OUT_GRND_FLUX, 'Ground heat flux', 'Time', 'G (W/m^2)', fontsize)
+grid on
 ylim([lower3, upper3])
 hold on 
 line([OUTPUTS.time(1),OUTPUTS.time(end)],[0,0], 'Color', 'black', 'LineStyle', '--')
@@ -92,16 +100,20 @@ grid on
 ylim([0,1])
 subplot(2,2,2)
 jsplot(OUTPUTS.time, OUTPUTS.EB.ts.OUT_SURF_TEMP, 'Surface temperature', 'Time', 'T_{surf} (deg. C)', fontsize)
-ylim([-40,40])
+ylim([-20,30])
 grid on
 subplot(2,2,3)
 jsplot(OUTPUTS.time, OUTPUTS.EB.ts.OUT_AIR_TEMP, 'Air temperature', 'Time', 'T_{air} (deg. C)', fontsize)
 grid on
-ylim([-40,40])
-subplot(2,2,4)
-jsplot(OUTPUTS.time, OUTPUTS.EB.ts.OUT_REL_HUMID, 'Relative humidity', 'Time', 'RH (%)', fontsize)
-grid on
-ylim([0,100])
+ylim([-20,30])
+
+if exist('OUTPUTS.EB.maps.OUT_REL_HUMID', 'var')
+    subplot(2,2,4)
+    jsplot(OUTPUTS.time, OUTPUTS.EB.ts.OUT_REL_HUMID, 'Relative humidity', 'Time', 'RH (%)', fontsize)
+    grid on
+    ylim([0,100])
+end
+
 saveas(f4, fullfile(figdir, 'energy_balance_states.png'))
 
 return
