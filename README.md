@@ -18,3 +18,39 @@ Matlab scripts and functions for processing output files from the Variable Infil
 ## R scripts
 * routinputworkflow - creates fraction file, watershed mask, and clipped DEM at DEM and/or VIC modeling resolution. Does not create flow direction file (this is best done with ArcMap).
 * modfdir - script for modifying the flow direction file
+
+## MATLAB functions provided in VICMATLAB 1.0
+* georefobj2mat
+* geotiffread2
+* plotraster
+* geotiffwrite
+* imagescnan
+* subset_soils
+* write_soils
+* subset_forcings
+* grid2xyz
+* xyz2grid
+* check_outputs_wrapper
+* get_vic_run_metadata
+* get_coordinates_from_VIC_file
+* get_vic_header
+* check_latlon
+* readVIC_ds
+* make_outputs_struct
+* plot_spatial_avg_ts
+* plot_time_avg_maps
+* jsplot
+* convert_soil_parameters
+* get_soil_var_names
+
+
+## Requirements
+* MATLAB R2016a or later
+* Parallel Computing Toolbox
+* Mapping Toolbox
+* Image Processing Toolbox
+
+## Recommended
+* R, RStudio
+* raster, rgeos, and rgdal packages for R
+

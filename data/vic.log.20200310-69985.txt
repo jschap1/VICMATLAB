@@ -1,0 +1,263 @@
+[INFO] ../shared_all/src/vic_log.c:136: Initialized Log File: ./data/vic.log.20200310-69985.txt
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 46.000000 not equal to grid_cell average elevation 48.960000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 106.800000 not equal to grid_cell average elevation 127.380000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:384: errno: None: Cv > 0.99 and Cv < 1.0 at grid cell 121934, model assuming that bare soil is not to be run - fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 188.300000 not equal to grid_cell average elevation 201.250000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 244.400000 not equal to grid_cell average elevation 281.870000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 497.639500 not equal to grid_cell average elevation 369.240000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:384: errno: None: Cv > 0.99 and Cv < 1.0 at grid cell 121937, model assuming that bare soil is not to be run - fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 364.816900 not equal to grid_cell average elevation 442.660000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:384: errno: None: Cv > 0.99 and Cv < 1.0 at grid cell 121938, model assuming that bare soil is not to be run - fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 422.300000 not equal to grid_cell average elevation 502.120000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 506.800000 not equal to grid_cell average elevation 586.380000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 704.700000 not equal to grid_cell average elevation 695.450000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 873.622400 not equal to grid_cell average elevation 807.070000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 286.400000 not equal to grid_cell average elevation 283.880000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:374: errno: None: Cv_sum exceeds 1.0 (1.000001) at grid cell 122669, fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 566.900000 not equal to grid_cell average elevation 384.070000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 395.300000 not equal to grid_cell average elevation 445.950000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:374: errno: None: Cv_sum exceeds 1.0 (1.000001) at grid cell 122671, fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 406.600000 not equal to grid_cell average elevation 469.510000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 511.600000 not equal to grid_cell average elevation 516.830000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:374: errno: None: Cv_sum exceeds 1.0 (1.000001) at grid cell 122673, fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 622.000000 not equal to grid_cell average elevation 587.910000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 600.150500 not equal to grid_cell average elevation 696.270000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 752.800000 not equal to grid_cell average elevation 841.900000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:384: errno: None: Cv > 0.99 and Cv < 1.0 at grid cell 123408, model assuming that bare soil is not to be run - fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 485.500000 not equal to grid_cell average elevation 408.260000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 526.700000 not equal to grid_cell average elevation 413.930000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 402.800000 not equal to grid_cell average elevation 445.050000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 417.700000 not equal to grid_cell average elevation 501.620000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 636.500000 not equal to grid_cell average elevation 603.560000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 873.952600 not equal to grid_cell average elevation 750.860000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1008.600000 not equal to grid_cell average elevation 906.800000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1201.400000 not equal to grid_cell average elevation 1071.380000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1778.568000 not equal to grid_cell average elevation 1825.540000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2074.885600 not equal to grid_cell average elevation 1947.510000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2036.424500 not equal to grid_cell average elevation 2098.310000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 3222.497200 not equal to grid_cell average elevation 2971.810000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 310.200000 not equal to grid_cell average elevation 371.050000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 413.300000 not equal to grid_cell average elevation 436.600000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 557.600000 not equal to grid_cell average elevation 528.960000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 679.900000 not equal to grid_cell average elevation 648.130000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 835.400000 not equal to grid_cell average elevation 775.250000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 897.591200 not equal to grid_cell average elevation 910.320000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1097.203100 not equal to grid_cell average elevation 1069.390000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1457.300000 not equal to grid_cell average elevation 1252.460000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1331.768400 not equal to grid_cell average elevation 1380.460000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1657.400000 not equal to grid_cell average elevation 1453.390000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1515.000000 not equal to grid_cell average elevation 1551.150000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1593.660000 not equal to grid_cell average elevation 1673.740000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1757.075900 not equal to grid_cell average elevation 1831.050000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1890.797000 not equal to grid_cell average elevation 2023.070000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2136.711700 not equal to grid_cell average elevation 2208.670000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 3130.395000 not equal to grid_cell average elevation 3014.350000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 3267.615900 not equal to grid_cell average elevation 3022.420000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:374: errno: None: Cv_sum exceeds 1.0 (1.000001) at grid cell 124175, fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 3209.124100 not equal to grid_cell average elevation 2865.810000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:384: errno: None: Cv > 0.99 and Cv < 1.0 at grid cell 124898, model assuming that bare soil is not to be run - fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 407.400000 not equal to grid_cell average elevation 464.800000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:374: errno: None: Cv_sum exceeds 1.0 (1.000001) at grid cell 124899, fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 524.300000 not equal to grid_cell average elevation 566.860000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:374: errno: None: Cv_sum exceeds 1.0 (1.000001) at grid cell 124900, fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 613.355100 not equal to grid_cell average elevation 686.530000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 650.086100 not equal to grid_cell average elevation 823.790000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 892.408900 not equal to grid_cell average elevation 960.310000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1173.627000 not equal to grid_cell average elevation 1096.070000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1166.300000 not equal to grid_cell average elevation 1207.840000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1148.620400 not equal to grid_cell average elevation 1295.620000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1245.519600 not equal to grid_cell average elevation 1410.650000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1392.459200 not equal to grid_cell average elevation 1552.930000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1661.567200 not equal to grid_cell average elevation 1737.010000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2022.446600 not equal to grid_cell average elevation 1962.900000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1922.279200 not equal to grid_cell average elevation 2155.330000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2164.644800 not equal to grid_cell average elevation 2314.280000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2491.940000 not equal to grid_cell average elevation 2469.580000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2459.825000 not equal to grid_cell average elevation 2621.210000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2643.605700 not equal to grid_cell average elevation 2799.360000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2967.252900 not equal to grid_cell average elevation 3004.020000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 3146.530000 not equal to grid_cell average elevation 3066.430000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 359.200000 not equal to grid_cell average elevation 411.070000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 393.700000 not equal to grid_cell average elevation 507.070000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 627.852000 not equal to grid_cell average elevation 640.650000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 830.900000 not equal to grid_cell average elevation 811.800000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 841.597500 not equal to grid_cell average elevation 918.680000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 758.102100 not equal to grid_cell average elevation 961.260000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 806.933800 not equal to grid_cell average elevation 1065.300000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1079.689200 not equal to grid_cell average elevation 1230.780000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1297.567800 not equal to grid_cell average elevation 1404.030000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1453.500000 not equal to grid_cell average elevation 1585.070000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1863.780700 not equal to grid_cell average elevation 1816.200000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2173.556600 not equal to grid_cell average elevation 2097.450000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2448.085300 not equal to grid_cell average elevation 2279.300000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2460.946000 not equal to grid_cell average elevation 2361.770000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2784.475100 not equal to grid_cell average elevation 2489.040000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2740.660300 not equal to grid_cell average elevation 2661.110000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2881.345100 not equal to grid_cell average elevation 2838.810000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2892.104000 not equal to grid_cell average elevation 3022.120000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 436.247500 not equal to grid_cell average elevation 439.200000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 568.453900 not equal to grid_cell average elevation 571.310000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 848.908400 not equal to grid_cell average elevation 743.280000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1029.800000 not equal to grid_cell average elevation 839.260000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 970.000000 not equal to grid_cell average elevation 859.250000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1012.458000 not equal to grid_cell average elevation 954.880000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1279.325400 not equal to grid_cell average elevation 1126.140000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:384: errno: None: Cv > 0.99 and Cv < 1.0 at grid cell 126378, model assuming that bare soil is not to be run - fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1422.801100 not equal to grid_cell average elevation 1305.350000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1571.716300 not equal to grid_cell average elevation 1492.490000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1793.461400 not equal to grid_cell average elevation 1736.670000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2148.710600 not equal to grid_cell average elevation 2037.900000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2471.900000 not equal to grid_cell average elevation 2225.000000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2269.989600 not equal to grid_cell average elevation 2297.950000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:374: errno: None: Cv_sum exceeds 1.0 (1.000001) at grid cell 126384, fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2278.926000 not equal to grid_cell average elevation 2438.600000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2628.711400 not equal to grid_cell average elevation 2646.940000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2808.112800 not equal to grid_cell average elevation 2841.870000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 3156.825000 not equal to grid_cell average elevation 3023.370000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 928.500000 not equal to grid_cell average elevation 790.040000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 843.200000 not equal to grid_cell average elevation 876.600000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1027.300000 not equal to grid_cell average elevation 981.720000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1200.060000 not equal to grid_cell average elevation 1114.590000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:384: errno: None: Cv > 0.99 and Cv < 1.0 at grid cell 127114, model assuming that bare soil is not to be run - fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1518.291700 not equal to grid_cell average elevation 1275.200000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1654.928600 not equal to grid_cell average elevation 1498.420000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:374: errno: None: Cv_sum exceeds 1.0 (1.000001) at grid cell 127116, fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1656.369000 not equal to grid_cell average elevation 1784.270000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1879.524400 not equal to grid_cell average elevation 1992.410000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1841.267400 not equal to grid_cell average elevation 2122.840000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1931.244800 not equal to grid_cell average elevation 2318.270000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2407.880200 not equal to grid_cell average elevation 2578.710000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2641.101400 not equal to grid_cell average elevation 2808.540000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 698.567800 not equal to grid_cell average elevation 814.830000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 902.600000 not equal to grid_cell average elevation 893.430000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 760.042900 not equal to grid_cell average elevation 1004.620000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 864.973200 not equal to grid_cell average elevation 1148.410000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1067.720000 not equal to grid_cell average elevation 1350.220000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_vegparam.c:374: errno: None: Cv_sum exceeds 1.0 (1.000001) at grid cell 127852, fractions being adjusted to equal 1
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1573.969400 not equal to grid_cell average elevation 1610.040000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2137.896400 not equal to grid_cell average elevation 1842.340000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 2198.300000 not equal to grid_cell average elevation 2047.120000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file
+[WARN] ./src/read_snowband.c:103: errno: None: average band elevation 1847.632500 not equal to grid_cell average elevation 1774.790000; setting grid cell elevation to average band elevation.
+[INFO] ./src/vic_force.c:111: Read meteorological forcing file

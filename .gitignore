@@ -1,3 +1,4 @@
 *.sh
 Old/
-*.R
+# *.R
+data/
