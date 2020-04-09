@@ -9,9 +9,18 @@
 % timestep_out = 'daily' or 'hourly'
 % savename = optional savename. Use [] if not saving.
 
-function info = get_vic_run_metadata(wb_out_dir, eb_out_dir, timestep_out)
+function info = get_vic_run_metadata(vic_out_dir, timestep_out)
 
 headerlines = 3;
+
+wb_out_dir = fullfile(vic_out_dir, 'wb');
+eb_out_dir = fullfile(vic_out_dir, 'eb');
+
+% check that the VIC output files have been organized properly into /wb/ 
+% and /eb/ folders
+if exist(wb_out_dir, 'dir') == 0
+    error('Make sure the VIC output files have been organized properly')
+end
 
 % Get metadata (lat, lon, time, names)
 wbnames = dir(fullfile(wb_out_dir, 'wb*'));
@@ -44,8 +53,10 @@ info.wb_out_dir = wb_out_dir;
 info.eb_out_dir = eb_out_dir;
 info.headerlines = headerlines;
 
-info.lon = flipud(lon);
-info.lat = flipud(lat); % should be in decreasing order
-check_latlon(info.lat, info.lon);
+info.lon = lon;
+info.lat = lat;
+% info.lon = flipud(lon);
+% info.lat = flipud(lat); % should be in decreasing order
+% check_latlon(info.lat, info.lon);
 
 return

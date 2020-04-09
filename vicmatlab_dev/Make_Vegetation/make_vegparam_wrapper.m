@@ -132,7 +132,6 @@ load(savename);
 
 veglib = '/Volumes/HD3/VICParametersCONUS/vic_veglib_nohead.txt';
 
-
 % Since we're using the northern hemisphere vegetation library, the
 % southern hemisphere portions of the maps should be thrown out...
 

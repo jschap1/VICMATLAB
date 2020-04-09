@@ -13,6 +13,47 @@ function [lat, lon] = GetCoords(gridcells, precision)
 ncells = length(gridcells);
 
 % Extract numbers from within the strings in the cell array using regexp
+
+%% Make an array of signs
+
+% Here, we use the signstr values in combination with underscore locations to
+% determine whether lat, lon, or both should be negative.
+
+% This will break if there are '-' in the file name, aside from the
+% negative signs
+
+underscore_locations = strfind(gridcells, '_');
+signstr = strfind(gridcells, '-');
+
+lon_signs = ones(ncells, 1);
+lat_signs = ones(ncells, 1);
+
+for k=1:ncells
+    
+    switch length(signstr{k})
+        case 0
+%             disp('Both lat and lon are positive')
+                1;
+        case 1
+%             disp('Either lat or lon is negative')
+            if signstr{k} == underscore_locations{k}(1) + 1
+                lat_signs(k) = -1;
+            elseif signstr{k} == underscore_locations{k}(3) + 1
+                lon_signs(k) = -1;
+            end
+        case 2
+%             disp('Both lat and lon are negative')
+            lon_signs(k) = -1;
+            lat_signs(k) = -1;
+    end
+    
+end
+
+
+
+%% Assemble coordinates into lat/lon vectors
+
+% Get coordinates (sans sign) from the input file names
 gridcells_numbers =  regexprep(gridcells,'\D',''); % this replaces non-numeric digits with "".
 
 % There is probably a way to implement this without a loop
@@ -42,15 +83,19 @@ for k = 1:ncells
     end
         
     lat(k) = str2double([str1 '.' str2]);
-    lon(k) = str2double([str3 '.' str4]);
     
+    lon(k) = str2double([str3 '.' str4]);
+        
 end
 
-% Convention for western hemisphere
-% lon = -lon;
+% Append the signs
+lon = lon.*lon_signs;
+lat = lat.*lat_signs;
+    
     % Indexing convention
     % i, x
     % j, y
     % k, ncells
+
 
 end

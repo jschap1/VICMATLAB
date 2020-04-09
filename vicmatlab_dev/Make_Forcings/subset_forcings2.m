@@ -1,20 +1,42 @@
 % Subsets forcings to a particular basin
 %
 % Written 3/9/2020 JRS
+%
+% Supercedes subset_forcings
+% Code has been modified to use MUCH less RAM
+% 
+% Default values for optional arguments
+% numforcings = 4;
+% grid_decimal = 5;
+% has_lots_of_ram = 0;
+%
+% Requires PREC, TMIN, TMAX, WIND forcings in NetCDF files, one per year
 
-function temp = subset_forcings(force_in, force_out, beginyear, endyear, grid_decimal, numforcings, maskname)
+function data_cum = subset_forcings2(indir, outdir, beginyear, endyear, maskname, varargin)
 
-has_lots_of_ram = 0;
+% Set default values for optional arguments
 
-mkdir(force_out)
-disp(['Created directory ', force_out, ' for outputs']);
+numvarargs = length(varargin);
+if numvarargs > 3
+    error('subset_forcings requires at most three optional inputs');
+end
 
+optargs = {4, 5, 0};
+optargs(1:numvarargs) = varargin;
+
+[numforcings, grid_decimal, has_lots_of_ram] = optargs{:};
+
+mkdir(outdir)
+disp(['Created directory ', outdir, ' for outputs']);
+
+% Load basin mask
 [basin_mask, ~, lon, lat] = geotiffread2(maskname);
 [mask_lonv, mask_latv, ~] = grid2xyz(lon', lat', basin_mask);
 ncells = length(mask_lonv);
 
-metlat = ncread(fullfile(force_in, ['prec.' num2str(beginyear) '.nc']), 'lat');
-metlon = ncread(fullfile(force_in, ['prec.' num2str(endyear) '.nc']), 'lon');
+% Identify grid cells to keep
+metlat = ncread(fullfile(indir, ['prec.' num2str(beginyear) '.nc']), 'lat');
+metlon = ncread(fullfile(indir, ['prec.' num2str(endyear) '.nc']), 'lon');
 metlon = metlon - 360;
         
 lat_ind = zeros(ncells,1);
@@ -36,10 +58,10 @@ for t = beginyear:endyear
     
     if t==beginyear, tic; end
     
-    prec = ncread(fullfile(force_in, ['prec.' num2str(t) '.nc']), 'prec');
-    tmax = ncread(fullfile(force_in, ['tmax.' num2str(t) '.nc']), 'tmax');
-    tmin = ncread(fullfile(force_in, ['tmin.' num2str(t) '.nc']), 'tmin');
-    wind = ncread(fullfile(force_in, ['wind.' num2str(t) '.nc']), 'wind');
+    prec = ncread(fullfile(indir, ['prec.' num2str(t) '.nc']), 'prec');
+    tmax = ncread(fullfile(indir, ['tmax.' num2str(t) '.nc']), 'tmax');
+    tmin = ncread(fullfile(indir, ['tmin.' num2str(t) '.nc']), 'tmin');
+    wind = ncread(fullfile(indir, ['wind.' num2str(t) '.nc']), 'wind');
     % each of these arrays requires about 1.2 GB of storage
     
     prec = permute(prec, [2,1,3]);
@@ -52,7 +74,7 @@ for t = beginyear:endyear
 %     figure
 %     plotraster([min(metlon) max(metlon)], [min(metlat) max(metlat)], tmax_map, 'tmax', 'Lon','Lat')
     
-    info = ncinfo(fullfile(force_in, ['prec.' num2str(t) '.nc']));
+    info = ncinfo(fullfile(indir, ['prec.' num2str(t) '.nc']));
     ndays = info.Dimensions(1).Length; % get number of days in the year
     data = NaN(ndays, numforcings, ncells);
 
@@ -69,6 +91,7 @@ for t = beginyear:endyear
     % in, in a separate step
     
     if has_lots_of_ram
+        cum_days = size(prec,3) + cum_days;
         if t_ind~=1 
             data_cum = vertcat(data_cum, data);
         else
@@ -76,11 +99,16 @@ for t = beginyear:endyear
         end
     else
         disp('save this year''s processed data to file')
+        
+        savename = fullfile(outdir, ['clipped_forcing_data_year_' num2str(t) '.mat']);
+        save(savename, 'data');
+        
+        cum_days = size(prec,3) + cum_days;
+        clearvars('prec','tmax','tmin','wind');
     end
     
     t_ind = t_ind + 1;
-    cum_days = size(prec,3) + cum_days;
-    
+
     if t==beginyear 
         disp(['About ' num2str(toc*nyears/60) ' minutes remaining.'])
     end
@@ -88,9 +116,27 @@ for t = beginyear:endyear
     
 end
 
-%% Save clipped met. forcings
 
-save_forcings(metlat, lat_ind, metlon, lon_ind, force_out, data_cum, grid_decimal)
+%% Combine forcings together, if necessary
+if ~has_lots_of_ram
+    t_ind = 1;
+    for t=beginyear:endyear
+        savename = fullfile(outdir, ['clipped_forcing_data_year_' num2str(t) '.mat']);
+        load(savename, 'data');
+        if t_ind==1
+            data_cum = data;
+        else
+            data_cum = vertcat(data_cum, data);
+        end
+        t_ind = t_ind + 1;
+    end
+end
+
+%% Save clipped met. forcings
+save_forcings(metlat, lat_ind, metlon, lon_ind, outdir, data_cum, grid_decimal);
+
+end
+
 
 % fstring = ['%.' num2str(grid_decimal) 'f'];
 % for k=1:ncells     
@@ -98,8 +144,3 @@ save_forcings(metlat, lat_ind, metlon, lon_ind, force_out, data_cum, grid_decima
 %     dlmwrite(fullfile(force_out, filename), data_cum(:,:,k), ' ')
 % end
 % disp(['Forcing data saved to ' force_out])
-
-temp = data;
-
-return
-

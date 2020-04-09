@@ -9,24 +9,27 @@ fontsize = 18;
 height1 = 500;
 width1 = 700;
 
+x = OUTPUTS.lon;
+y = OUTPUTS.lat;
+
 % OUTPUTS.lon(1) % -121
 % OUTPUTS.lon(end) % -119
 % 
 % OUTPUTS.lat(1) % -38
 % OUTPUTS.lat(end) % -37
 
-x = [OUTPUTS.lon(end), OUTPUTS.lon(1)];
-y = [OUTPUTS.lat(1), OUTPUTS.lat(end)];
+% x = [OUTPUTS.lon(end), OUTPUTS.lon(1)];
+% y = [OUTPUTS.lat(1), OUTPUTS.lat(end)];
 
-y = fliplr(y); % if necessary
+% y = fliplr(y); % if necessary
 
-if x(1) < x(2)
-    disp('Check lon coordinates. They may be reversed.')
-end
-
-if y(1) < y(2)
-    disp('Check lat coordinates. They may be reversed.')
-end
+% if x(1) < x(2)
+%     disp('Check lon coordinates. They may be reversed.')
+% end
+% 
+% if y(1) < y(2)
+%     disp('Check lat coordinates. They may be reversed.')
+% end
 
 % figure, imagesc(x,y,OUTPUTS.WB.maps.OUT_SWE)
 % set(gca, 'ydir','normal')
@@ -39,13 +42,13 @@ end
 f5 = figure;
 set(f5, 'Position',  [100, 100, 100+width1, 100+height1])
 subplot(2,2,1)
-plotraster(x, y, OUTPUTS.WB.maps.OUT_PREC, 'Precipitation (mm)', 'Lon', 'Lat')
+plotraster(x, y, OUTPUTS.WB.maps.OUT_PREC, 'Precipitation (mm)')
 subplot(2,2,2)
-plotraster(x, y, OUTPUTS.WB.maps.OUT_EVAP, 'Evaporation (mm)', 'Lon', 'Lat')
+plotraster(x, y, OUTPUTS.WB.maps.OUT_EVAP, 'Evaporation (mm)')
 subplot(2,2,3)
-plotraster(x, y, OUTPUTS.WB.maps.OUT_RUNOFF, 'Runoff (mm)', 'Lon', 'Lat')
+plotraster(x, y, OUTPUTS.WB.maps.OUT_RUNOFF, 'Runoff (mm)')
 subplot(2,2,4)
-plotraster(x, y, OUTPUTS.WB.maps.OUT_BASEFLOW, 'Baseflow (mm)', 'Lon', 'Lat')
+plotraster(x, y, OUTPUTS.WB.maps.OUT_BASEFLOW, 'Baseflow (mm)')
 saveas(f5, fullfile(figdir, 'water_balance_fluxes_maps.png'))
 
 % Time average maps

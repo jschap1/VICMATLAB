@@ -9,6 +9,10 @@ function OUTPUTS = make_outputs_struct(info, wb_avg_ts, wb_avg_map, eb_avg_ts, e
 lon = info.lon;
 lat = info.lat;
 
+% prec = wb_avg_map(:,13);
+% prec_map = xyz2grid(info.lon, info.lat, prec);
+% figure, plotraster(info.lon, info.lat, prec_map, 'precip', 'Lon', 'Lat', 1, gca)
+
 OUTPUTS = struct();
 for p=4:length(info.wbvars)
     OUTPUTS.WB.ts.(info.wbvars{p}) = wb_avg_ts(:,p);

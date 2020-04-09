@@ -54,30 +54,35 @@ disp(['Saved processed VIC outputs as ' fullfile(results_dir, 'vic_outputs_summa
 
 %% Make plots
 
+% How to make a map:
+% prec = wb_avg_map(:,13);
+% prec_map = xyz2grid(info.lon, info.lat, prec);
+% figure, plotraster(info.lon, info.lat, prec_map, 'precip', 'Lon', 'Lat', 1, gca)
+
 plot_spatial_avg_ts(OUTPUTS, figdir);
 disp(['Saved spatial average time series plots to ' figdir])
 
 plot_time_avg_maps(OUTPUTS, figdir);
 disp(['Saved time-average maps to ' figdir])
 
-%%
+% %%
 
-OUTPUTS = make_outputs_struct(info, wb_avg_ts, wb_avg_map, eb_avg_ts, eb_avg_map);
-plot_time_avg_maps(OUTPUTS, figdir);
-
+% OUTPUTS = make_outputs_struct(info, wb_avg_ts, wb_avg_map, eb_avg_ts, eb_avg_map);
+% plot_time_avg_maps(OUTPUTS, figdir);
 
 %% Write out GeoTiffs
 
-xres = 1/16;
-yres = 1/16;
-
-R = makerefmat(min(info.lon), min(info.lat), xres, yres);
-geotiffwrite(fullfile(figdir, 'average_temperature.tif'), OUTPUTS_IM.avg_map.OUT_AIR_TEMP, R)
-geotiffwrite(fullfile(figdir, 'average_precipitation.tif'), OUTPUTS_IM.avg_map.OUT_PREC, R)
-geotiffwrite(fullfile(figdir, 'average_evaporation.tif'), OUTPUTS_IM.avg_map.OUT_EVAP, R)
-geotiffwrite(fullfile(figdir, 'average_runoff.tif'), OUTPUTS_IM.avg_map.OUT_RUNOFF, R)
-geotiffwrite(fullfile(figdir, 'average_baseflow.tif'), OUTPUTS_IM.avg_map.OUT_BASEFLOW, R)
-geotiffwrite(fullfile(figdir, 'average_swe.tif'), OUTPUTS_IM.avg_map_snow.OUT_SWE, R)
-disp(['Wrote out Geotiffs of select water balance variables to ' figdir])
+% disp('Saving simulation-average water balance variables as geotiffs')
+% xres = 1/16;
+% yres = 1/16;
+% 
+% R = makerefmat(min(info.lon), min(info.lat), xres, yres);
+% geotiffwrite(fullfile(figdir, 'average_temperature.tif'), OUTPUTS.avg_map.OUT_AIR_TEMP, R)
+% geotiffwrite(fullfile(figdir, 'average_precipitation.tif'), OUTPUTS.avg_map.OUT_PREC, R)
+% geotiffwrite(fullfile(figdir, 'average_evaporation.tif'), OUTPUTS.avg_map.OUT_EVAP, R)
+% geotiffwrite(fullfile(figdir, 'average_runoff.tif'), OUTPUTS.avg_map.OUT_RUNOFF, R)
+% geotiffwrite(fullfile(figdir, 'average_baseflow.tif'), OUTPUTS.avg_map.OUT_BASEFLOW, R)
+% geotiffwrite(fullfile(figdir, 'average_swe.tif'), OUTPUTS.avg_map_snow.OUT_SWE, R)
+% disp(['Wrote out Geotiffs of select water balance variables to ' figdir])
 
 return

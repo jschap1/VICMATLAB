@@ -1,15 +1,41 @@
+% Plot Forcings
+%
 % Loads and plots ASCII forcing data
 % VIC4
 %
 % Dependencies:
 % GetCoords.m
+%
+% Updated 4/2/2020 JRS
+%
+% INPUTS
+% forcingpath = location of ASCII forcing files to plot
+% date = provide to specify a particular date to plot the forcing map.
+% Otherwise, it plots an average
+%
+%
+% OUTPUTS
+%
+%
+% EXAMPLES
+% forcingpath = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Forcings/Disagg_Forc/'; 
+% forcingpath = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain2/aligned_forcings';
+% forcingpath = '/Volumes/HD4/SWOTDA/Data/Tuolumne/forc_ascii';
+% forcingpath = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain2/2018-2018_forc_lasttest';
+
+% Sample arguments
+% forcingpath = './data/forc_2009-2011';
+% precision = 5; 
+% varnames = {'PRECIP','TMIN','TMAX','WIND'};
+
+forcings = function plotforcings(forcingpath, precision, varnames, date)
+
+
+end
 
 %% Specify inputs
 
-% forcingpath = '/Users/jschapMac/Desktop/Tuolumne/Tuolumne8/Forcings/Disagg_Forc/'; 
-% forcingpath = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain2/aligned_forcings';
-forcingpath = '/Volumes/HD4/SWOTDA/Data/Tuolumne/forc_ascii';
-forcingpath = '/Volumes/HD3/SWOTDA/Data/IRB/VIC/MiniDomain2/2018-2018_forc_lasttest';
+
 
 precision = 5;
 
