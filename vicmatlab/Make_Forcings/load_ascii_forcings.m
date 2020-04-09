@@ -5,10 +5,6 @@
 % Dependencies: GetCoords.m
 % Updated 4/2/2020 JRS
 %
-% TODO
-% Make sure it can run smoothly for VIC-5 input data (seven variables),
-% too. 
-%
 % INPUTS
 % forcingpath = location of ASCII forcing files to plot
 % prefix
