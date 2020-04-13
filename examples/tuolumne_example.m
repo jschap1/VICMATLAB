@@ -1,6 +1,7 @@
 % Using VIC to model the Tuolumne River Basin
 % A demo for new users of the VICMATLAB Toolbox
 % Written 3/6/2020 JRS
+% Last updated 4/13/2020 JRS
 
 cd ~/Documents/Codes/VICMATLAB/
 
@@ -59,7 +60,7 @@ geotiffwrite('./data/upptuo_mask.tif', flipud(basin_mask), R);
 % soil parameter file for the CONUS, from Livneh et al. (2013). 
 % This can be downloaded from the same website as the meteorological forcing data.
 
-soilfile = '/home/jschap/Documents/Research/Data/VICParametersCONUS/vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt';
+soilfile = '/home/jschap/Documents/Data/VICParametersCONUS/vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt';
 % soilfile = '/Volumes/HD3/VICParametersCONUS/vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt';
 disp('Loading soil parameter file')
 soils = load(soilfile);
@@ -80,37 +81,11 @@ setup = 'livneh';
 
 figure, subplot(2,1,1)
 [elev, R, lon, lat] = geotiffread2(fullfile(soilvarpath, 'elev.tif'));
-plotraster(lon, lat, elev, 'Elevation', 'Lon', 'Lat', 1, gca);
+plotraster(lon, lat, elev, 'Elevation')
 
 subplot(2,1,2)
 [dsmax, R, lon, lat] = geotiffread2(fullfile(soilvarpath, 'dsmax.tif'));
-plotraster(lon, lat, dsmax, 'Dsmax', 'Lon', 'Lat', 1, gca);
-
-%% Plot the vegetation parameters
-
-vegparfile = '/home/jschap/Documents/Research/Data/VICParametersCONUS/vic.veg.0625.new.cal.adj.can';
-veglibfile = '/home/jschap/Documents/Research/Data/VICParametersCONUS/vic_veglib_nohead.txt';
-
-plot_vegetation_pars
-
-% Paradigm is to generate geotiff files for each vegetation parameter, and
-% load those into R, where we subset them with the basin mask and plot
-% them.
-%
-% This differs from the soil parameters, which we crop to the basin mask
-% when we generate the soil parameter file, and we just load them into
-% MATLAB and rearrange the data into a grid. Though we could also use the
-% paradigm as for the vegetation parameter plots. 
-%
-% We are interested in each vegetation parameter and how it varies in space
-% and time over the basin. Should be able to generate plots of those at
-% will. Ideally without being too computationally intense. 
-%
-% Can subset the vegetation parameter file using the soil parameter file to
-% select rows. This might be a useful approach. 
-%
-% Otherwise, the vegetation parameter conversion MATLAB script will be the
-% way to go. The problem is it is very RAM-intensive, as written. 
+plotraster(lon, lat, dsmax, 'Dsmax')
 
 %% Subset meteorological forcing data 
 
@@ -127,9 +102,9 @@ endyear = 2011;
 force_out = ['./data/forc_' num2str(beginyear) '-' num2str(endyear)];
 
 grid_decimal = 5; % number of decimals used in forcing filenames
-maskname = './data/revised_basin/upptuo_mask.tif'; % basin mask
+maskname = './data/upptuo_mask.tif'; % basin mask
 
-temp = subset_forcings2(force_in, force_out, beginyear, endyear, maskname);
+temp = subset_forcings(force_in, force_out, beginyear, endyear, maskname);
 
 % temp = subset_forcings(force_in, force_out, beginyear, endyear, grid_decimal, numforcings, maskname);
 
@@ -150,7 +125,7 @@ prec_map = xyz2grid(forc.lon, forc.lat, mean(forc.PRECIP)');
 plotraster(forc.lon, forc.lat, prec_map, 'PREC')
 
 % Save as Geotiff
-geotiffwrite('./data/validation/livneh_precipitation_2009-2011_average.tif', ...
+geotiffwrite('./data/livneh_precipitation_2009-2011_average.tif', ...
     flipud(prec_map), R)
 
 %% Disaggregate meteorological forcing data
@@ -160,16 +135,16 @@ geotiffwrite('./data/validation/livneh_precipitation_2009-2011_average.tif', ...
 % Create a global parameter file and run the following code to disaggregate 
 % the met. forcing data with MT-CLIM
 
-disagg_force_out = ['./data/disagg_forc_2009-2011' num2str(beginyear) '-' num2str(endyear)];
+disagg_force_out = ['./data/disagg_forc_' num2str(beginyear) '-' num2str(endyear)];
 mkdir(disagg_force_out)
 disp(['Created directory ' disagg_force_out ' for disaggregated forcings'])
 
 disp('Running met. forcing disaggregation')
 tic
-system('/home/jschap/Documents/Research/Codes/VIC4/src/vicNl -g ./data/global_param_disagg_2009-2011.txt')
-% system('/Volumes/HD3/SWOTDA/Software/VIC-VIC.4.2.d/src/vicNl -g ./data/global_param_disagg.txt')
+system('/home/jschap/Documents/Software/VIC/src/vicNl -g ./data/global_param_disagg.txt')
 toc
 % Takes 54 sec on my laptop for 175 grid cells, 3 years
+% Takes 27 seconds on my desktop! Woohoo for computing power!
 
 %% Plot the disaggregated forcings
 
@@ -190,11 +165,11 @@ end
 figure
 for i=1:nvars
     subplot(4,2,i)
-    plotraster(forc.lon, forc.lat, avg_maps.(varnames{i}), varnames{i}, 'Lon', 'Lat', 1, gca)
+    plotraster(forc.lon, forc.lat, avg_maps.(varnames{i}), varnames{i})
 end
 
 % Save as Geotiff
-geotiffwrite('./data/validation/livneh_precipitation_downscaled_2009-2011_average.tif', ...
+geotiffwrite('./data/livneh_precipitation_downscaled_2009-2011_average.tif', ...
     flipud(avg_maps.PRECIP), R)
 
 %% Run VIC for water years 2010-2011. This takes about 15 minutes on my computer.
@@ -208,14 +183,14 @@ geotiffwrite('./data/validation/livneh_precipitation_downscaled_2009-2011_averag
 
 % system('/Volumes/HD3/SWOTDA/Software/VIC-VIC.5.1.0.rc1/vic/drivers/classic/vic_classic.exe -g ./data/global_param.txt')
 
-system('/home/jschap/Documents/Research/Codes/VIC5/vic/drivers/classic/vic_classic.exe -g ./data/global_param_2009-2011.txt')
+system('/home/jschap/Documents/Software/VIC/vic/drivers/classic/vic_classic.exe -g ./data/global_param.txt')
 
 % Analyze the outputs from the VIC simulation. 
-% First, re-organize the VIC outputs using the following commands. 
-
-!cd ./data/out_2009-2011/
-!mkdir eb; mv eb*.txt eb
-!mkdir wb; mv wb*.txt wb
+% First, re-organize the VIC outputs by entering the following commands on
+% the command line
+% cd /home/jschap/Documents/Codes/VICMATLAB/data/out_2009-2011/
+% mkdir eb; mv eb*.txt eb
+% mkdir wb; mv wb*.txt wb
 
 %% Process VIC output data with VICMATLAB
 
@@ -238,14 +213,14 @@ disp(['Saved VIC run metadata as ' fullfile(results_dir, 'vic_run_metadata.mat')
 
 % Read in and plot the VIC results
 swe_col = 27;
-basin_mask_name = './data/revised_basin/upptuo_mask.tif';
+basin_mask_name = './data/upptuo_mask.tif';
 [~, swe_sub, swe, ~] = load_vic_output(vic_out_dir, basin_mask_name, swe_col);
 
 swe_map = xyz2grid(info.lon, info.lat, mean(swe,2));
 figure, plotraster(info.lon, info.lat, swe_map, 'SWE')
 
 prec_col = 13;
-basin_mask_name = './data/revised_basin/upptuo_mask.tif';
+basin_mask_name = './data/upptuo_mask.tif';
 [~, ~, precip, ~] = load_vic_output(vic_out_dir, basin_mask_name, prec_col);
 % only works with water balance variables right now.
 % need to generalize the code to handle energy balance variables
@@ -256,7 +231,7 @@ precip_map = xyz2grid(info.lon, info.lat, mean(precip,2));
 figure, plotraster(info.lon, info.lat, precip_map, 'Precip')
 
 % Save as Geotiff
-geotiffwrite('./data/validation/precipitation_output_2009-2011_average.tif', ...
+geotiffwrite('./data/precipitation_output_2009-2011_average.tif', ...
     flipud(precip_map), R)
 
 %% Convert inputs from ASCII to NetCDF
@@ -265,12 +240,16 @@ geotiffwrite('./data/validation/precipitation_output_2009-2011_average.tif', ...
 
 % must use entire CONUS domain file for the current setup
 
-inputs.forcdir = '/home/jschap/Documents/Research/Codes/VICMATLAB/data/disagg_forc_2009-2011/full_data*';
-inputs.veglib = '/home/jschap/Documents/Research/Data/VICParametersCONUS/vic_veglib_nohead.txt';
-inputs.soilparfile = '/home/jschap/Documents/Research/Data/VICParametersCONUS/vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt';
-inputs.snowband = '/home/jschap/Documents/Research/Data/VICParametersCONUS/vic.snow.0625.new.cal.adj.can.5bands';
-inputs.vegparam = '/home/jschap/Documents/Research/Data/VICParametersCONUS/vic.veg.0625.new.cal.adj.can';
-inputs.domainfile_name = '/home/jschap/Documents/Research/Codes/VICMATLAB/data/netcdfs/tuolumne_domain.nc';
-inputs.params_name = '/home/jschap/Documents/Research/Codes/VICMATLAB/data/netcdfs/tuolumne_params.nc';
+wkpath = '/home/jschap/Documents/Codes/VICMATLAB/';
+parpath = '/home/jschap/Documents/Data/VICParametersCONUS/';
+
+inputs.veglib = fullfile(parpath, 'vic_veglib_nohead.txt');
+inputs.soilparfile = fullfile(parpath, 'vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt');
+inputs.snowband = fullfile(parpath, 'vic.snow.0625.new.cal.adj.can.5bands');
+inputs.vegparam = fullfile(parpath, 'vic.veg.0625.new.cal.adj.can');
+
+inputs.forcdir = fullfile(wkpath, '/data/disagg_forc_2009-2011/full_data*');
+inputs.domainfile_name = fullfile(wkpath, '/data/netcdfs/tuolumne_domain.nc');
+inputs.params_name = fullfile(wkpath, '/data/netcdfs/tuolumne_params.nc');
 
 classic2image(inputs);

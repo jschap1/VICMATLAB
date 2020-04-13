@@ -145,12 +145,12 @@ SOIL            ./data/upptuo_soils_livneh.txt	# Soil parameter path/file
 # BASEFLOW	ARNO	# ARNO = columns 5-8 are the standard VIC baseflow parameters; NIJSSEN2001 = columns 5-8 of soil file are baseflow parameters from Nijssen et al (2001)
 # JULY_TAVG_SUPPLIED	FALSE	# TRUE = final column of the soil parameter file will contain average July air temperature, for computing treeline; this will be ignored if COMPUTE_TREELINE is FALSE; FALSE = compute the treeline based on the average July air temperature of the forcings over the simulation period
 # ORGANIC_FRACT	FALSE	# TRUE = simulate organic soils; soil param file contains 3*Nlayer extra columns, listing for each layer the organic fraction, and the bulk density and soil particle density of the organic matter in the soil layer; FALSE = soil param file does not contain any information about organic soil, and organic fraction should be assumed to be 0
-VEGLIB	/Volumes/HD3/VICParametersCONUS/vic_veglib.txt
-VEGPARAM	/Volumes/HD3/VICParametersCONUS/vic.veg.0625.new.cal.adj.can
+VEGLIB	/home/jschap/Documents/Data/VICParametersCONUS/vic_veglib.txt
+VEGPARAM	/home/jschap/Documents/Data/VICParametersCONUS/vic.veg.0625.new.cal.adj.can
 ROOT_ZONES      3	# Number of root zones (must match format of veg param file)
 VEGPARAM_LAI 	TRUE    # TRUE = veg param file contains LAI information; FALSE = veg param file does NOT contain LAI information
 LAI_SRC 	LAI_FROM_VEGPARAM    # LAI_FROM_VEGPARAM = read LAI from veg param file; LAI_FROM_VEGLIB = read LAI from veg library file
-SNOW_BAND	5	/Volumes/HD3/VICParametersCONUS/vic.snow.0625.new.cal.adj.can.5bands
+SNOW_BAND	5	/home/jschap/Documents/Data/VICParametersCONUS/vic.snow.0625.new.cal.adj.can.5bands
 CONTINUEONERROR	TRUE
 
 #######################################################################

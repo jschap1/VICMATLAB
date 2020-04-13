@@ -148,13 +148,13 @@ veg_param=dlmread(inputs.vegparam);
 % ##########################################################################
 
 % ##########################################################################
-file=dir(inputs.forcdir); % this is the forcing data directory
-lat_rec = zeroes(length(file), 1);
-lon_rec = zeroes(length(file), 1);
-for i=1:length(file)
-    lat_rec(i,1)=str2double(file(i).name(6:13));    
-    lon_rec(i,1)=str2double(file(i).name(15:24));   
-end
+% file=dir(inputs.forcdir); % this is the forcing data directory
+% lat_rec = zeros(length(file), 1);
+% lon_rec = zeros(length(file), 1);
+% for i=1:length(file)
+%     lat_rec(i,1)=str2double(file(i).name(6:13));    
+%     lon_rec(i,1)=str2double(file(i).name(15:24));   
+% end
 
 % min_lat=min(lat_rec); % domain boundary
 % max_lat=max(lat_rec);
@@ -162,7 +162,7 @@ end
 % max_lon=max(lon_rec);
 % lat=([min_lat:0.0625:max_lat])'; % domain lat/lon
 % lon=([min_lon:0.0625:max_lon])';
-clear min* max*
+% clear min* max*
 
 for i=1:length(file)
     lon_ind(i,1)=find(lon==lon_rec(i,1)); % position of running pix in DOMAIN

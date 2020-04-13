@@ -12,7 +12,7 @@
 %
 % Requires PREC, TMIN, TMAX, WIND forcings in NetCDF files, one per year
 
-function data_cum = subset_forcings2(indir, outdir, beginyear, endyear, maskname, varargin)
+function data_cum = subset_forcings(indir, outdir, beginyear, endyear, maskname, varargin)
 
 % Set default values for optional arguments
 

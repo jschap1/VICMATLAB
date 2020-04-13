@@ -1,4 +1,46 @@
-zzzz
+#######################################################################
+# VIC Model Parameters - 5.0 Classic Driver Setup
+#######################################################################
+# $Id$
+#######################################################################
+# Simulation Parameters
+#######################################################################
+NLAYER      3   # number of soil layers
+NODES       3   # number of soil thermal nodes
+MODEL_STEPS_PER_DAY  24   # number of model time steps per day (set to 1 if FULL_ENERGY = FALSE, set to > 4 if FULL_ENERGY = TRUE)
+SNOW_STEPS_PER_DAY  24   # number of time steps per day for which to solve the snow model (should = MODEL_STEPS_PER_DAY if MODEL_STEPS_PER_DAY > 1)
+RUNOFF_STEPS_PER_DAY  24   # number of time steps per day for which to solve the runoff model (should be >= MODEL_STEPS_PER_DAY)
+STARTYEAR   2009    # year model simulation starts
+STARTMONTH  01  # month model simulation starts
+STARTDAY    01  # day model simulation starts
+ENDYEAR     2011    # year model simulation ends
+ENDMONTH    12  # month model simulation ends
+ENDDAY      31  # day model simulation ends
+
+#######################################################################
+# Energy Balance Parameters
+#######################################################################
+FULL_ENERGY     TRUE   # TRUE = calculate full energy balance; FALSE = compute water balance only.  Default = FALSE.
+#CLOSE_ENERGY   FALSE   # TRUE = all energy balance calculations (canopy air, canopy snow, ground snow,
+                        # and ground surface) are iterated to minimize the total column error.  Default = FALSE.
+
+#######################################################################
+# Soil Temperature Parameters
+# VIC will choose appropriate value for QUICK_FLUX depending on values of FULL_ENERGY and FROZEN_SOIL; the user should only need to override VIC's choices in special cases.
+# The other options in this section are only applicable when FROZEN_SOIL is TRUE and their values depend on the application.
+#######################################################################
+FROZEN_SOIL FALSE   # TRUE = calculate frozen soils.  Default = FALSE.
+#QUICK_FLUX FALSE   # TRUE = use simplified ground heat flux method of Liang et al (1999); FALSE = use finite element method of Cherkauer et al (1999)
+IMPLICIT   FALSE   # TRUE = use implicit solution for soil heat flux equation of Cherkauer et al (1999), otherwise uses original explicit solution.  Default = TRUE.
+#QUICK_SOLVE    FALSE   # TRUE = Use Liang et al., 1999 formulation for iteration, but explicit finite difference method for final step.
+#NO_FLUX        FALSE   # TRUE = use no flux lower boundary for ground heat flux computation; FALSE = use constant flux lower boundary condition.  If NO_FLUX = TRUE, QUICK_FLUX MUST = FALSE.  Default = FALSE.
+EXP_TRANS  FALSE    # TRUE = exponentially distributes the thermal nodes in the Cherkauer et al. (1999) finite difference algorithm, otherwise uses linear distribution.  Default = TRUE.
+#GRND_FLUX_TYPE GF_410  # Options for ground flux:
+#           # GF_406 = use (flawed) formulas for ground flux, deltaH, and fusion from VIC 4.0.6 and earlier;
+#           # GF_410 = use formulas from VIC 4.1.0 (ground flux, deltaH, and fusion are correct; deltaH and fusion ignore surf_atten);
+#           # Default = GF_410
+TFALLBACK  TRUE    # TRUE = when temperature iteration fails to converge, use previous time step's T value
+#SPATIAL_FROST  FALSE   (Nfrost)    # TRUE = use a uniform distribution to simulate the spatial distribution of soil frost; FALSE = assume that the entire grid cell is frozen uniformly.  If TRUE, then replace (Nfrost) with the number of frost subareas, i.e., number of points on the spatial distribution curve to simulate.  Default = FALSE.
 
 #######################################################################
 # Precip (Rain and Snow) Parameters
@@ -113,8 +155,8 @@ SOIL	./data/upptuo_soils_livneh.txt	# Soil parameter path/file
 BASEFLOW    ARNO    # ARNO = columns 5-8 are the standard VIC baseflow parameters; NIJSSEN2001 = columns 5-8 of soil file are baseflow parameters from Nijssen et al (2001)
 JULY_TAVG_SUPPLIED  FALSE   # TRUE = final column of the soil parameter file will contain average July air temperature, for computing treeline; this will be ignored if COMPUTE_TREELINE is FALSE; FALSE = compute the treeline based on the average July air temperature of the forcings over the simulation period
 ORGANIC_FRACT   FALSE   # TRUE = simulate organic soils; soil param file contains 3*Nlayer extra columns, listing for each layer the organic fraction, and the bulk density and soil particle density of the organic matter in the soil layer; FALSE = soil param file does not contain any information about organic soil, and organic fraction should be assumed to be 0
-VEGLIB  /Volumes/HD3/VICParametersCONUS/vic_veglib.txt	# Veg library path/file
-VEGPARAM        /Volumes/HD3/VICParametersCONUS/vic.veg.0625.new.cal.adj.can  # Veg parameter path/file
+VEGLIB  /home/jschap/Documents/Data/VICParametersCONUS/vic_veglib.txt	# Veg library path/file
+VEGPARAM        /home/jschap/Documents/Data/VICParametersCONUS/vic.veg.0625.new.cal.adj.can  # Veg parameter path/file
 ROOT_ZONES      3   # Number of root zones (must match format of veg param file)
 VEGLIB_FCAN    FALSE   # TRUE = veg lib file contains 12 monthly values of partial vegcover fraction for each veg class, between the LAI and albedo values
 VEGPARAM_LAI   TRUE    # TRUE = veg param file contains LAI information; FALSE = veg param file does NOT contain LAI information
@@ -123,7 +165,7 @@ VEGPARAM_FCAN  FALSE    # TRUE = veg param file contains veg_cover information; 
 LAI_SRC    FROM_VEGPARAM  # FROM_VEGPARAM = read LAI from veg param file; FROM_VEGLIB = read LAI from veg library file
 ALB_SRC    FROM_VEGLIB    # FROM_VEGPARAM = read albedo from veg param file; FROM_VEGLIB = read albedo from veg library file
 #FCAN_SRC   FROM_VEGLIB    # FROM_VEGPARAM = read fcanopy from veg param file; FROM_VEGLIB = read fcanopy from veg library file
-SNOW_BAND   5	/Volumes/HD3/VICParametersCONUS/vic.snow.0625.new.cal.adj.can.5bands   # Number of snow bands; if number of snow bands > 1, you must insert the snow band path/file after the number of bands (e.g. SNOW_BAND 5 my_path/my_snow_band_file)
+SNOW_BAND   5	/home/jschap/Documents/Data/VICParametersCONUS/vic.snow.0625.new.cal.adj.can.5bands   # Number of snow bands; if number of snow bands > 1, you must insert the snow band path/file after the number of bands (e.g. SNOW_BAND 5 my_path/my_snow_band_file)
 
 #######################################################################
 # Lake Simulation Parameters
