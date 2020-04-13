@@ -41,17 +41,17 @@ cd ~/Documents/Research/Codes/VICMATLAB/
 
 %% Make a basin mask from the DEM.
 
-addpath(genpath('./vicmatlab_dev'));
+addpath(genpath('./vicmatlab'));
 % addpath(genpath('./vicmatlab1.0'));
 
-[upptuo_dem, R, lon, lat] = geotiffread2('./data/revised_basin/upptuo_dem.tif');
+[upptuo_dem, R, lon, lat] = geotiffread2('./data/upptuo_dem.tif');
 basin_mask = double(upptuo_dem);
 basin_mask(basin_mask == 0) = NaN;
 basin_mask(~isnan(basin_mask)) = 1;
 
-figure, plotraster(lon, lat, basin_mask,'Basin Mask','Lon','Lat', 1, gca);
+figure, plotraster(lon, lat, basin_mask,'Basin Mask');
 
-geotiffwrite('./data/revised_basin/upptuo_mask.tif', flipud(basin_mask), R);
+geotiffwrite('./data/upptuo_mask.tif', flipud(basin_mask), R);
 
 %% Create soil parameter file
 
@@ -66,11 +66,11 @@ soils = load(soilfile);
 disp('Soil parameter file has been loaded')
 
 % extent = '/Users/jschap/Documents/Codes/VICMATLAB/data/revised_basin/upptuo_mask.tif'; % extent of the study area; can be specified multiple ways
-extent = fullfile(pwd, './data/revised_basin/upptuo_mask.tif');
+extent = fullfile(pwd, './data/upptuo_mask.tif');
 grid_decimal = 5; % number of decimals used in forcing filenames
 
 outformat = 'livneh'; % format of input soil parameter file (number of soil layers)
-outname = fullfile(pwd, '/data/revised_basin/upptuo_soils_livneh.txt');
+outname = fullfile(pwd, '/data/upptuo_soils_livneh.txt');
 
 generate_tif = 1;
 setup = 'livneh';
@@ -127,7 +127,7 @@ endyear = 2011;
 force_out = ['./data/forc_' num2str(beginyear) '-' num2str(endyear)];
 
 grid_decimal = 5; % number of decimals used in forcing filenames
-maskname = './data/revised_basin/upptuo_mask.tif'; % basin mask
+maskname = './data/upptuo_mask.tif'; % basin mask
 
 temp = subset_forcings2(force_in, force_out, beginyear, endyear, maskname);
 
