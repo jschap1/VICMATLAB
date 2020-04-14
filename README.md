@@ -9,47 +9,33 @@ See the documentation page --- [https://jschap1.github.io/VICMATLAB/](https://js
 
 #### Main functions
 
-* subset_forcings
+* **subset_forcings**: Subsets forcings to a particular basin.
 
-Subsets forcings to a particular basin.
+* **load_ascii_forcings**: Loads ASCII meteorological forcing files into MATLAB.
 
-* load_ascii_forcings
+* **get_vic_run_metadata**: Gets metadata, such as variable names, length of simulation, etc. from a VIC simulation. 
 
-Loads ASCII meteorological forcing files into MATLAB.
+* **load_vic_output**: Loads a VIC output variable, such as SWE or net radiation, into MATLAB.
 
-* get_vic_run_metadata
+* **subset_soils**: Clips soil parameter file to basin extent.
 
-Gets metadata, such as variable names, length of simulation, etc. from a VIC simulation. 
+* **classic2image** (credit to Dongyue Li): Converts VIC-4 or VIC-5 Classic Driver inputs to NetCDF format for use with the VIC-5 Image Driver.
 
-* load_vic_output
-
-Loads a VIC output variable, such as SWE or net radiation, into MATLAB.
-
-* subset_soils
-
-Clips soil parameter file to basin extent.
-
-* classic2image (credit to DL)
-
-Converts VIC-4 or VIC-5 Classic Driver inputs to NetCDF format for use with the VIC-5 Image Driver.
-
-* plotraster
-
-Main plotting function to make maps of meteorological variables, VIC outputs, soil parameters, etc.
+* **plotraster**: Main plotting function to make maps of meteorological variables, VIC outputs, soil parameters, etc.
 
 #### Utility functions
 
 * save_forcings
 * georefobj2mat
 * geotiffread2
-* grid2xyz (credit to XX)
-* xyz2grid (credit to XX)
-* imagescnan (credit to XX)
 * get_soil_var_names
 * write_soils
 * get_coordinates_from_VIC_file
 * get_vic_header
 * GetCoords
+* grid2xyz (from MATLAB File Exchange)
+* xyz2grid (from MATLAB File Exchange)
+* imagescnan (from MATLAB File Exchange)
 
 ### Requirements
 MATLAB R2016a or later  
