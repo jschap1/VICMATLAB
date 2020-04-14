@@ -1,46 +1,43 @@
-## VICMATLAB: A MATLAB toolbox for the Variable Infiltration Capacity model
-
-### Overview
-
-VICMATLAB is a MATLAB toolbox to make researchers' lives easier when using the Variable Infiltration Capacity (VIC) model. It is a collection of MATLAB functions for preparing inputs for --- and analyzing outputs from --- the VIC model.
-
-### Using VIC to model the Tuolumne River Basin
+## Using VICMATLAB to model the Tuolumne River Basin
 
 A demo for new users of the VICMATLAB Toolbox  
 April 13, 2020
 
-This is a tutorial to demonstrate how to use VICMATLAB to prepare inputs for and analyze results from the VIC model. The test basin is the Upper Tuolumne River Basin, near Yosemite National Park, California.
+This is a tutorial to demonstrate how to use VICMATLAB to prepare inputs for and analyze results from the VIC model. The test basin is the Upper Tuolumne River Basin, near Yosemite National Park, California (about 5000 sq. km). The intent of the tutorial is to demonstrate the capabilities of VICMATLAB. When applicable, plots are averaged over the 2009-2011 calendar years.
 
-Before running this code, make sure that all files and paths are set properly according to your system. You will need VIC-4 and VIC-5, as well as the VICMATLAB toolbox.
-
-This script is set up for the VIC parameters from Livneh et al. (2013). It could easily be adjusted for another set of VIC parameters, such as VICGlobal (actually do this).
+To run this code, make sure that all files and paths are set properly according to your system. You will need VIC-4 and VIC-5, as well as the VICMATLAB toolbox. This example assumes the user is modeling at 1/16 degree resolution, with the VIC soil, vegetation, and elevation band files for the continental U.S. from [Livneh et al. (2013)][L13], but it could easily be adjusted for another set of VIC parameters.
 
 #### 1. Obtain a shapefile of the study area. 
 
  You can download this from the USGS National Map Viewer website here: <https://viewer.nationalmap.gov/basic/>
 
- The first step is to extract the Tuolumne River Basin in R. 
+ The first step is to extract the Tuolumne River Basin using your favorite GIS software. I used R. (R makes a great GIS. See, for example, this [blog post](https://www.r-bloggers.com/r-as-gis-for-ecologists/)).
 
 ```r
+
+# Load HUC-8 basins into R
 huc8 <- readOGR(".../Shape/WBDHU8.shp")
+
+# Find the basin boundary for the Upper Tuolumne basin
 upptuo <- huc8[huc8$Name == "Upper Tuolumne",]
 writeOGR(tuolumne, "./data/upptuo.shp", driver = "ESRI Shapefile", layer = "bdy")
-
-# Load the RoutR package, and use it to make an elevation map masked to the basin (also in R).
 
 merit_mask <- raster(".../MERIT/DEM/Merged_1_16/merit_mask_1_16.tif")
 merit_dem <- raster(".../MERIT/DEM/Merged_1_16/merged_merit_dem_1_16.tif")
 
-upptuo_dem <- clip_raster(merit_dem, upptuo) 
+# Clip DEM to basin boundary
+cropped_dem <- crop(merit_dem, upptuo)
+upptuo_raster <- rasterize(upptuo, cropped_dem)
+upptuo_dem <- cropped_dem*upptuo_raster
 
 writeRaster(upptuo_dem, "./data/revised_basin/upptuo_dem.tif", NAflag = 0, datatype = "INT2S")
  ```
 
 #### 2. Download forcing data
 
- 1. Download Livneh et al. (2013) or Livneh et al. (2015) NetCDF meteorological forcing data.
- 2. We will use Livneh et al. (2013) data for this tutorial. 
- 3. The data can be downloaded from the Livneh Research Group [website](https://www.esrl.noaa.gov/psd/data/gridded/data.livneh.html).
+ 1. Download [Livneh et al. (2013)][L13] or [Livneh et al. (2015)][L15] NetCDF meteorological forcing data.
+ 2. We will use [Livneh et al. (2013)][L13] data for this tutorial. 
+ 3. The data can be downloaded from the Livneh Research Group's [website](https://www.esrl.noaa.gov/psd/data/gridded/data.livneh.html). Sample forcing files are included with VICMATLAB.
 
 #### 3. Make a basin mask from the DEM.
 
@@ -66,17 +63,20 @@ geotiffwrite('./data/upptuo_mask.tif', flipud(basin_mask), R);
  
 #### 4. Create soil parameter file
 
-Create the soil parameter file for the basin by subsetting the soil parameter file for the CONUS, from Livneh et al. (2013). This can be downloaded from the same website as the meteorological forcing data.
+Create the soil parameter file for the basin by subsetting the soil parameter file for the CONUS, from [Livneh et al. (2013)][L13]. This can be downloaded from the same website as the meteorological forcing data.
 
 ```matlab
-soilfile = '/home/jschap/Documents/Data/VICParametersCONUS/vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt';
+
+yourpath = 'yourpathgoeshere' % Set your path here.
+
+soilfile = fullfile(yourpath, 'vic.soil.0625.new.cal.adj.conus.plus.crb.can');
 
 disp('Loading soil parameter file')
 soils = load(soilfile);
 disp('Soil parameter file has been loaded')
 
 % extent of the study area; can be specified multiple ways
-extent = fullfile(pwd, './data/upptuo_mask.tif');
+extent = fullfile(pwd, './data/upptuo_mask.tif'); % and here
 
 grid_decimal = 5; % number of decimals used in forcing filenames
 
@@ -107,8 +107,8 @@ plotraster(lon, lat, dsmax, 'Dsmax (mm/day)')
 Create ASCII input files for the meteorological forcing data. Subset it to the basin.
 
 ```matlab
-% force_in = '/Volumes/HD3/Livneh_2013/MetNC'; % directory where forcing data are located
-force_in = '/media/jschap/HD_ExFAT/Livneh_2013/MetNC/';
+
+force_in = 'yourpathgoeshere'; % set path to the forcing files
 numforcings = 4; % number of forcings in daily CONUS daily forcing file
 
 % Beginning and ending years of simulation
@@ -123,7 +123,6 @@ maskname = './data/upptuo_mask.tif'; % basin mask
 
 temp = subset_forcings(force_in, force_out, beginyear, endyear, maskname);
 
-% temp = subset_forcings(force_in, force_out, beginyear, endyear, grid_decimal, numforcings, maskname);
 ```
 
 #### 7. Plot the forcing data
@@ -164,14 +163,15 @@ disp('Running met. forcing disaggregation')
 tic
 system('/home/jschap/Documents/Software/VIC/src/vicNl -g ./data/global_param_disagg.txt')
 toc
-% Takes 54 sec on my laptop for 175 grid cells, 3 years
-% Takes 27 seconds on my desktop! Woohoo for computing power!
 ```
 
 #### 9. Plot the disaggregated forcings
 
 ```matlab
+
+% The location where you have saved the disaggregated forcings
 forcingpath = './data/disagg_forc_2009-2011/';
+
 precision = 5; 
 varnames = {'PRECIP','AIR_TEMP','SHORTWAVE','LONGWAVE','DENSITY','PRESSURE','VP','WIND'};
 prefix = 'full_data_';
@@ -200,7 +200,7 @@ geotiffwrite('./data/livneh_precipitation_downscaled_2009-2011_average.tif', ...
 
 #### 10. Run VIC for water years 2010-2011. 
 
-Set up the global parameter file for this model run, first. 
+Set up the global parameter file for this model run. A template is provided with VICMATLAB, under `/data`.
 
 This setup is for the Upper Tuolumne Basin, in energy balance mode, with the frozen soils module disabled to reduce computational requirements. Use the template global parameter file to generate the specific list of outputs that we are using in this example.
 
@@ -208,9 +208,7 @@ This setup is for the Upper Tuolumne Basin, in energy balance mode, with the fro
 system('/home/jschap/Documents/Software/VIC/vic/drivers/classic/vic_classic.exe -g ./data/global_param.txt')
 ```
 
-Analyze the outputs from the VIC simulation.  
-First, re-organize the VIC outputs by entering the following commands on
-the command line.
+Next, we will analyze the outputs from the VIC simulation.  But first, we have to re-organize the VIC outputs so the VIC-output-loading function can work by entering the following commands on the command line.
 
 ```bash
 cd /home/jschap/Documents/Codes/VICMATLAB/data/out_2009-2011/
@@ -240,7 +238,7 @@ save(fullfile(results_dir, 'vic_run_metadata.mat'), 'info');
 disp(['Saved VIC run metadata as ' fullfile(results_dir, 'vic_run_metadata.mat')])
 
 % Read in and plot the VIC results
-swe_col = 27;
+swe_col = 27; % column of the VIC output file with the variable of interest
 basin_mask_name = './data/upptuo_mask.tif';
 [~, swe_sub, swe, ~] = load_vic_output(vic_out_dir, basin_mask_name, swe_col);
 
@@ -253,9 +251,11 @@ figure, plotraster(info.lon, info.lat, swe_map, 'SWE')
 Check the output precipitation to make sure it matches the input precipitation. 
 
 ```matlab
-prec_col = 13;
+prec_col = 13; % column of the VIC output file with the variable of interest
 basin_mask_name = './data/upptuo_mask.tif';
 [~, ~, precip, ~] = load_vic_output(vic_out_dir, basin_mask_name, prec_col);
+
+% Notes:
 % only works with water balance variables right now.
 % need to generalize the code to handle energy balance variables
 % also should find a less clunky way to specify the variable name, aside
@@ -274,7 +274,7 @@ geotiffwrite('./data/precipitation_output_2009-2011_average.tif', ...
 #### 12. Convert inputs from ASCII to NetCDF
 
 ```matlab
-% must use entire CONUS domain file for the current setup
+% Note: must use Livneh input files for the entire CONUS for the current setup
 
 wkpath = '/home/jschap/Documents/Codes/VICMATLAB/';
 parpath = '/home/jschap/Documents/Data/VICParametersCONUS/';
@@ -291,9 +291,12 @@ inputs.params_name = fullfile(wkpath, '/data/netcdfs/tuolumne_params.nc');
 classic2image(inputs);
  ```
 
-[basinmask]:/img/basin_mask.png
-[precip_output]:/img/precip_out.png
-[swe_output]:/img/swe.png
-[disagg_forcs]:/img/disaggregated_forcings.png
-[ppttmp]:/img/forcings.png
-[soilpars]:/img/soilpars.png
+[basinmask]:./img/basin_mask.png
+[precip_output]:./img/precip_out.png
+[swe_output]:./img/swe.png
+[disagg_forcs]:./img/disaggregated_forcings.png
+[ppttmp]:./img/forcings.png
+[soilpars]:./img/soilpars.png
+
+[L13]:https://journals.ametsoc.org/doi/pdf/10.1175/JCLI-D-12-00508.1
+[L15]:https://www.nature.com/articles/sdata201542

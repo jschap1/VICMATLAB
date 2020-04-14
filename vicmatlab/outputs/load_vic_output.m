@@ -19,7 +19,7 @@ eb_out_dir = fullfile(vic_out_dir, 'eb');
 info = get_vic_run_metadata(vic_out_dir, timestep_out);
 
 [mask1, ~, lon1, lat1] = geotiffread2(basin_mask);
-figure, plotraster(lon1, lat1, mask1, '','','')
+% figure, plotraster(lon1, lat1, mask1, '','','')
 
 % Initialize arrays
 wbnames = dir([wb_out_dir '/*.txt']);

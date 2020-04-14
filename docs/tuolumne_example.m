@@ -81,11 +81,11 @@ setup = 'livneh';
 
 figure, subplot(2,1,1)
 [elev, R, lon, lat] = geotiffread2(fullfile(soilvarpath, 'elev.tif'));
-plotraster(lon, lat, elev, 'Elevation')
+plotraster(lon, lat, elev, 'Elevation (m)')
 
 subplot(2,1,2)
 [dsmax, R, lon, lat] = geotiffread2(fullfile(soilvarpath, 'dsmax.tif'));
-plotraster(lon, lat, dsmax, 'Dsmax')
+plotraster(lon, lat, dsmax, 'Dsmax (mm/day)')
 
 %% Subset meteorological forcing data 
 
@@ -122,7 +122,7 @@ plotraster(forc.lon, forc.lat, tmax_map, 'TMAX (deg. C)')
 
 subplot(2,1,2)
 prec_map = xyz2grid(forc.lon, forc.lat, mean(forc.PRECIP)');
-plotraster(forc.lon, forc.lat, prec_map, 'PREC (mm)')
+plotraster(forc.lon, forc.lat, prec_map, 'PREC (mm/day)')
 
 % Save as Geotiff
 geotiffwrite('./data/livneh_precipitation_2009-2011_average.tif', ...
@@ -162,10 +162,13 @@ for i=1:nvars
     avg_maps.(varnames{i}) = fliplr(xyz2grid(forc.lon, forc.lat, mean(forc.(varnames{i}),1)'));
 end
 
+labels = {'Precip (mm/hr)','T (deg. C)','SW (W/m^2)','LW (W/m^2)','\rho (kg/m^3)','P (kPa)','VP (kPa)','u (m/s)'};
+
 figure
 for i=1:nvars
     subplot(4,2,i)
-    plotraster(forc.lon, forc.lat, avg_maps.(varnames{i}), varnames{i})
+    plotraster(forc.lon, forc.lat, avg_maps.(varnames{i}), labels{i})
+%     plotraster(forc.lon, forc.lat, avg_maps.(varnames{i}), varnames{i})
 end
 
 % Save as Geotiff
@@ -228,7 +231,7 @@ basin_mask_name = './data/upptuo_mask.tif';
 % from the column number
 
 precip_map = xyz2grid(info.lon, info.lat, mean(precip,2));
-figure, plotraster(info.lon, info.lat, precip_map, 'Precip (mm)')
+figure, plotraster(info.lon, info.lat, precip_map, 'Precip (mm/day)')
 
 % Save as Geotiff
 geotiffwrite('./data/precipitation_output_2009-2011_average.tif', ...
