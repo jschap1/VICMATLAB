@@ -37,7 +37,7 @@ writeRaster(upptuo_dem, "./data/revised_basin/upptuo_dem.tif", NAflag = 0, datat
 
  1. Download [Livneh et al. (2013)][L13] or [Livneh et al. (2015)][L15] NetCDF meteorological forcing data.
  2. We will use [Livneh et al. (2013)][L13] data for this tutorial. 
- 3. The data can be downloaded from the Livneh Research Group's [website](https://www.esrl.noaa.gov/psd/data/gridded/data.livneh.html). Sample forcing files are included with VICMATLAB.
+ 3. The data can be downloaded from the Livneh Research Group's [website](https://www.esrl.noaa.gov/psd/data/gridded/data.livneh.html).
 
 #### 3. Make a basin mask from the DEM.
 
