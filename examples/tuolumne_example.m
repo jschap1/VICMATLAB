@@ -116,13 +116,13 @@ varnames = {'PRECIP','TMIN','TMAX','WIND'};
 prefix = 'data_';
 forc = load_ascii_forcings(forcingpath, prefix, precision, varnames);
 
-figure
+figure, subplot(2,1,1)
 tmax_map = xyz2grid(forc.lon, forc.lat, mean(forc.TMAX)');
-plotraster(forc.lon, forc.lat, tmax_map, 'TMAX')
+plotraster(forc.lon, forc.lat, tmax_map, 'TMAX (deg. C)')
 
-figure
+subplot(2,1,2)
 prec_map = xyz2grid(forc.lon, forc.lat, mean(forc.PRECIP)');
-plotraster(forc.lon, forc.lat, prec_map, 'PREC')
+plotraster(forc.lon, forc.lat, prec_map, 'PREC (mm)')
 
 % Save as Geotiff
 geotiffwrite('./data/livneh_precipitation_2009-2011_average.tif', ...
@@ -217,7 +217,7 @@ basin_mask_name = './data/upptuo_mask.tif';
 [~, swe_sub, swe, ~] = load_vic_output(vic_out_dir, basin_mask_name, swe_col);
 
 swe_map = xyz2grid(info.lon, info.lat, mean(swe,2));
-figure, plotraster(info.lon, info.lat, swe_map, 'SWE')
+figure, plotraster(info.lon, info.lat, swe_map, 'SWE (mm)')
 
 prec_col = 13;
 basin_mask_name = './data/upptuo_mask.tif';
@@ -228,7 +228,7 @@ basin_mask_name = './data/upptuo_mask.tif';
 % from the column number
 
 precip_map = xyz2grid(info.lon, info.lat, mean(precip,2));
-figure, plotraster(info.lon, info.lat, precip_map, 'Precip')
+figure, plotraster(info.lon, info.lat, precip_map, 'Precip (mm)')
 
 % Save as Geotiff
 geotiffwrite('./data/precipitation_output_2009-2011_average.tif', ...
