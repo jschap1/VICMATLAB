@@ -39,10 +39,10 @@ See the documentation page --- [https://jschap1.github.io/VICMATLAB/](https://js
 
 ### Requirements
 MATLAB R2016a or later  
-Parallel Computing Toolbox  
 Mapping Toolbox  
 Image Processing Toolbox
 
 ### Recommended
+Parallel Computing Toolbox  
 R, RStudio  
 raster, rgeos, and rgdal packages for R
