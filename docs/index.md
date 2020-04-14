@@ -1,10 +1,8 @@
 ## VICMATLAB: A MATLAB toolbox for the Variable Infiltration Capacity model
 
-[toc]
-
 ### Overview
 
-VICMATLAB is a MATLAB toolbox to make researchers' lives easier when using the Variable Infiltration Capacity (VIC) model. The author spent a significant portion of his PhD writing and testing these scripts.
+VICMATLAB is a MATLAB toolbox to make researchers' lives easier when using the Variable Infiltration Capacity (VIC) model. It is a collection of MATLAB functions for preparing inputs for --- and analyzing outputs from --- the VIC model.
 
 ### Using VIC to model the Tuolumne River Basin
 
@@ -16,6 +14,8 @@ April 13, 2020
 ```bash
 cd ~/Documents/Codes/VICMATLAB/
 ```
+
+Here is an image: ![screenshot](/img/screenshot.png)
 
 This is a tutorial to demonstrate how to use VICMATLAB to prepare inputs for and analyze results from the VIC model. The test basin is the Upper Tuolumne River Basin, near Yosemite National Park, California.
 
@@ -32,7 +32,7 @@ This script is set up for the VIC parameters from Livneh et al. (2013). It could
 ```r
 huc8 <- readOGR(".../Shape/WBDHU8.shp")
 upptuo <- huc8[huc8$Name == "Upper Tuolumne",]
-writeOGR(tuolumne, "./data/upptuo.shp", driver = "ESRI Shapefile", layer = "bdy)
+writeOGR(tuolumne, "./data/upptuo.shp", driver = "ESRI Shapefile", layer = "bdy")
 
 # Load the RoutR package, and use it to make an elevation map masked to the basin (also in R).
 
@@ -46,9 +46,9 @@ writeRaster(upptuo_dem, "./data/revised_basin/upptuo_dem.tif", NAflag = 0, datat
 
 #### 3. Download forcing data
 
-	1. Download Livneh et al. (2013) or Livneh et al. (2015) NetCDF meteorological forcing data.
-	2. We will use Livneh et al. (2013) data for this tutorial. 
-	3. The data can be downloaded from the Livneh Research Group [website](https://www.esrl.noaa.gov/psd/data/gridded/data.livneh.html).
+ 1. Download Livneh et al. (2013) or Livneh et al. (2015) NetCDF meteorological forcing data.
+ 2. We will use Livneh et al. (2013) data for this tutorial. 
+ 3. The data can be downloaded from the Livneh Research Group [website](https://www.esrl.noaa.gov/psd/data/gridded/data.livneh.html).
 
 #### 4. Make a basin mask from the DEM.
 
@@ -149,8 +149,8 @@ geotiffwrite('./data/livneh_precipitation_2009-2011_average.tif', ...
 
 #### 9. Disaggregate meteorological forcing data
 
-	1. Run the VIC model as a meteorological forcing disaggregator.
-	2. Create a global parameter file and run the following code to disaggregate the met. forcing data with MT-CLIM
+ 1. Run the VIC model as a meteorological forcing disaggregator.
+ 2. Create a global parameter file and run the following code to disaggregate the met. forcing data with MT-CLIM
 
 ```matlab
 disagg_force_out = ['./data/disagg_forc_' num2str(beginyear) '-' num2str(endyear)];
