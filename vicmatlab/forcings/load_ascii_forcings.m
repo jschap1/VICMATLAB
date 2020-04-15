@@ -46,15 +46,50 @@ for k=1:ncells
     gridcells{k} = tmpstring;
 end
 
-[lat, lon] = GetCoords(gridcells, precision);
+[lat, lon] = GetCoords(gridcells, precision, prefix);
 
 %% Read in data for all grid cells and times (OK for a relatively small domain)
 
-FORC = NaN(nsteps, nvars, ncells);
-disp(['There are ' num2str(nvars) ' variables in the forcing files']);
-for k=1:ncells
-    FORC(:,:,k) = dlmread(fullfile(forcingpath, forcenames(k).name)); 
+% This is definitely not going to work for a large domain
+% Going to have to break it up
+% Check if the domain is "large"
+
+if ncells > 500
+    disp('Relatively large study area')
+    disp('Use make_netcdf_forcing()')
+    error('Study area is too big. It will fill up RAM')
+%     disp('Loading daily average forcing data')
+%     
+%     % Using a matfile to deal with the memory issue
+%     matOjb = matfile('./precipitation.mat');
+%     
+%     ncells = 10;
+% %     precip = NaN(nsteps, ncells);
+% 
+%     for k=1:ncells
+%         forc_current = dlmread(fullfile(forcingpath, forcenames(k).name));
+%         
+%         precip = forc_current(:,1);
+%                 
+%         if k==1
+%             save('./precip.m', 'precip', '-v7.3')
+%             m = matfile('./precip.m', 'Writable', true);
+%         else
+%             m.precip(:,k) = forc_current;
+%         end
+%         
+%     end
+    
+else
+    disp('Relatively small study area')
+    disp('Loading all forcing data')
+    FORC = NaN(nsteps, nvars, ncells);
+    disp(['There are ' num2str(nvars) ' variables in the forcing files']);
+    for k=1:ncells
+        FORC(:,:,k) = dlmread(fullfile(forcingpath, forcenames(k).name)); 
+    end    
 end
+
 
 %% Put forcing data into a nice structure
 

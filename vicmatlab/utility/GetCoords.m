@@ -1,4 +1,4 @@
-function [lat, lon] = GetCoords(gridcells, precision)
+function [lat, lon] = GetCoords(gridcells, precision, prefix)
 
 % Extracts coordinates (numeric) from flux output file names. 
 % Assumes northwestern hemisphere (positive latitudes, negative longitudes)
@@ -22,6 +22,11 @@ ncells = length(gridcells);
 % This will break if there are '-' in the file name, aside from the
 % negative signs
 
+% This is sensitive to the number of underscores in the prefix. If there
+% are underscores in the prefix, they need to be account for appropriately.
+
+n_underscores_in_prefix = length(strfind(prefix, '_'));
+
 underscore_locations = strfind(gridcells, '_');
 signstr = strfind(gridcells, '-');
 
@@ -37,10 +42,12 @@ for k=1:ncells
         case 1
 %             disp('Either lat or lon is negative')
 %             if signstr{k} == underscore_locations{k}(1) + 1
-            if signstr{k} == underscore_locations{k}(2) + 1    
+%             if signstr{k} == underscore_locations{k}(2) + 1 
+            if signstr{k} == underscore_locations{k}(n_underscores_in_prefix) + 1
                 lat_signs(k) = -1;
 %             elseif signstr{k} == underscore_locations{k}(3) + 1
-            elseif signstr{k} == underscore_locations{k}(4) + 1    
+            elseif signstr{k} == underscore_locations{k}(n_underscores_in_prefix + 2) + 1
+%             elseif signstr{k} == underscore_locations{k}(4) + 1    
                 lon_signs(k) = -1;
             end
         case 2
