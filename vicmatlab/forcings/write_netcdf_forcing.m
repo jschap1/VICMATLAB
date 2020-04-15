@@ -6,10 +6,19 @@ function write_netcdf_forcing(temperature, precipitation, pressure, shortwave, l
 
 ndays = info.ndays;
 nt_per_day = info.nt_per_day;
+outname = info.outname;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 lon = info.lon;
 lat = info.lat;
-outname = info.outname;
-mask = info.mask;
+resolution = max(abs(lat(2)-lat(1)), abs(lon(2)-lon(1)));
+lon = min(lon):resolution:max(lon);
+lat = min(lat):resolution:max(lat);
+
+mask=ones(length(lon),length(lat));
+mask = single(mask);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Create NetCDF file
     

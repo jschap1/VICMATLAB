@@ -3,9 +3,6 @@
 % Converts ASCII forcing data inputs to NetCDF forcings
 % Written 4/14/2020 JRS
 % Based on code written by Dongyue Li
-%
-% Should add ability to write out one file per year, since that is how the
-% image driver expects to receive forcing input data
 
 function convert_forcing(indir, prefix, outname, precision, start_date, end_date, nt_per_day)
 
@@ -13,15 +10,15 @@ disp('reading forcing file names')
 fnames = dir(fullfile(indir, [prefix '*']));
 
 % for testing
-fnames = fnames(1:3);
+% fnames = fnames(1:3);
 
 % info = ncinfo(fullfile(indir, fnames(1).name));
 disp('read forcing file names')
 
 ncells = length(fnames);
 tmpforc = dlmread(fullfile(indir, fnames(1).name)); 
-nsteps = size(tmpforc,1);
-nvars = size(tmpforc,2);
+% nsteps = size(tmpforc,1);
+% nvars = size(tmpforc,2);
 
 % Adapted from LoadVICResults
 gridcells = cell(ncells, 1);
@@ -101,15 +98,17 @@ while yy <= year(end_date)
         
         forc = dlmread(fullfile(indir, fnames(k).name));
 
+        % indexes are based on the order of the variables in the ASCII
+        % forcing file
         temperature(:, k) = forc(t1:t2,2);
-        precipitation(:, k) = forc(t1:t2,2);
-        pressure(:, k) = forc(t1:t2,2);
-        shortwave(:, k) = forc(t1:t2,2);
-        longwave(:, k) = forc(t1:t2,2);
-        vp(:, k) = forc(t1:t2,2);
-        wind(:, k) = forc(t1:t2,2);
+        precipitation(:, k) = forc(t1:t2,1);
+        pressure(:, k) = forc(t1:t2,6);
+        shortwave(:, k) = forc(t1:t2,3);
+        longwave(:, k) = forc(t1:t2,4);
+        vp(:, k) = forc(t1:t2,7);
+        wind(:, k) = forc(t1:t2,8);
 
-        disp(k)
+%         disp(k)
     end
     
     temperature_map = NaN(nlon, nlat, ndays_in_year*nt_per_day);
@@ -121,12 +120,12 @@ while yy <= year(end_date)
     wind_map = NaN(nlon, nlat, ndays_in_year*nt_per_day);
     for t=1:ndays_in_year*nt_per_day
         temperature_map(:,:,t) = fliplr(xyz2grid(lon, lat, temperature(t,:)')');
-        precipitation_map(:,:,t) = fliplr(xyz2grid(lon, lat, temperature(t,:)')');
-        pressure_map(:,:,t) = fliplr(xyz2grid(lon, lat, temperature(t,:)')');
-        shortwave_map(:,:,t) = fliplr(xyz2grid(lon, lat, temperature(t,:)')');
-        longaw_map(:,:,t) = fliplr(xyz2grid(lon, lat, temperature(t,:)')');
-        temperature_map(:,:,t) = fliplr(xyz2grid(lon, lat, temperature(t,:)')');
-        temperature_map(:,:,t) = fliplr(xyz2grid(lon, lat, temperature(t,:)')');
+        precipitation_map(:,:,t) = fliplr(xyz2grid(lon, lat, precipitation(t,:)')');
+        pressure_map(:,:,t) = fliplr(xyz2grid(lon, lat, pressure(t,:)')');
+        shortwave_map(:,:,t) = fliplr(xyz2grid(lon, lat, shortwave(t,:)')');
+        longwave_map(:,:,t) = fliplr(xyz2grid(lon, lat, longwave(t,:)')');
+        vp_map(:,:,t) = fliplr(xyz2grid(lon, lat, vp(t,:)')');
+        wind_map(:,:,t) = fliplr(xyz2grid(lon, lat, wind(t,:)')');
     end
         
 %     figure, plotraster(lon, lat, temperature_map(:,:,1), 'temp')

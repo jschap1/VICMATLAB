@@ -262,7 +262,8 @@ classic2image(inputs);
 cd ~/Documents/Codes/VICMATLAB/
 addpath(genpath('./vicmatlab'))
 
-forcingpath = './data/disagg_forc_2009-2011/';
+% forcingpath = './data/disagg_forc_2009-2011/';
+forcingpath = '/home/jschap/Documents/Backups/data/disagg_forc_2009-2011';
 precision = 5; 
 start_date = datetime(2009,1,1,0,0,0);
 end_date = datetime(2011,12,31,23,0,0);

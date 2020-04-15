@@ -17,8 +17,8 @@ disp('read forcing file names')
 
 ncells = length(fnames);
 tmpforc = dlmread(fullfile(indir, fnames(1).name)); 
-nsteps = size(tmpforc,1);
-nvars = size(tmpforc,2);
+% nsteps = size(tmpforc,1);
+% nvars = size(tmpforc,2);
 
 % Adapted from LoadVICResults
 gridcells = cell(ncells, 1);
@@ -46,16 +46,13 @@ nt = size(sample_forc,1);
 timevector = start_date:hours(1):end_date;
 timevector = timevector';
 
-mask=ones(length(lon),length(lat));
-mask = single(mask);
-
 nlon = length(unique(lon));
 nlat = length(unique(lat));
 
 % Prepare inputs for write_netcdf_forcing
 info.lon = lon;
 info.lat = lat;
-info.mask = mask;
+
 
 %% Checks
 
@@ -108,7 +105,7 @@ while yy <= year(end_date)
         vp(:, k) = forc(t1:t2,7);
         wind(:, k) = forc(t1:t2,8);
 
-        disp(k)
+%         disp(k)
     end
     
     temperature_map = NaN(nlon, nlat, ndays_in_year*nt_per_day);
