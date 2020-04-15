@@ -36,9 +36,11 @@ for k=1:ncells
                 1;
         case 1
 %             disp('Either lat or lon is negative')
-            if signstr{k} == underscore_locations{k}(1) + 1
+%             if signstr{k} == underscore_locations{k}(1) + 1
+            if signstr{k} == underscore_locations{k}(2) + 1    
                 lat_signs(k) = -1;
-            elseif signstr{k} == underscore_locations{k}(3) + 1
+%             elseif signstr{k} == underscore_locations{k}(3) + 1
+            elseif signstr{k} == underscore_locations{k}(4) + 1    
                 lon_signs(k) = -1;
             end
         case 2
