@@ -1,52 +1,15 @@
-% Make NetCDF forcing
-%
-% Create forcing input file from Livneh forcing data (input in NetCDF format)
-% Written by Dongyue Li
-% Revised 9/25/2019 JRS
-%
-% Should add ability to write out one file per year, since that is how the
-% image driver expects to receive forcing input data
+% Write NetCDF forcing
+% 
+% Adapted from Dongyue's code 4/14/2020 JRS
 
-function make_netcdf_forcing(indir, prefix, outname)
+function write_netcdf_forcing(temperature, precipitation, pressure, shortwave, longwave, vp, wind, info)
 
-% indir = '/Volumes/HD4/SWOTDA/Data/Tuolumne/forc_nc';
-% outname = '/Volumes/HD4/SWOTDA/Data/Tuolumne/forc_image_2.nc';
-
-disp('reading forcing file names')
-fnames = dir(fullfile(indir, [prefix '*']));
-% info = ncinfo(fullfile(indir, fnames(1).name));
-disp('read forcing file names')
-
-lon = ncread(fullfile(indir, fnames(1).name), 'lon');
-lat = ncread(fullfile(indir, fnames(1).name), 'lat');
-time = ncread(fullfile(indir, fnames(1).name), 'time');
-ndays = length(fnames);
-nt_per_day = length(time);
-nlat = length(lat);
-nlon = length(lon);
-
-mask=ones(length(lon),length(lat));
-mask = single(mask);
-
-% Read in meteorological data for each day and combine
-temperature = NaN(nlon, nlat, ndays*nt_per_day);
-precipitation = NaN(nlon, nlat, ndays*nt_per_day);
-pressure = NaN(nlon, nlat, ndays*nt_per_day);
-shortwave = NaN(nlon, nlat, ndays*nt_per_day);
-longwave = NaN(nlon, nlat, ndays*nt_per_day);
-vp = NaN(nlon, nlat, ndays*nt_per_day);
-wind = NaN(nlon, nlat, ndays*nt_per_day);
-for d=1:ndays    
-    t1 = nt_per_day*(d-1)+1;
-    t2 = t1+nt_per_day-1;
-    temperature(:,:,t1:t2) = ncread(fullfile(indir, fnames(d).name), 'temperature');
-    precipitation(:,:,t1:t2) = ncread(fullfile(indir, fnames(d).name), 'precipitation');
-    pressure(:,:,t1:t2) = ncread(fullfile(indir, fnames(d).name), 'pressure');
-    shortwave(:,:,t1:t2) = ncread(fullfile(indir, fnames(d).name), 'shortwave');
-    longwave(:,:,t1:t2) = ncread(fullfile(indir, fnames(d).name), 'longwave');
-    vp(:,:,t1:t2) = ncread(fullfile(indir, fnames(d).name), 'vapor_pressure');
-    wind(:,:,t1:t2) = ncread(fullfile(indir, fnames(d).name), 'wind_speed');
-end
+ndays = info.ndays;
+nt_per_day = info.nt_per_day;
+lon = info.lon;
+lat = info.lat;
+outname = info.outname;
+mask = info.mask;
 
 % Create NetCDF file
     
@@ -240,4 +203,4 @@ ncwriteatt(outname,...
 ncwriteatt(outname,...
     'wind','description','WIND');
 
-return
+end

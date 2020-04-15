@@ -256,3 +256,19 @@ inputs.domainfile_name = fullfile(wkpath, '/data/netcdfs/tuolumne_domain.nc');
 inputs.params_name = fullfile(wkpath, '/data/netcdfs/tuolumne_params.nc');
 
 classic2image(inputs);
+
+%% Convert forcings from ASCII to NetCDF
+
+cd ~/Documents/Codes/VICMATLAB/
+addpath(genpath('./vicmatlab'))
+
+forcingpath = './data/disagg_forc_2009-2011/';
+precision = 5; 
+start_date = datetime(2009,1,1,0,0,0);
+end_date = datetime(2011,12,31,23,0,0);
+nt_per_day = 24;
+prefix = 'full_data_';
+outname = './data/netcdf_forcings/forc_tuo';
+
+convert_forcing(forcingpath, prefix, outname, precision, start_date, end_date, nt_per_day)
+
