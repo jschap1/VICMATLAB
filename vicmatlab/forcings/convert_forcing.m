@@ -77,7 +77,8 @@ ndays_in_year = yeardays(yy);
 t1 = 1;
 t2 = ndays_in_year*nt_per_day;
     
-while yy <= year(end_date)
+% while yy <= year(end_date)
+for yy=year(start_date):year(end_date)
     
     ndays_in_year = yeardays(yy);
     
@@ -133,9 +134,14 @@ while yy <= year(end_date)
     write_netcdf_forcing(temperature_map, precipitation_map, pressure_map, ...
         shortwave_map, longwave_map, vp_map, wind_map, info)
 
-    yy = yy + 1; % iterate/move on to next year
+%     yy = yy + 1; % iterate/move on to next year
     ndays_in_year = yeardays(yy);
     t1 = t2 + 1;
     t2 = t1 + ndays_in_year*nt_per_day - 1;
+    % if I move t1, t2, ndays_in_year out of the loop, then I can make it a
+    % parfor loop.
+    %
+    % however, there is a RAM limitation. Will most likely need to use
+    % 8-bit integers to store information to save space
     
 end
