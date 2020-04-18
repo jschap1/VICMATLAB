@@ -16,7 +16,8 @@ fnames = dir(fullfile(indir, [prefix '*']));
 disp('read forcing file names')
 
 ncells = length(fnames);
-tmpforc = dlmread(fullfile(indir, fnames(1).name)); 
+% tmpforc = dlmread(fullfile(indir, fnames(1).name));
+% clearvars tmpforc
 % nsteps = size(tmpforc,1);
 % nvars = size(tmpforc,2);
 
@@ -39,6 +40,7 @@ end
 
 sample_forc = dlmread(fullfile(indir, fnames(1).name));
 nt = size(sample_forc,1);
+clearvars sample_forc
 % nt_per_day = 24; % hard-coded (assumes hourly forcing data)
 % ndays = nt/nt_per_day;
 % start_date = datetime(1980, 1, 1, 0, 0, 0);
@@ -92,6 +94,7 @@ for yy=year(start_date):year(end_date)
     vp = NaN(ndays_in_year*nt_per_day, ncells);
     wind = NaN(ndays_in_year*nt_per_day, ncells);
     
+    tic
     for k=1:ncells
         
         forc = dlmread(fullfile(indir, fnames(k).name));
@@ -106,7 +109,14 @@ for yy=year(start_date):year(end_date)
         vp(:, k) = forc(t1:t2,7);
         wind(:, k) = forc(t1:t2,8);
 
-%         disp(k)
+        if mod(k,100) == 0
+            disp(k)
+        end
+        
+        if k==10
+            toc
+            disp(['Estimated time remaining: ' num2str((toc*ncells/10/3600)), ' hours'])
+        end
     end
     
     temperature_map = NaN(nlon, nlat, ndays_in_year*nt_per_day);
@@ -128,6 +138,8 @@ for yy=year(start_date):year(end_date)
         
 %     figure, plotraster(lon, lat, temperature_map(:,:,1), 'temp')
     
+    clearvars temperature precipitation pressure shortwave longwave vp wind
+
     info.ndays = ndays_in_year;
     info.nt_per_day = nt_per_day;
     info.outname = [outname '_' num2str(yy) '.nc'];
@@ -137,7 +149,7 @@ for yy=year(start_date):year(end_date)
 %     yy = yy + 1; % iterate/move on to next year
     ndays_in_year = yeardays(yy);
     t1 = t2 + 1;
-    t2 = t1 + ndays_in_year*nt_per_day - 1;
+    t2 = t1 + ndays_in_year*nt_per_day;
     % if I move t1, t2, ndays_in_year out of the loop, then I can make it a
     % parfor loop.
     %

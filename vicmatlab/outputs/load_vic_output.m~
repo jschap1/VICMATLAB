@@ -9,7 +9,7 @@
 % Inputs
 % var_col = column of the variable you wish to extract (use 27 for SWE)
 
-function [timevector, var1, info] = load_vic_output(vic_out_dir, varname, basinmask, varargin)
+function [timevector, var1, info] = load_vic_output(vic_out_dir, varname, varargin)
 % function [timevector, var_sub, var1, info] = load_vic_output(vic_out_dir, basin_mask, var_col)
 
 %% Parse optional arguments;
@@ -37,20 +37,19 @@ fclose(fID);
 % Search the table for a match
 var_index = find(strcmp(varname, lutable{1}));
 if isempty(var_index)
-    var_index = find(strcmp(varname, lutable{2}));
+    find(strcmp(varname, lutable{2}));
 end
 if isempty(var_index)
     error('Variable not found. Check spelling.')
 end
 
 ebwb = lutable{3}{var_index};
-official_variable_name = lutable{2}{var_index};
 if strcmp(ebwb, 'wb')
     out_dir = fullfile(vic_out_dir, 'wb');
-    var_col = find(strcmp(official_variable_name, info.wbvars));
+    vardefs = info.wbvars;
 else
     out_dir = fullfile(vic_out_dir, 'eb');
-    var_col = find(strcmp(official_variable_name, info.ebvars));
+    vardefs = info.ebvars;
 end
 
 %% Load VIC output variable
@@ -100,7 +99,7 @@ end
 % The following code checks which case is happening and performs the
 % appropriate computations:
 
-mask_vect = mask1(:);
+% mask_vect = mask1(:);
 var_sub = var1;
 
 if size(var_sub, 1) < length(mask_vect)
@@ -113,22 +112,22 @@ else
 %     var_sub(mask_vect ~= 1,:) = [];    
 end
 
-Use the mask to subset var1. See subset_netcdf_w_geotiff_mask.m from
-subset_livneh.m. Ideally, there is no need to call xyz2grid, and we can
-preserve the time-resolution of the data.
+% Use the mask to subset var1. See subset_netcdf_w_geotiff_mask.m from
+% subset_livneh.m. Ideally, there is no need to call xyz2grid, and we can
+% preserve the time-resolution of the data.
 
-[var_sub, ~, ~] = subset_netcdf_w_geotiffmask(var1, lon1, lat1, basin_mask);
-The above would work if var_sub were nx by ny by nt grid
+% [var_sub, ~, ~] = subset_netcdf_w_geotiffmask(var1, lon1, lat1, basin_mask);
+% The above would work if var_sub were nx by ny by nt grid
+%
+% Will need to find another way (1/29/2020)
 
-Will need to find another way (1/29/2020)
-
-ncells_in_mask = sum(sum(mask1>0));
-var_sub = NaN(ndays, ncells_in_mask);
+% ncells_in_mask = sum(sum(mask1>0));
+% var_sub = NaN(ndays, ncells_in_mask);
 
 %% Save output (optional)
 
 if saveflag
-    save(savename, 'timevector', 'var1', 'info');
+    save(savename, '');
     disp(['Saved variable to ' savename])
 end
 
