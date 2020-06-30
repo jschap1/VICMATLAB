@@ -80,8 +80,7 @@ for i=1:length(file)
     area(lon_ind(i,1),lat_ind(i,1))=37300000.0; 
 end
 % ##########################################################################
-
-
+      
 nccreate(inputs.domainfile_name,'mask',...
     'Datatype','int32',...
     'Dimensions',{'lon',length(lon),'lat',length(lat)},...
@@ -173,7 +172,9 @@ soil_ind = zeros(length(file), 1);
 for i=1:length(file)
     k=find(soil(:,4)==lon_rec(i,1)); % position of running pix in SOIL
     t=find(soil(k,3)==lat_rec(i,1));
-    soil_ind(i,1)=k(t);
+%     try % using try makes errors later on because of 0 indexes
+        soil_ind(i,1)=k(t);
+%     end
 end
 clear k t
 % ##########################################################################

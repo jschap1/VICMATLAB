@@ -6,6 +6,11 @@
 
 function convert_forcing(indir, prefix, outname, precision, start_date, end_date, nt_per_day)
 
+delt = hours(24/nt_per_day);
+if mod(24/nt_per_day,1) ~=0
+    error('nt_per_day must divide 24 evenly')
+end
+
 disp('reading forcing file names')
 fnames = dir(fullfile(indir, [prefix '*']));
 
@@ -41,11 +46,13 @@ end
 sample_forc = dlmread(fullfile(indir, fnames(1).name));
 nt = size(sample_forc,1);
 clearvars sample_forc
+
 % nt_per_day = 24; % hard-coded (assumes hourly forcing data)
 % ndays = nt/nt_per_day;
 % start_date = datetime(1980, 1, 1, 0, 0, 0);
 % end_date = datetime(2011, 12, 31, 23, 0, 0);
-timevector = start_date:hours(1):end_date;
+
+timevector = start_date:delt:end_date;
 timevector = timevector';
 
 nlon = length(unique(lon));
@@ -54,7 +61,7 @@ nlat = length(unique(lat));
 % Prepare inputs for write_netcdf_forcing
 info.lon = lon;
 info.lat = lat;
-
+info.start_year = year(start_date);
 
 %% Checks
 
@@ -70,18 +77,37 @@ if month(end_date) ~= 12 || day(end_date) ~= 31
     error('end date must be Dec. 31')
 end
 
+    
+%% Calculate indexes before entering the main loop
+
+yy = year(start_date);
+ndays_in_year = yeardays(yy);
+yearvect = year(start_date):year(end_date);
+nyears = length(yearvect);
+t1 = zeros(nyears,1);
+t2 = zeros(nyears,1);
+t1(1) = 1;
+t2(1) = ndays_in_year*nt_per_day;
+
+for k=2:nyears
+    ndays_in_year = yeardays(yearvect(k));
+    t1(k) = t2(k-1) + 1;
+    t2(k) = t1(k) + ndays_in_year*nt_per_day - 1;    
+end
+
 %% Main loop
 
 disp('beginning main loop')
 
-yy = year(start_date);
-ndays_in_year = yeardays(yy);
-t1 = 1;
-t2 = ndays_in_year*nt_per_day;
-    
 % while yy <= year(end_date)
-for yy=year(start_date):year(end_date)
+
+% c = parcluster('local');
+% nw = c.NumWorkers;
+% parpool(nw-1)
+% parfor j=1:nyears
+for j=1:nyears    
     
+    yy = yearvect(j);
     ndays_in_year = yeardays(yy);
     
     disp(['current year is ' num2str(yy)]);
@@ -101,13 +127,13 @@ for yy=year(start_date):year(end_date)
 
         % indexes are based on the order of the variables in the ASCII
         % forcing file
-        temperature(:, k) = forc(t1:t2,2);
-        precipitation(:, k) = forc(t1:t2,1);
-        pressure(:, k) = forc(t1:t2,6);
-        shortwave(:, k) = forc(t1:t2,3);
-        longwave(:, k) = forc(t1:t2,4);
-        vp(:, k) = forc(t1:t2,7);
-        wind(:, k) = forc(t1:t2,8);
+        temperature(:, k) = forc(t1(j):t2(j),2);
+        precipitation(:, k) = forc(t1(j):t2(j),1);
+        pressure(:, k) = forc(t1(j):t2(j),6);
+        shortwave(:, k) = forc(t1(j):t2(j),3);
+        longwave(:, k) = forc(t1(j):t2(j),4);
+        vp(:, k) = forc(t1(j):t2(j),7);
+        wind(:, k) = forc(t1(j):t2(j),8);
 
         if mod(k,100) == 0
             disp(k)
@@ -143,13 +169,14 @@ for yy=year(start_date):year(end_date)
     info.ndays = ndays_in_year;
     info.nt_per_day = nt_per_day;
     info.outname = [outname '_' num2str(yy) '.nc'];
+    info.year = yy;
     write_netcdf_forcing(temperature_map, precipitation_map, pressure_map, ...
         shortwave_map, longwave_map, vp_map, wind_map, info)
 
 %     yy = yy + 1; % iterate/move on to next year
-    ndays_in_year = yeardays(yy);
-    t1 = t2 + 1;
-    t2 = t1 + ndays_in_year*nt_per_day;
+%     ndays_in_year = yeardays(yy);
+%     t1 = t2 + 1;
+%     t2 = t1 + ndays_in_year*nt_per_day;
     % if I move t1, t2, ndays_in_year out of the loop, then I can make it a
     % parfor loop.
     %

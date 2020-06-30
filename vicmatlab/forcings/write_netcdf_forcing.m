@@ -1,22 +1,40 @@
 % Write NetCDF forcing
 % 
 % Adapted from Dongyue's code 4/14/2020 JRS
+% Resolution is hardcoded
 
 function write_netcdf_forcing(temperature, precipitation, pressure, shortwave, longwave, vp, wind, info)
+
+% save('/home/jschap/Documents/ESSD/bv2019_ucrb_run/write_netcdf_forcings_workspace.mat')
+% load('/home/jschap/Documents/ESSD/bv2019_ucrb_run/write_netcdf_forcings_workspace.mat')
 
 ndays = info.ndays;
 nt_per_day = info.nt_per_day;
 outname = info.outname;
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-lon = info.lon;
-lat = info.lat;
-resolution = max(abs(lat(2)-lat(1)), abs(lon(2)-lon(1)));
-lon = min(lon):resolution:max(lon);
-lat = min(lat):resolution:max(lat);
 
-mask=ones(length(lon),length(lat));
+% lon = min(lon):resolution:max(lon);
+% lat = min(lat):resolution:max(lat);
+
+mask = xyz2grid(info.lon, info.lat, ones(length(info.lon), 1));
+% figure,plotraster(lon, lat, mask1, 'mask1')
+
+% mask1(mask1==1) = 0;
+% [lons, lats] = meshgrid(lon, lat);
+
+% ncells = length(lon);
+% for k=1:ncells
+%     [i,j] = latlon2pix(R, lat(k), lon(k));
+%     
+% end
+
+resolution = 0.0625;
+R = makerefmat(min(info.lon), min(info.lat), resolution, resolution);
+[lon, lat] = pixcenters(R, size(mask));
+
+% mask=ones(length(lon),length(lat));
+mask(isnan(mask)) = 0;
 mask = single(mask);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -78,22 +96,32 @@ nccreate(outname,'wind',...
           'Format','netcdf4_classic')   
       
 % Write data to NetCDF file      
-ncwrite(outname,'time',(1:ndays*nt_per_day)');
+
+% may need to start at 1. Not sure.
+hours_per_step = 24/nt_per_day;
+tt = (1:hours_per_step:ndays*24)'; % units are hours since start_time
+
+ncwrite(outname,'time',tt);
 ncwrite(outname,'lon',lon);
 ncwrite(outname,'lat',lat);
-ncwrite(outname,'mask',mask);
+ncwrite(outname,'mask',mask');
 
-ncwrite(outname,'prcp',precipitation);
-ncwrite(outname,'tas',temperature);
-ncwrite(outname,'dswrf',shortwave);
-ncwrite(outname,'dlwrf',longwave);
-ncwrite(outname,'pres',pressure);
-ncwrite(outname,'vp',vp);
-ncwrite(outname,'wind',wind);
+ncwrite(outname,'prcp',fliplr(precipitation));
+ncwrite(outname,'tas',fliplr(temperature));
+ncwrite(outname,'dswrf',fliplr(shortwave));
+ncwrite(outname,'dlwrf',fliplr(longwave));
+ncwrite(outname,'pres',fliplr(pressure));
+ncwrite(outname,'vp',fliplr(vp));
+ncwrite(outname,'wind',fliplr(wind));
 
 % Write attributes
+
+% specifies the time units in the forcing file metadata
+% start_year = info.start_year;
+start_year = info.year;
+
 ncwriteatt(outname,...
-    'time','units','hours since 1999-01-01');
+    'time','units',['hours since ', num2str(start_year), '-01-01']);
 ncwriteatt(outname,...
     'time','calendar','proleptic_gregorian');
 

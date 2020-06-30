@@ -159,7 +159,8 @@ nvars =length(varnames);
 avg_maps = struct();
 avg_maps.names = varnames;
 for i=1:nvars
-    avg_maps.(varnames{i}) = fliplr(xyz2grid(forc.lon, forc.lat, mean(forc.(varnames{i}),1)'));
+    avg_maps.(varnames{i}) = xyz2grid(forc.lon, forc.lat, mean(forc.(varnames{i}),1)');
+%     avg_maps.(varnames{i}) = fliplr(xyz2grid(forc.lon, forc.lat, mean(forc.(varnames{i}),1)'));
 end
 
 labels = {'Precip (mm/hr)','T (deg. C)','SW (W/m^2)','LW (W/m^2)','\rho (kg/m^3)','P (kPa)','VP (kPa)','u (m/s)'};
@@ -215,16 +216,13 @@ save(fullfile(results_dir, 'vic_run_metadata.mat'), 'info');
 disp(['Saved VIC run metadata as ' fullfile(results_dir, 'vic_run_metadata.mat')])
 
 % Read in and plot the VIC results
-swe_col = 27;
-basin_mask_name = './data/upptuo_mask.tif';
-[~, swe_sub, swe, ~] = load_vic_output(vic_out_dir, basin_mask_name, swe_col);
+[~, swe, ~] = load_vic_output(vic_out_dir, 'swe');
 
 swe_map = xyz2grid(info.lon, info.lat, mean(swe,2));
 figure, plotraster(info.lon, info.lat, swe_map, 'SWE (mm)')
 
-prec_col = 13;
-basin_mask_name = './data/upptuo_mask.tif';
-[~, ~, precip, ~] = load_vic_output(vic_out_dir, basin_mask_name, prec_col);
+% mkdir wb; mv wb*.txt wb
+[~, precip, ~] = load_vic_output(vic_out_dir, 'precipitation');
 % only works with water balance variables right now.
 % need to generalize the code to handle energy balance variables
 % also should find a less clunky way to specify the variable name, aside
@@ -252,8 +250,8 @@ inputs.snowband = fullfile(parpath, 'vic.snow.0625.new.cal.adj.can.5bands');
 inputs.vegparam = fullfile(parpath, 'vic.veg.0625.new.cal.adj.can');
 
 inputs.forcdir = fullfile(wkpath, '/data/disagg_forc_2009-2011/full_data*');
-inputs.domainfile_name = fullfile(wkpath, '/data/netcdfs/tuolumne_domain.nc');
-inputs.params_name = fullfile(wkpath, '/data/netcdfs/tuolumne_params.nc');
+inputs.domainfile_name = fullfile(wkpath, '/data/tuolumne_domain2.nc');
+inputs.params_name = fullfile(wkpath, '/data/tuolumne_params2.nc');
 
 classic2image(inputs);
 

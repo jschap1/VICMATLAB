@@ -7,7 +7,10 @@
 % VICMATLAB::check_outputs_wrapper.m
 %
 % Inputs
-% var_col = column of the variable you wish to extract (use 27 for SWE)
+% 
+%
+%
+% varargin = timestep_out, saveflag, savename
 
 function [timevector, var1, info] = load_vic_output(vic_out_dir, varname, varargin)
 % function [timevector, var_sub, var1, info] = load_vic_output(vic_out_dir, basin_mask, var_col)

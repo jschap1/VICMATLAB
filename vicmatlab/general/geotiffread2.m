@@ -4,9 +4,16 @@
 
 function [A, R, lon, lat] = geotiffread2(fname)
 
-[A, R] = geotiffread(fname);
-A = flipud(A);
-Rmat = georefobj2mat(R, 'LL');
+try
+    [A, ~, R] = geotiffread(fname);
+    A = flipud(A);
+    Rmat = georefobj2mat(R, 'LL');
+catch
+    [A, R] = geotiffread(fname);
+    A = flipud(A);
+    Rmat = georefobj2mat(R, 'LL');    
+end
+
 [lon, lat] = pixcenters(Rmat, size(A));
 
 % Remove no data values
