@@ -1,1 +1,5 @@
-site_name: My Docs
+site_name: VICMATLAB
+nav:
+  - Main: index.md
+  - Example: tuolumne_example.md
+theme: readthedocs
