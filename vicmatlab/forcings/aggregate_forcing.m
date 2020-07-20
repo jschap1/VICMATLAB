@@ -15,6 +15,8 @@
 
 function [aggf, aggt] = aggregate_forcing(forcdir, delt_in, delt_out, starttime, outdir, precip_col, hpc)
 
+plotflag = 0;
+
 % Checks
 if mod(delt_out, delt_in) ~= 0 
     error('delt_out must be a multiple of delt_in')
@@ -40,7 +42,7 @@ aggt = starttime:hours(delt_out):endtime;
 
 mkdir(outdir)
 disp(['Created directory to store outputs: ' outdir])
-
+                
 if hpc == 1
     c = parcluster('local');
     nw = c.NumWorkers;
@@ -50,7 +52,6 @@ if hpc == 1
         f_reshape = reshape(f, delt_out/delt_in, nt_out, nvars);
         aggf = squeeze(mean(f_reshape, 1));
         aggf(:, precip_col) = sum(f_reshape(:, :, precip_col), 1);
-        plotflag = 0;
         if plotflag && k == 1
             figure
             plot(aggt, aggf(:, precip_col))
@@ -66,7 +67,6 @@ else
         f_reshape = reshape(f, delt_out/delt_in, nt_out, nvars);
         aggf = squeeze(mean(f_reshape, 1));
         aggf(:, precip_col) = sum(f_reshape(:, :, precip_col), 1);
-        plotflag = 0;
         if plotflag && k == 1
             figure
             plot(aggt, aggf(:, precip_col))

@@ -79,11 +79,11 @@ for jj=1:n
     if control_params.multidir
         A{log_line_ind} = ['LOG_DIR ' outdir_names{jj} '/'];
         A{out_line_ind} = ['RESULT_DIR ' outdir_names{jj} '/'];
-        A{state_line_ind} = ['STATENAME ' outdir_names{jj} '/state_file'];
+%         A{state_line_ind} = ['STATENAME ' outdir_names{jj} '/state_file'];
     else
         A{log_line_ind} = ['LOG_DIR ' outdir_names '/'];
         A{out_line_ind} = ['RESULT_DIR ' outdir_names '/'];
-        A{state_line_ind} = ['STATENAME ' outdir_names '/state_file'];
+%         A{state_line_ind} = ['STATENAME ' outdir_names '/state_file'];
     end
 
     sn = fullfile(control_params.out_dir, [global_basename, '_', num2str(jj), '.txt']);

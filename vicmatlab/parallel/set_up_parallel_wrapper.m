@@ -24,25 +24,25 @@ cd ~/Documents/ESSD
 control_params.soil_param = '/home/jschap/Documents/ESSD/clipped_soils_VG.txt';
 
 % template global parameter filename
-control_params.global_param = '/home/jschap/Documents/ESSD/new_resist_run/remote_par_classic_vg_2000-2011.txt';
+control_params.global_param = '/home/jschap/Documents/hoffman2transfer/global_param_WY2001-2011.txt';
 % control_params.global_param = '/Volumes/HD4/SWOTDA/Data/UpperMiss/remote_par_classic_vg_1980-2011.txt';
 
 % location where parallelized inputs for the VIC model should be saved
-control_params.out_dir = '/home/jschap/Documents/ESSD/new_resist_run/parallel';
+control_params.out_dir = '/home/jschap/Documents/hoffman2transfer/parallel/';
 % control_params.out_dir = '/Volumes/HD4/SWOTDA/Data/UpperMiss/parallel';
 
 % full path for the VIC executable
 control_params.vic_command = '/u/home/j/jschaper/vic/VIC-VIC.5.1.0.rc1/vic/drivers/classic/vic_classic.exe';
 
 % location on Hoffman2 to write VIC outputs
-control_params.vic_out_dir = '/u/scratch/j/jschaper/UCRB/EB_WY2001-2011_VG_new_resist/';
+control_params.vic_out_dir = '/u/scratch/j/jschaper/UCRB/WB_WY2001-2011_VG/';
 
 % location on Hoffman2 from which global parameter files and soil parameter files will be read
 % control_params.vic_in_dir = '/u/home/j/jschaper/vic/UMRB/EB_1980-2011/parallel';
-control_params.vic_in_dir = '/u/home/j/jschaper/vic/UCRB/EB_WY2001-2011_VG_new_resist/parallel';
+control_params.vic_in_dir = '/u/scratch/j/jschaper/UCRB/WB_WY2001-2011_VG/parallel';
 
 control_params.n_proc = 100; % number of processors
-control_params.multidir = 1; % flag for using one or multiple directories for VIC outputs
+control_params.multidir = 0; % flag for using one or multiple directories for VIC outputs
 control_params.soil_format = '3l'; % 3l or livneh
 
 % cd '/Users/jschap/Documents/Codes/VICMATLAB/Control'
