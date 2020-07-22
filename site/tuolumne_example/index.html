@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Example - VICMATLAB</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Example";
+    var mkdocs_page_input_path = "tuolumne_example.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> VICMATLAB</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Main</a>
+                    </li>
+                </ul>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Example</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1-obtain-a-shapefile-of-the-study-area">1. Obtain a shapefile of the study area.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#4-create-soil-parameter-file">4. Create soil parameter file</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#5-plot-the-soil-parameters">5. Plot the soil parameters</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#6-subset-meteorological-forcing-data">6. Subset meteorological forcing data</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#7-plot-the-forcing-data">7. Plot the forcing data</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#8-disaggregate-meteorological-forcing-data">8. Disaggregate meteorological forcing data</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#9-plot-the-disaggregated-forcings">9. Plot the disaggregated forcings</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#10-run-vic-for-water-years-2010-2011">10. Run VIC for water years 2010-2011.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#11-process-vic-output-data-with-vicmatlab">11. Process VIC output data with VICMATLAB</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#12-convert-inputs-from-ascii-to-netcdf">12. Convert inputs from ASCII to NetCDF</a>
+    </li>
+    </ul>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">VICMATLAB</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Example</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="using-vicmatlab-to-model-the-tuolumne-river-basin">Using VICMATLAB to model the Tuolumne River Basin</h2>
+<p>A demo for new users of the VICMATLAB Toolbox<br />
+April 13, 2020</p>
+<p>This is a tutorial to demonstrate how to use VICMATLAB to prepare inputs for and analyze results from the VIC model. The test basin is the Upper Tuolumne River Basin, near Yosemite National Park, California (about 5000 sq. km). The intent of the tutorial is to demonstrate the capabilities of VICMATLAB. When applicable, plots are averaged over the 2009-2011 calendar years.</p>
+<p>To run this code, make sure that all files and paths are set properly according to your system. You will need VIC-4 and VIC-5, as well as the VICMATLAB toolbox. This example assumes the user is modeling at 1/16 degree resolution, with the VIC soil, vegetation, and elevation band files for the continental U.S. from <a href="https://journals.ametsoc.org/doi/pdf/10.1175/JCLI-D-12-00508.1">Livneh et al. (2013)</a>, but it could easily be adjusted for another set of VIC parameters.</p>
+<h4 id="1-obtain-a-shapefile-of-the-study-area">1. Obtain a shapefile of the study area.</h4>
+<p>You can download this from the USGS National Map Viewer website here: <a href="https://viewer.nationalmap.gov/basic/">https://viewer.nationalmap.gov/basic/</a></p>
+<p>The first step is to extract the Tuolumne River Basin using your favorite GIS software. I used R. (R makes a great GIS. See, for example, this <a href="https://www.r-bloggers.com/r-as-gis-for-ecologists/">blog post</a>).</p>
+<pre><code class="r">
+# Load HUC-8 basins into R
+huc8 &lt;- readOGR(&quot;.../Shape/WBDHU8.shp&quot;)
+
+# Find the basin boundary for the Upper Tuolumne basin
+upptuo &lt;- huc8[huc8$Name == &quot;Upper Tuolumne&quot;,]
+writeOGR(tuolumne, &quot;./data/upptuo.shp&quot;, driver = &quot;ESRI Shapefile&quot;, layer = &quot;bdy&quot;)
+
+merit_mask &lt;- raster(&quot;.../MERIT/DEM/Merged_1_16/merit_mask_1_16.tif&quot;)
+merit_dem &lt;- raster(&quot;.../MERIT/DEM/Merged_1_16/merged_merit_dem_1_16.tif&quot;)
+
+# Clip DEM to basin boundary
+cropped_dem &lt;- crop(merit_dem, upptuo)
+upptuo_raster &lt;- rasterize(upptuo, cropped_dem)
+upptuo_dem &lt;- cropped_dem*upptuo_raster
+
+writeRaster(upptuo_dem, &quot;./data/revised_basin/upptuo_dem.tif&quot;, NAflag = 0, datatype = &quot;INT2S&quot;)
+ ```
+
+#### 2. Download forcing data
+
+ 1. Download [Livneh et al. (2013)][L13] or [Livneh et al. (2015)][L15] NetCDF meteorological forcing data.
+ 2. We will use [Livneh et al. (2013)][L13] data for this tutorial. 
+ 3. The data can be downloaded from the Livneh Research Group's [website](https://www.esrl.noaa.gov/psd/data/gridded/data.livneh.html).
+
+#### 3. Make a basin mask from the DEM.
+
+Set the working directory to VICMATLAB, and add the subfolders to path.
+```bash
+cd ~/Documents/Codes/VICMATLAB/
+addpath(genpath('./vicmatlab'));
+</code></pre>
+
+<p>Load the DEM into MATLAB and make a basin mask.</p>
+<pre><code class="matlab">[upptuo_dem, R, lon, lat] = geotiffread2('./data/upptuo_dem.tif');
+basin_mask = double(upptuo_dem);
+basin_mask(basin_mask == 0) = NaN;
+basin_mask(~isnan(basin_mask)) = 1;
+
+figure, plotraster(lon, lat, basin_mask,'Basin Mask');
+
+geotiffwrite('./data/upptuo_mask.tif', flipud(basin_mask), R);
+</code></pre>
+
+<p><img alt="basin mask" src="../img/basin_mask.png" /></p>
+<h4 id="4-create-soil-parameter-file">4. Create soil parameter file</h4>
+<p>Create the soil parameter file for the basin by subsetting the soil parameter file for the CONUS, from <a href="https://journals.ametsoc.org/doi/pdf/10.1175/JCLI-D-12-00508.1">Livneh et al. (2013)</a>. This can be downloaded from the same website as the meteorological forcing data.</p>
+<pre><code class="matlab">
+yourpath = 'yourpathgoeshere' % Set your path here.
+
+soilfile = fullfile(yourpath, 'vic.soil.0625.new.cal.adj.conus.plus.crb.can');
+
+disp('Loading soil parameter file')
+soils = load(soilfile);
+disp('Soil parameter file has been loaded')
+
+% extent of the study area; can be specified multiple ways
+extent = fullfile(pwd, './data/upptuo_mask.tif'); % and here
+
+grid_decimal = 5; % number of decimals used in forcing filenames
+
+outformat = 'livneh'; % format of input soil parameter file (number of soil layers)
+outname = fullfile(pwd, '/data/upptuo_soils_livneh.txt');
+
+generate_tif = 1;
+setup = 'livneh';
+[soils_tuo, soilvarpath] = subset_soils(soils, extent, outname, outformat, grid_decimal, generate_tif, setup);
+</code></pre>
+
+<h4 id="5-plot-the-soil-parameters">5. Plot the soil parameters</h4>
+<pre><code class="matlab">figure, subplot(2,1,1)
+[elev, R, lon, lat] = geotiffread2(fullfile(soilvarpath, 'elev.tif'));
+plotraster(lon, lat, elev, 'Elevation (m)')
+
+subplot(2,1,2)
+[dsmax, R, lon, lat] = geotiffread2(fullfile(soilvarpath, 'dsmax.tif'));
+plotraster(lon, lat, dsmax, 'Dsmax (mm/day)')
+</code></pre>
+
+<p><img alt="soil parameter data" src="../img/soilpars.png" /></p>
+<h4 id="6-subset-meteorological-forcing-data">6. Subset meteorological forcing data</h4>
+<p>Create ASCII input files for the meteorological forcing data. Subset it to the basin.</p>
+<pre><code class="matlab">
+force_in = 'yourpathgoeshere'; % set path to the forcing files
+numforcings = 4; % number of forcings in daily CONUS daily forcing file
+
+% Beginning and ending years of simulation
+beginyear = 2009;
+endyear = 2011;
+
+% Directory where clipped forcing files should be saved
+force_out = ['./data/forc_' num2str(beginyear) '-' num2str(endyear)];
+
+grid_decimal = 5; % number of decimals used in forcing filenames
+maskname = './data/upptuo_mask.tif'; % basin mask
+
+temp = subset_forcings(force_in, force_out, beginyear, endyear, maskname);
+
+</code></pre>
+
+<h4 id="7-plot-the-forcing-data">7. Plot the forcing data</h4>
+<pre><code class="matlab">forcingpath = './data/forc_2009-2011';
+precision = 5; 
+varnames = {'PRECIP','TMIN','TMAX','WIND'};
+prefix = 'data_';
+forc = load_ascii_forcings(forcingpath, prefix, precision, varnames);
+
+figure
+tmax_map = xyz2grid(forc.lon, forc.lat, mean(forc.TMAX)');
+plotraster(forc.lon, forc.lat, tmax_map, 'TMAX')
+
+figure
+prec_map = xyz2grid(forc.lon, forc.lat, mean(forc.PRECIP)');
+plotraster(forc.lon, forc.lat, prec_map, 'PREC')
+
+% Save as Geotiff
+geotiffwrite('./data/livneh_precipitation_2009-2011_average.tif', ...
+    flipud(prec_map), R)
+</code></pre>
+
+<p><img alt="precip and temp" src="../img/forcings.png" /></p>
+<h4 id="8-disaggregate-meteorological-forcing-data">8. Disaggregate meteorological forcing data</h4>
+<ol>
+<li>Run the VIC model as a meteorological forcing disaggregator.</li>
+<li>Create a global parameter file and run the following code to disaggregate the met. forcing data with MT-CLIM</li>
+</ol>
+<pre><code class="matlab">disagg_force_out = ['./data/disagg_forc_' num2str(beginyear) '-' num2str(endyear)];
+mkdir(disagg_force_out)
+disp(['Created directory ' disagg_force_out ' for disaggregated forcings'])
+
+disp('Running met. forcing disaggregation')
+tic
+system('/home/jschap/Documents/Software/VIC/src/vicNl -g ./data/global_param_disagg.txt')
+toc
+</code></pre>
+
+<h4 id="9-plot-the-disaggregated-forcings">9. Plot the disaggregated forcings</h4>
+<pre><code class="matlab">
+% The location where you have saved the disaggregated forcings
+forcingpath = './data/disagg_forc_2009-2011/';
+
+precision = 5; 
+varnames = {'PRECIP','AIR_TEMP','SHORTWAVE','LONGWAVE','DENSITY','PRESSURE','VP','WIND'};
+prefix = 'full_data_';
+forc = load_ascii_forcings(forcingpath, prefix, precision, varnames);
+
+nvars =length(varnames);
+
+avg_maps = struct();
+avg_maps.names = varnames;
+for i=1:nvars
+    avg_maps.(varnames{i}) = fliplr(xyz2grid(forc.lon, forc.lat, mean(forc.(varnames{i}),1)'));
+end
+
+figure
+for i=1:nvars
+    subplot(4,2,i)
+    plotraster(forc.lon, forc.lat, avg_maps.(varnames{i}), varnames{i})
+end
+
+% Save as Geotiff
+geotiffwrite('./data/livneh_precipitation_downscaled_2009-2011_average.tif', ...
+    flipud(avg_maps.PRECIP), R)
+</code></pre>
+
+<p><img alt="disaggregated forcings" src="../img/disaggregated_forcings.png" /></p>
+<h4 id="10-run-vic-for-water-years-2010-2011">10. Run VIC for water years 2010-2011.</h4>
+<p>Set up the global parameter file for this model run. A template is provided with VICMATLAB, under <code>/data</code>.</p>
+<p>This setup is for the Upper Tuolumne Basin, in energy balance mode, with the frozen soils module disabled to reduce computational requirements. Use the template global parameter file to generate the specific list of outputs that we are using in this example.</p>
+<pre><code class="matlab">system('/home/jschap/Documents/Software/VIC/vic/drivers/classic/vic_classic.exe -g ./data/global_param.txt')
+</code></pre>
+
+<p>Next, we will analyze the outputs from the VIC simulation.  But first, we have to re-organize the VIC outputs so the VIC-output-loading function can work by entering the following commands on the command line.</p>
+<pre><code class="bash">cd /home/jschap/Documents/Codes/VICMATLAB/data/out_2009-2011/
+mkdir eb; mv eb*.txt eb
+mkdir wb; mv wb*.txt wb
+</code></pre>
+
+<h4 id="11-process-vic-output-data-with-vicmatlab">11. Process VIC output data with VICMATLAB</h4>
+<pre><code class="matlab">
+% Get VIC run metadata
+vic_out_dir = './data/out_2009-2011/';
+timestep_out = 'daily';
+info = get_vic_run_metadata(vic_out_dir, timestep_out);
+
+% Create directories to store processed outputs
+results_dir = fullfile(vic_out_dir, 'processed');
+figdir = fullfile(vic_out_dir, 'figures');
+mkdir(results_dir)
+disp(['Created directory for results: ' results_dir]);
+mkdir(figdir)
+disp(['Created directory for figures: ' figdir]);
+
+% Save the metadata from the VIC run
+save(fullfile(results_dir, 'vic_run_metadata.mat'), 'info');
+disp(['Saved VIC run metadata as ' fullfile(results_dir, 'vic_run_metadata.mat')])
+
+% Read in and plot the VIC results
+swe_col = 27; % column of the VIC output file with the variable of interest
+basin_mask_name = './data/upptuo_mask.tif';
+[~, swe_sub, swe, ~] = load_vic_output(vic_out_dir, basin_mask_name, swe_col);
+
+swe_map = xyz2grid(info.lon, info.lat, mean(swe,2));
+figure, plotraster(info.lon, info.lat, swe_map, 'SWE')
+</code></pre>
+
+<p><img alt="modeled SWE" src="../img/swe.png" /></p>
+<p>Check the output precipitation to make sure it matches the input precipitation. </p>
+<pre><code class="matlab">prec_col = 13; % column of the VIC output file with the variable of interest
+basin_mask_name = './data/upptuo_mask.tif';
+[~, ~, precip, ~] = load_vic_output(vic_out_dir, basin_mask_name, prec_col);
+
+% Notes:
+% only works with water balance variables right now.
+% need to generalize the code to handle energy balance variables
+% also should find a less clunky way to specify the variable name, aside
+% from the column number
+
+precip_map = xyz2grid(info.lon, info.lat, mean(precip,2));
+figure, plotraster(info.lon, info.lat, precip_map, 'Precip')
+
+% Save as Geotiff
+geotiffwrite('./data/precipitation_output_2009-2011_average.tif', ...
+    flipud(precip_map), R)
+</code></pre>
+
+<p><img alt="precipitation output" src="../img/precip_out.png" /></p>
+<h4 id="12-convert-inputs-from-ascii-to-netcdf">12. Convert inputs from ASCII to NetCDF</h4>
+<p>```matlab
+% Note: must use Livneh input files for the entire CONUS for the current setup</p>
+<p>wkpath = '/home/jschap/Documents/Codes/VICMATLAB/';
+parpath = '/home/jschap/Documents/Data/VICParametersCONUS/';</p>
+<p>inputs.veglib = fullfile(parpath, 'vic_veglib_nohead.txt');
+inputs.soilparfile = fullfile(parpath, 'vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt');
+inputs.snowband = fullfile(parpath, 'vic.snow.0625.new.cal.adj.can.5bands');
+inputs.vegparam = fullfile(parpath, 'vic.veg.0625.new.cal.adj.can');</p>
+<p>inputs.forcdir = fullfile(wkpath, '/data/disagg_forc_2009-2011/full_data*');
+inputs.domainfile_name = fullfile(wkpath, '/data/netcdfs/tuolumne_domain.nc');
+inputs.params_name = fullfile(wkpath, '/data/netcdfs/tuolumne_params.nc');</p>
+<p>classic2image(inputs);
+ ```</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href=".." class="btn btn-neutral" title="Main"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

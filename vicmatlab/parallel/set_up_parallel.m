@@ -8,92 +8,59 @@
 % Written by Dongyue Li 4/2019
 % Modified 5/1/2019 JRS
 % Updated 11/18/2019 JRS to be a function, not a script
-%
-% Update 11/25/2019 JRS to be generalized, not just call-able from the
-% CalVIC workflow, as it was previously. Also removed some extraneous code.
+% Updated 7/18/2020 JRS to use a simpler directory structure
 %
 % INPUTS
-% control_params -- a structure with the following fields:
-%
-% soil_param = template soil parameter filename 
-% global_param = template global parameter filename
-%
-% out_dir = location where parallelized inputs for the VIC model should be saved
-% vic_command = full path for the VIC executable
-%
-% vic_out_dir = location on Hoffman2 to write VIC outputs
-% vic_in_dir = location on Hoffman2 from which global parameter files and soil parameter
-% files will be read
-%
-% n_proc = number of processors
-% multidir = flag for using one or multiple directories for VIC outputs
-% soil_format = 3l or livneh
+% outdir = Directory where VIC should save outputs (the parallel inputs will be
+% written here, too)
+% soil_param = Name of soil parameter file
+% global_param_file = Name of global parameter file
+% n_proc = Number of processors to use
+% vic_command = command to call VIC
 
 function outname = set_up_parallel(control_params)
 
 %% Inputs
 
-% Specify lines of the global parameter file for the following:
-state_line_ind = 111; % 110, 111
-log_line_ind = 182; % 181, 195
-out_line_ind = 183; % 182, 196
-soil_line_ind = 154; % 153, 167
-
-mkdir(control_params.out_dir)
-disp(['Created directory ' control_params.out_dir ' to store the subsetted soil parameter files'])
+mkdir(control_params.outdir)
 
 [~, soil_basename, ~] = fileparts(control_params.soil_param);
-[~, global_basename, ~] = fileparts(control_params.global_param);
+[~, global_basename, ~] = fileparts(control_params.global_param_file);
 
 soils_all = dlmread(control_params.soil_param);
 ncells = size(soils_all, 1);
 
+% how many divisions to divide the soil parameter file into
 n = control_params.n_proc;
-nl = ceil(ncells/n); % number of grid cells per soil parameter file
-disp(['Each soil parameter file will have ' num2str(nl) ' grid cells'])
-
-% Split into n directories so the outputs from each division are saved in different directories (for debugging purposes)
-if control_params.multidir
-    disp('Creating separate directories for outputs')
-    outdir_names = cell(n,1);
-    for jj=1:n
-      outdir_names{jj} = fullfile(control_params.vic_out_dir, ['Output' num2str(jj)]);
-    end
-else
-    outdir_names = control_params.vic_out_dir;
-end
+nl = ceil(ncells/n); 
 
 %% Make copies of the global parameter file
 
-disp('Copying the global parameter file')
+% Lines in the global parameter file where the soil parameters, results,
+% and log inputs are specified. Detect automatically.
+
+soil_line = find_line(control_params.global_param_file, 'Soil parameter path/file');
+result_line = find_line(control_params.global_param_file, 'RESULT_DIR');
+log_line = find_line(control_params.global_param_file, 'LOG_DIR');
+
 for jj=1:n
 
-    % read the global parameter file
-    A = read_global_param_file(control_params.global_param);
-
-    % change the soil parameter line
+    A = read_global_param_file(control_params.global_param_file);
     
-    A{soil_line_ind} = ['SOIL ' fullfile(control_params.vic_in_dir, [soil_basename, '_', num2str(jj), '.txt'])];
-   
-    % change the output directory
-    if control_params.multidir
-        A{log_line_ind} = ['LOG_DIR ' outdir_names{jj} '/'];
-        A{out_line_ind} = ['RESULT_DIR ' outdir_names{jj} '/'];
-%         A{state_line_ind} = ['STATENAME ' outdir_names{jj} '/state_file'];
-    else
-        A{log_line_ind} = ['LOG_DIR ' outdir_names '/'];
-        A{out_line_ind} = ['RESULT_DIR ' outdir_names '/'];
-%         A{state_line_ind} = ['STATENAME ' outdir_names '/state_file'];
-    end
+    % change the soil parameter line
+    A{soil_line} = ['SOIL ' fullfile(control_params.outdir, [soil_basename, '_', num2str(jj), '.txt'])];
 
-    sn = fullfile(control_params.out_dir, [global_basename, '_', num2str(jj), '.txt']);
+    % change the output directory
+    A{log_line} = ['LOG_DIR ' control_params.outdir];
+    A{result_line} = ['RESULT_DIR ' control_params.outdir];
+
+    % Write out the modified global parameter file
+    sn = fullfile(control_params.outdir, [global_basename, '_', num2str(jj), '.txt']);
     write_global_param_file(A, sn)
 
 end
 
 %% Subdivide the soil parameter file
-
-disp('Sub-dividing the soil parameter file')
 
 for jj=1:n
      
@@ -103,7 +70,7 @@ for jj=1:n
         soils_sub = soils_all((jj-1)*nl+1:(jj-1)*nl+nl,:);
     end
     
-    outname = fullfile(control_params.out_dir, [soil_basename, '_', num2str(jj) '.txt']);
+    outname = fullfile(control_params.outdir, [soil_basename, '_', num2str(jj) '.txt']);
     precision = 5;
     write_soils(precision, soils_sub, outname, control_params.soil_format);
 
@@ -111,12 +78,12 @@ end
 
 %% Make the VIC parallel wrapper
 
-[globpath, globname globext] = fileparts(control_params.global_param);
+[globpath, globname globext] = fileparts(control_params.global_param_file);
 % parfilenam = fullfile(globpath, [globname '_${SGE_TASK_ID}' globext]);
-parfilenam = fullfile(control_params.vic_in_dir, [globname '_${SGE_TASK_ID}' globext]);
+parfilenam = fullfile(control_params.outdir, [globname '_${SGE_TASK_ID}' globext]);
 vic_run_command = [control_params.vic_command ' -g ' parfilenam];
 
-outname = fullfile(fileparts(control_params.out_dir), 'vic_parallel_wrapper.sh');
+outname = fullfile(fileparts(control_params.outdir), 'vic_parallel_wrapper.sh');
 A = cell(3,1);
 A{1} = '#!/bin/bash';
 A{2} = 'echo $SGE_TASK_ID';
@@ -126,3 +93,20 @@ write_global_param_file(A, outname)
 disp(['Wrote exec file to ' outname])
 
 return
+
+%% Scrap 
+
+% global_param_file = '/Volumes/HD4/SWOTDA/Data/IRB/VIC/FullDomain/globalparam_WB_SB_1980-2018.txt';
+% soil_parameter_file = '/Volumes/HD4/SWOTDA/Data/IRB/VIC/FullDomain/soils_snapped.SB';
+% savedir_soil = savedir; % directory to save the subsetted soil param files
+% savedir = '/Volumes/HD4/SWOTDA/Data/IRB/VIC/FullDomain/vic_parallel_WB_1980-2018'; % directory to save the newly created global param files
+% global_basename = './global_param_irb';
+% ncells = 75231;
+% nl = 1000; % number of grid cells to keep in each soil parameter file
+% n = ceil(ncells/nl); 
+% Create n directories so the outputs from each division are saved in different directories (for debugging purposes)
+% outdir_names = cell(n,1);
+% for jj=1:n
+%   outdir_names{jj} = fullfile(savedir_out, ['Output_' num2str(jj)]);
+% %   mkdir(outdir_names{jj})
+% end
