@@ -117,11 +117,12 @@ ncwrite(outname,'month',month);
 % Basin Mask
 [basin_mask] = geotiffread2(basinmaskname);
 mask = double(basin_mask');
+mask(isnan(mask)) = 0;
 nccreate(outname,'mask',...
     'Datatype','double',...
     'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
     'Format','netcdf4_classic')    
-ncwrite(outname,'mask',mask);
+ncwrite(outname,'mask',ones(size(mask)));
     
 % Lons/Lats
 % make grid of lon, lat values for larger domain (the one being subsetted)

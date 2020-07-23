@@ -18,4 +18,19 @@ subset_domain(basinmask, fulldomain, fullfile(outdir, [basinname, '_domain.nc'])
 subset_parameter2(basinmask, fullparams, fullfile(outdir, [basinname, '_params.nc']));
 ```
 
-The last line requires 20 GB of RAM to run, so I exported my input files and code to Atlantic, where I have 48 GB of RAM, and I ran the subsetting there.
+The last line requires 20 GB of RAM to run, so I exported my input files and code to Atlantic, where I have 48 GB of RAM, and I ran the subsetting there. (It would be convenient to split the image mode parameters into several files so that people without access to this much RAM can still work with the files.)
+
+## Debugging
+For some reason, the image mode Tuolumne simulation does not run. There is an error 
+
+		[ERROR] ../shared_image/src/get_nc_field.c:49: errno: NetCDF: Index exceeds dimension bound: Error getting values for tas in /hdd/ESSD/tuo_image_example/v1.5/forc_tuo_2009.nc 
+
+I changed the domain and parameter subsetting codes to use the correct basin mask for the mask and run_cell variables, but this did not help. Perhaps I need to change more/all of the parameters to match the mask?
+
+## Running the Stehekin example
+
+./vic_image.exe -g /home/jschap/Documents/Software/VIC_sample_data/image/Stehekin/parameters/global_param.Stehekin.L2015.txt
+
+The Stehekin simulation worked fine, although I was not able to write to the /VIC_sample_data/ directory for some reason. Instead, I wrote the result to /home/jschap/Documents/.
+
+Inspecting the Stehekin parameters, the masks need to cover the full domain, but the run_cell parameter should match the forcing files.

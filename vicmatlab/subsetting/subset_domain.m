@@ -112,7 +112,8 @@ nccreate(outname,var_list_3{1},...
     'Datatype','int32',...
     'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
     'Format','netcdf4_classic')   
-ncwrite(outname,var_list_3{1}, basinmask');
+ncwrite(outname,var_list_3{1}, ones(size(basinmask')));
+% ncwrite(outname,var_list_3{1}, basinmask');
     
 var_list2={'frac','area'};
 for i=1:length(var_list2)
