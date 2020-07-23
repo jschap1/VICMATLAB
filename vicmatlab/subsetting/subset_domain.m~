@@ -100,19 +100,15 @@ ncwrite(outname,'lon',lon(lon_ind));
 var_list_3 = {'mask'};
 var_in = [];
 var_in=ncread(global_domain,var_list_3{1});
+eval([var_list_3{1},'=var_in(lon_ind,lat_ind);']);
 
-% var_in
-% basinmask
-% temp = var_in(lon_ind,lat_ind);
-% var_list_3{1} = basinmask';
 
-% eval([var_list_3{1},'=var_in(lon_ind,lat_ind);']);
 
 nccreate(outname,var_list_3{1},...
     'Datatype','int32',...
     'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
     'Format','netcdf4_classic')   
-ncwrite(outname,var_list_3{1}, basinmask');
+ncwrite(outname,var_list_3{1}, eval(var_list_3{1}));
     
 var_list2={'frac','area'};
 for i=1:length(var_list2)

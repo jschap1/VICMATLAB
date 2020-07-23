@@ -22,7 +22,9 @@ function outname = set_up_parallel(control_params)
 
 %% Inputs
 
-mkdir(control_params.outdir)
+mkdir(control_params.vic_outdir);
+mkdir(control_params.log_outdir);
+mkdir(control_params.vic_indir);
 
 [~, soil_basename, ~] = fileparts(control_params.soil_param);
 [~, global_basename, ~] = fileparts(control_params.global_param_file);
@@ -48,14 +50,14 @@ for jj=1:n
     A = read_global_param_file(control_params.global_param_file);
     
     % change the soil parameter line
-    A{soil_line} = ['SOIL ' fullfile(control_params.outdir, [soil_basename, '_', num2str(jj), '.txt'])];
+    A{soil_line} = ['SOIL ' fullfile(control_params.vic_indir, [soil_basename, '_', num2str(jj), '.txt'])];
 
     % change the output directory
-    A{log_line} = ['LOG_DIR ' control_params.outdir];
-    A{result_line} = ['RESULT_DIR ' control_params.outdir];
+    A{log_line} = ['LOG_DIR ' control_params.log_outdir];
+    A{result_line} = ['RESULT_DIR ' control_params.vic_outdir];
 
     % Write out the modified global parameter file
-    sn = fullfile(control_params.outdir, [global_basename, '_', num2str(jj), '.txt']);
+    sn = fullfile(control_params.vic_indir, [global_basename, '_', num2str(jj), '.txt']);
     write_global_param_file(A, sn)
 
 end
@@ -70,7 +72,7 @@ for jj=1:n
         soils_sub = soils_all((jj-1)*nl+1:(jj-1)*nl+nl,:);
     end
     
-    outname = fullfile(control_params.outdir, [soil_basename, '_', num2str(jj) '.txt']);
+    outname = fullfile(control_params.vic_indir, [soil_basename, '_', num2str(jj) '.txt']);
     precision = 5;
     write_soils(precision, soils_sub, outname, control_params.soil_format);
 
@@ -80,16 +82,17 @@ end
 
 [globpath, globname globext] = fileparts(control_params.global_param_file);
 % parfilenam = fullfile(globpath, [globname '_${SGE_TASK_ID}' globext]);
-parfilenam = fullfile(control_params.outdir, [globname '_${SGE_TASK_ID}' globext]);
+parfilenam = fullfile(control_params.vic_indir, [globname '_${SGE_TASK_ID}' globext]);
 vic_run_command = [control_params.vic_command ' -g ' parfilenam];
 
-outname = fullfile(fileparts(control_params.outdir), 'vic_parallel_wrapper.sh');
+outname = fullfile(fileparts(control_params.vic_indir), 'vic_parallel_wrapper.sh');
 A = cell(3,1);
 A{1} = '#!/bin/bash';
 A{2} = 'echo $SGE_TASK_ID';
 A{3} = vic_run_command;
 A{4} = -1;
 write_global_param_file(A, outname)
+system(['chmod +x ' outname])
 disp(['Wrote exec file to ' outname])
 
 return

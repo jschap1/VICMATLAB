@@ -19,6 +19,7 @@
 function outname = subset_parameter2(basinmaskname, global_params, outname)
 
 extent = basin_mask2coordinate_list(basinmaskname);
+basinmask = geotiffread2(basinmaskname);
 
 % Read coordinates for full domain
 lat = ncread(global_params,'lat');
@@ -171,15 +172,25 @@ end
 % 2-D matrices
 var_list2={'run_cell','gridcell','fs_active', 'Nveg'};
 for i=1:length(var_list2)
-    var_in=[];
-    var_in=ncread(global_params,var_list2{i});
-    eval([var_list2{i},'=var_in(lon_ind,lat_ind);']);
     
-    nccreate(outname,var_list2{i},...
-        'Datatype','int32',...
-        'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
-        'Format','netcdf4_classic')    
-    ncwrite(outname,var_list2{i},eval(var_list2{i}));
+    if i==1
+        % Special case for run_cell to obey the basin mask
+        nccreate(outname,'run_cell',...
+            'Datatype','int32',...
+            'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
+            'Format','netcdf4_classic')
+        ncwrite(outname,'run_cell', mask);
+    else
+        var_in=[];
+        var_in=ncread(global_params,var_list2{i});
+        eval([var_list2{i},'=var_in(lon_ind,lat_ind);']);
+
+        nccreate(outname,var_list2{i},...
+            'Datatype','int32',...
+            'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
+            'Format','netcdf4_classic')    
+        ncwrite(outname,var_list2{i},eval(var_list2{i}));
+    end
 end
 
 
