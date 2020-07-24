@@ -19,12 +19,16 @@ ncells = length(basin_mask(~isnan(basin_mask)));
 k = 1;
 lon1 = zeros(ncells, 1);
 lat1 = zeros(ncells, 1);
+disp(['nx = ' num2str(nx)])
 for i=1:nx
     for j=1:ny
         if ~isnan(basin_mask(i,j))
             [lat1(k), lon1(k)] = pix2latlon(R, i, j);
             k = k + 1;
         end
+    end
+    if mod(i,100)==0
+        disp(i)
     end
 end
 
