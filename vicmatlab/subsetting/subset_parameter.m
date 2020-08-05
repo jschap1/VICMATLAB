@@ -19,6 +19,7 @@
 function outname = subset_parameter(basinmaskname, global_params, outname)
 
 extent = basin_mask2coordinate_list(basinmaskname);
+basinmask = geotiffread2(basinmaskname);
 
 % Read coordinates for full domain
 lat = ncread(global_params,'lat');
@@ -62,8 +63,8 @@ if inclusive
     lon_ind = lon_ind1:lon_ind2;
 else
     % exclusive (smaller domain)
-    lat_ind = find(lat(:,1)>=min_lat & lat(:,1)<=max_lat);
-    lon_ind = find(lon(:,1)>=min_lon & lon(:,1)<=max_lon);
+    lat_ind = find(lat>=min_lat & lat<=max_lat);
+    lon_ind = find(lon>=min_lon & lon<=max_lon);
 end
 
 if isempty(lat_ind)
@@ -111,41 +112,60 @@ ncwrite(outname,'month',month);
 
 % ##########################################################################
 
-% 2-D matrices
-% var_list2={'mask','lat','lon'}
+% ---------------- 2-D matrices ----------------
 
+% Basin Mask
+[basin_mask] = geotiffread2(basinmaskname);
+mask = double(basin_mask');
+mask(isnan(mask)) = 0;
+nccreate(outname,'mask',...
+    'Datatype','double',...
+    'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
+    'Format','netcdf4_classic')    
+ncwrite(outname,'mask',ones(size(mask)));
+    
+% Lons/Lats
+% make grid of lon, lat values for larger domain (the one being subsetted)
+[lats, lons] = meshgrid(lat, lon); 
+lons_subset = lons(lon_ind, lat_ind);
+lats_subset = lats(lon_ind, lat_ind);
+figure, subplot(1,2,1), imagesc(lons_subset'), colorbar, title('lons')
+subplot(1,2,2), imagesc(lats_subset'), colorbar, title('lats')
+nccreate(outname,'lons',...
+    'Datatype','double',...
+    'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
+    'Format','netcdf4_classic')    
+ncwrite(outname,'lons',lons_subset);
+nccreate(outname,'lats',...
+    'Datatype','double',...
+    'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
+    'Format','netcdf4_classic')    
+ncwrite(outname,'lats',lats_subset);
 
 % 2-D matrices
 % var_list2={'mask','lat','lon','infilt','Ds','Dsmax','Ws','c',...
 %     'elev','avg_T','dp','off_gmt','rough','snow_rough','annual_prec','July_Tavg',...
 %     'cellnum'};
-[lons, lats] = meshgrid(lon, lat);
-var_list2={'mask','lats','lons','infilt','Ds','Dsmax','Ws','c',...
+
+var_list2={'infilt','Ds','Dsmax','Ws','c',...
     'elev','avg_T','dp','off_gmt','rough','snow_rough','annual_prec','July_Tavg',...
-    'cellnum'};
+    'cellnum'}; % can list more inputs than are actually in the nc file. They'll just be skipped.
 for i=1:length(var_list2)
     var_in=[];
-    var_in=ncread(global_params,var_list2{i});
     
     try
+        var_in=ncread(global_params,var_list2{i});
         eval([var_list2{i},'=var_in(lon_ind,lat_ind);']);
+        nccreate(outname,var_list2{i},...
+            'Datatype','double',...
+            'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
+            'Format','netcdf4_classic')    
+        ncwrite(outname,var_list2{i},eval(var_list2{i}));        
     catch
-        disp(i)
-        disp([var_list2{i},'=var_in(lon_ind,lat_ind);'])
-        error('Index exceeds array bounds')
+        disp(['Variable ' var_list2{i} ' not found.'])
     end
-    
-    % Apply the mask
-    if strcmp(var_list2{i}, 'mask')
-        [basin_mask] = geotiffread2(basinmaskname);
-        mask = double(basin_mask');
-    end  
-    
-    nccreate(outname,var_list2{i},...
-        'Datatype','double',...
-        'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
-        'Format','netcdf4_classic')    
-    ncwrite(outname,var_list2{i},eval(var_list2{i}));
+        
+
 end
 
 % Several variables must be integers, not floats
@@ -153,15 +173,25 @@ end
 % 2-D matrices
 var_list2={'run_cell','gridcell','fs_active', 'Nveg'};
 for i=1:length(var_list2)
-    var_in=[];
-    var_in=ncread(global_params,var_list2{i});
-    eval([var_list2{i},'=var_in(lon_ind,lat_ind);']);
     
-    nccreate(outname,var_list2{i},...
-        'Datatype','int32',...
-        'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
-        'Format','netcdf4_classic')    
-    ncwrite(outname,var_list2{i},eval(var_list2{i}));
+    if i==1
+        % Special case for run_cell to obey the basin mask
+        nccreate(outname,'run_cell',...
+            'Datatype','int32',...
+            'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
+            'Format','netcdf4_classic')
+        ncwrite(outname,'run_cell', mask);
+    else
+        var_in=[];
+        var_in=ncread(global_params,var_list2{i});
+        eval([var_list2{i},'=var_in(lon_ind,lat_ind);']);
+
+        nccreate(outname,var_list2{i},...
+            'Datatype','int32',...
+            'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
+            'Format','netcdf4_classic')    
+        ncwrite(outname,var_list2{i},eval(var_list2{i}));
+    end
 end
 
 
@@ -220,6 +250,9 @@ end
 
 % ##########################################################################
 % 4-D matrices
+
+% The 4D matrices can be very large. We want to avoid loading them all in
+% at once, if possible. But for the BV2019 dataset, it is OK.
 
 var_list4={'root_depth','root_fract','LAI','albedo','veg_rough','displacement','fcanopy'};
 for i=1:2

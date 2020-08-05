@@ -2,4 +2,5 @@ site_name: VICMATLAB
 nav:
   - Main: index.md
   - Example: tuolumne_example.md
+  - Subsetting VICGlobal: subsetting.md
 theme: readthedocs

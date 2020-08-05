@@ -15,7 +15,8 @@
 % Does a somewhat better job subsetting to a basin mask/matching the extent of the
 % basin mask
 
-function [soils_subset, soil_var_path] = subset_soils(soils, extent, outname, outformat, grid_decimal, generate_tif, setup)
+function [soils_subset, soil_var_path] = subset_soils(soils, extent, ...
+    outname, outformat, grid_decimal, generate_tif, setup)
 
 disp('Assuming resolution is 1/16 degrees');
 resolution = 1/16;

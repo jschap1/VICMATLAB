@@ -31,6 +31,14 @@ disp(['Created directory ', outdir, ' for outputs']);
 
 % Load basin mask
 [basin_mask, ~, lon, lat] = geotiffread2(maskname);
+
+if isa(basin_mask, 'single')
+    disp('basin mask is single')
+    disp('converting zeros to nans for subsetting')
+    basin_mask = double(basin_mask);
+    basin_mask(basin_mask==0) = NaN;
+end
+
 [mask_lonv, mask_latv, ~] = grid2xyz(lon', lat', basin_mask);
 ncells = length(mask_lonv);
 

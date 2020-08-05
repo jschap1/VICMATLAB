@@ -168,8 +168,12 @@ for j=1:nyears
 
     info.ndays = ndays_in_year;
     info.nt_per_day = nt_per_day;
-    info.outname = [outname '_' num2str(yy) '.nc'];
+    info.outname = [outname '.' num2str(yy) '.nc'];
     info.year = yy;
+    
+%     save('/hdd/ESSD/data/stehekin/write_nc_forc_inputs.mat','temperature_map', 'precipitation_map', 'pressure_map', ...
+%         'shortwave_map', 'longwave_map', 'vp_map', 'wind_map', 'info')
+    
     write_netcdf_forcing(temperature_map, precipitation_map, pressure_map, ...
         shortwave_map, longwave_map, vp_map, wind_map, info)
 
@@ -183,4 +187,6 @@ for j=1:nyears
     % however, there is a RAM limitation. Will most likely need to use
     % 8-bit integers to store information to save space
     
+end
+
 end

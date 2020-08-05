@@ -4,7 +4,7 @@
 % The VICGlobal subsetting functions require the image processing toolbox.
 
 % Not necessary, but we will run this from within its own directory
-cd('/home/jschap/Documents/Codes/VICMATLAB/vicmatlab/subsetting/')
+addpath('/home/jschap/Documents/Codes/VICMATLAB/vicmatlab/subsetting/')
 % cd('/Users/jschap/Documents/Codes/VICMATLAB/Subsetting/Subsetting')
 clearvars -except soils_vg soils
 
@@ -35,7 +35,7 @@ outname = '/Volumes/HD4/SWOTDA/Data/Colorado/colo_soils_L15.txt';
 % outname = '/Volumes/HD4/SWOTDA/Data/UMRB/soils_umrb_vg.txt';
 % outname = '/Users/jschap/Documents/Research/Glaciers/Skagit/skagit_soils.txt';
 
-soils_subset = subset_soils(soils, extent, outname, outformat, grid_decimal);
+soils_subset = subset_soils(soils, extent, outname, outformat, grid_decimal, generate_tif, setup);
 
 %% Image mode
 

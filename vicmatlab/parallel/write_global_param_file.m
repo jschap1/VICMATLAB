@@ -4,8 +4,8 @@ function write_global_param_file(A, outname)
 
 fid = fopen(outname, 'w');
 for i=1:numel(A)
-    if A{i+1} == -1
-        fprintf(fid,'%s', A{i});
+    if A{i+1} == -1 % MATLAB may read the final line as '-1'
+        fprintf(fid,'%s\n', A{i});
         break
     else
         fprintf(fid,'%s\n', A{i});

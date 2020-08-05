@@ -87,10 +87,23 @@ vic_run_command = [control_params.vic_command ' -g ' parfilenam];
 
 outname = fullfile(fileparts(control_params.vic_indir), 'vic_parallel_wrapper.sh');
 A = cell(3,1);
-A{1} = '#!/bin/bash';
-A{2} = 'echo $SGE_TASK_ID';
-A{3} = vic_run_command;
-A{4} = -1;
+
+% Different command file for local computer vs. Hoffman2
+if control_params.local
+    A{1} = '#!/bin/bash';
+    A{2} = ['for SGE_TASK_ID in {1..', num2str(control_params.n_proc), '}'];
+    A{3} = 'do';
+    A{4} = 'echo $SGE_TASK_ID';
+    A{5} = [vic_run_command, ' &']; % run in background
+    A{6} = 'done';
+    A{7} = -1;
+else
+    A{1} = '#!/bin/bash';
+    A{2} = 'echo $SGE_TASK_ID';
+    A{3} = vic_run_command;
+    A{4} = -1;
+end
+
 write_global_param_file(A, outname)
 system(['chmod +x ' outname])
 disp(['Wrote exec file to ' outname])
