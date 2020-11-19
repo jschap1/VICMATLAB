@@ -7,6 +7,7 @@
 % outname = Name of output
 % outformat = format of output ('3l'). See write_soils.m
 % grid_decimal = precision used in forcing filenames
+% setup = describes format. Can be 2L, 2L-no-org-fs-july_tavg, 3L, 3L-no-org-frost-msds, livneh
 % 
 % OUTPUTS
 % Clipped soil parameter file
@@ -18,8 +19,10 @@
 function [soils_subset, soil_var_path] = subset_soils(soils, extent, ...
     outname, outformat, grid_decimal, generate_tif, setup)
 
-disp('Assuming resolution is 1/16 degrees');
-resolution = 1/16;
+% 9/11/2020 JRS modifies this for 1/4 degree UMRB setup 
+% disp('Assuming resolution is 1/16 degrees');
+% resolution = 1/16;
+resolution = 1/4;
 
 if ischar(extent) 
     tmp1 = strsplit(extent, '.');
@@ -86,6 +89,7 @@ for i=1:nlat
         % Get the index of the study area lat/lons that (nearly) matches the basin mask
 %       sind(ind1) = find((abs(lat_sub(i) - slat) <= resolution/2) & (abs(lon_sub(j) - slon) <= resolution/2));
         sind = find((abs(lat_sub(i) - slat) <= resolution/2) & (abs(lon_sub(j) - slon) <= resolution/2));
+               
         
 %         figure
 %         plotraster(lon_sub, lat_sub, dem, 'Basin Mask', 'Lon', 'Lat')
@@ -107,7 +111,7 @@ soils_subset(soils_subset(:,1) == 0,:) = []; % include this line to reduce file 
 soil_var_path = fileparts(outname);
 
 if generate_tif
-    varnames = get_soil_var_names(setup);
+    varnames = get_soil_var_names(setup); % 3L-no-org-frost-msds
     lat_vect = soils_subset(:,3);
     lon_vect = soils_subset(:,4);
     
@@ -115,6 +119,7 @@ if generate_tif
         error('Check that the value for setup is correct')
     end
     
+    chopped = 0;
     for k=1:length(varnames)
         svar = soils_subset(:,k);
         svar_map = xyz2grid(lon_vect, lat_vect, svar);
@@ -125,9 +130,22 @@ if generate_tif
 % figure, imagesc(dem), title('DEM')
 % figure, imagesc(svar_map), title('Soil parameter')
 %%%%%%%------------------------------------------------
-        
+        if size(dem,1) ~= size(svar_map,1) || size(dem,2) ~= size(svar_map,2)
+            disp('Matrix sizes do not match. Chopping off empty rows.')
+            dem = dem(:,2:end);
+            Rsub = makerefmat(min(lon_vect), min(lat_vect), resolution, resolution);
+            chopped = 1;
+            disp('Check whether the soil parameter plots are right-side up')
+            disp('May need to flip them over for VIC model to run the correct domain')
+        end
+
         soutname = fullfile(soil_var_path, [varnames{k} '.tif']);
-        geotiffwrite(soutname, flipud(svar_map), Rsub);
+        
+        if chopped % difference most likely relates to Rsub
+            geotiffwrite(soutname, svar_map, Rsub);
+        else
+            geotiffwrite(soutname, flipud(svar_map), Rsub);
+        end
     end
     disp(['Geotiff files saved to ', soil_var_path]);
 end

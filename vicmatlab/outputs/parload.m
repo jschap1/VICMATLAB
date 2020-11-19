@@ -1,10 +1,11 @@
 % ParLoad
 %
 % Loads VIC outputs using a parallel pool
-%
-% Should update to only load specific columns
+% Enter n = 0 if you don't want to use a parallel pool
 
 function out1 = parload(outdir, prefix, varargin)
+
+    headerrows = 0;
 
     numvarargs = length(varargin);
     if numvarargs > 2
@@ -20,17 +21,17 @@ function out1 = parload(outdir, prefix, varargin)
     if n>6
         disp(['n = ' num2str(n)])
         disp('Consider using fewer processors')
+    elseif n==0
+        disp(['n = ' num2str(n)])
+        disp('Not using a parallel pool')
     end
-    
-    % Check if parallel pool exists
-    if isempty(gcp('nocreate'))
-        parpool(n);
-    end
-    % delete(gcp('nocreate'))
-    
+        
     wbnames = dir(fullfile(outdir, [prefix '*']));
     ncells = length(wbnames);
-    out0 = dlmread(fullfile(outdir, wbnames(1).name), '\t', 3, 0);
+    out0 = dlmread(fullfile(outdir, wbnames(1).name), '\t', headerrows, 0);
+    if size(out0,2) == 1
+        out0 = dlmread(fullfile(outdir, wbnames(1).name), ' ', headerrows, 0);
+    end
     [nt, nvar] = size(out0);
     
     if isempty(col)
@@ -45,9 +46,29 @@ function out1 = parload(outdir, prefix, varargin)
         out1 = zeros(nt, ncells);
     end
     
+    if n>0
+        
+        % Check if parallel pool exists
+        if isempty(gcp('nocreate'))
+            parpool(n);
+        end
+        % delete(gcp('nocreate'))
+
+        parfor k=1:ncells
+           out1(:,k,:) = dlmread(fullfile(outdir, wbnames(k).name), '\t', [headerrows, C1, nt+(headerrows - 1), C2]);
+        end
     
-    parfor k=1:ncells
-       out1(:,k,:) = dlmread(fullfile(outdir, wbnames(k).name), '\t', [3, C1, nt+2, C2]);
+    else
+        
+        try
+        for k=1:ncells
+            out1(:,k,:) = dlmread(fullfile(outdir, wbnames(k).name), '\t', [headerrows, C1, nt+(headerrows - 1), C2]);
+        end
+        catch
+        for k=1:ncells
+            out1(:,k,:) = dlmread(fullfile(outdir, wbnames(k).name), ' ', [headerrows, C1, nt+(headerrows - 1), C2]);
+        end            
+        end
+        
     end
-    
 end

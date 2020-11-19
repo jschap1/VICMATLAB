@@ -4,7 +4,7 @@
 % Warning: can use a lot of RAM.
 %
 % INPUTS
-% Extent = study area extent. Can input either a shapefile or a list of latlon coordinates
+% Extent = study area extent. Must be a basin mask (raster)
 % global_domain = name of the input domain file you wish to subset`
 % outname = name of the output, subsetted domain file
 %

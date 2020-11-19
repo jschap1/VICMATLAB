@@ -6,7 +6,11 @@ function [t, q] = load_streamflow_data(filename, q_col, format)
 
 % filename = '/home/jschap/Documents/ESSD/data/naturalized_flow_usgs_09380000.txt'
 
-dat = readmatrix(filename);
+dat = readmatrix(filename, 'TreatAsMissing',{'NA'}, 'Delimiter', ' ');
+if size(dat,2) > 10
+    dat = load(filename);
+end
+
 
 if strcmp(format, 'daily')
     t = datetime(dat(:,1), dat(:,2), dat(:,3));

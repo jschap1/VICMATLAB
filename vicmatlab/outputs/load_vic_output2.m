@@ -14,15 +14,15 @@ function [timevector, var1, info] = load_vic_output2(vic_out_dir, varname, prefi
 %% Parse optional arguments;
 
 numvarargs = length(varargin);
-if numvarargs > 3
-    error('The max number of optional arguments is 3')
+if numvarargs > 4
+    error('The max number of optional arguments is 4')
 end
 
-optargs = {'daily', 0, './varname.mat'};
+optargs = {3, 'daily', 0, './varname.mat'};
 optargs(1:numvarargs) = varargin;
-[timestep_out, saveflag, savename] = optargs{:};
+[headerlines, timestep_out, saveflag, savename] = optargs{:};
 
-info = get_vic_run_metadata2(vic_out_dir, timestep_out, prefix);
+info = get_vic_run_metadata2(vic_out_dir, timestep_out, prefix, headerlines);
 
 %% Parse the input variable name:
 
@@ -45,7 +45,7 @@ var_col = find(strcmp(official_variable_name, info.vars));
 %% Load VIC output variable
 
 % Initialize arrays
-varnames = dir([vic_out_dir '/*.txt']);
+varnames = dir([vic_out_dir '/' prefix '*.txt']);
 dat = dlmread(fullfile(vic_out_dir, varnames(1).name), '\t', 3, 0);
 
 timevector = datetime(dat(:,1), dat(:,2), dat(:,3));

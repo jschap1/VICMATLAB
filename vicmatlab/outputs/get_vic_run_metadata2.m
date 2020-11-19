@@ -7,13 +7,18 @@
 % vic_out_dir
 % prefix
 % timestep_out = 'daily' or 'hourly'
+% headerlines
 %
 % Adapted from get_vic_run_metadata.m to allow different output filenames
 % besides 'eb' and 'wb'
 
-function info = get_vic_run_metadata2(vic_out_dir, timestep_out, prefix)
+function info = get_vic_run_metadata2(vic_out_dir, timestep_out, prefix, varargin)
 
-headerlines = 3;
+if length(varargin) > 0 
+    headerlines = varargin{1};
+else
+    headerlines = 3;
+end
 
 % Get metadata (lat, lon, time, names)
 fluxnames = dir(fullfile(vic_out_dir, [prefix, '*']));
@@ -21,9 +26,17 @@ fluxnames = dir(fullfile(vic_out_dir, [prefix, '*']));
 [lon, lat] = get_coordinates_from_VIC_file(vic_out_dir, prefix);
 
 sample_flux_file = fullfile(vic_out_dir, fluxnames(1).name);
-flux_varnames = get_vic_header(sample_flux_file, headerlines);
+
+if headerlines == 3
+    flux_varnames = get_vic_header(sample_flux_file, headerlines);
+    info.vars = flux_varnames;
+end
 
 flux_out = dlmread(sample_flux_file, '\t', headerlines, 0);
+if size(flux_out) == 1
+    flux_out = dlmread(sample_flux_file, ' ', headerlines, 0);
+end
+
 switch timestep_out
     case 'hourly'
         date_array = flux_out(:,1:4);
@@ -34,7 +47,6 @@ switch timestep_out
 end
 
 info.time = timevector;
-info.vars = flux_varnames;
 info.ncells = length(fluxnames);
 info.nt = length(timevector);
 info.flux_out_dir = vic_out_dir;

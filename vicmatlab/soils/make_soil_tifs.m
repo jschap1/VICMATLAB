@@ -12,6 +12,10 @@
 
 function make_soil_tifs(soils_subset, setup, soil_var_path, Rsub)
 
+if ~exist(soil_var_path, 'dir')
+    mkdir(soil_var_path)
+end
+
 varnames = get_soil_var_names(setup);
 lat_vect = soils_subset(:,3);
 lon_vect = soils_subset(:,4);

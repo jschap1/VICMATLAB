@@ -33,7 +33,7 @@ tuolumne_tif = '/home/jschap/Documents/Codes/VICMATLAB/vicmatlab/subsetting/subs
 bv2019domain = '/media/jschap/HD_ExFAT/vicglobal-image-mode-inputs/VICGlobal_domain.nc';
 bv2019params = '/home/jschap/Documents/Data/BV2019/params.CONUS_MX.MOD_IGBP.mode.2000_2016.nc';
 subset_domain(ucrb_tif, bv2019domain, fullfile(outdir, [basinname, '_bv2019_domain.nc']));
-subset_parameter2(ucrb_tif, bv2019params, fullfile(outdir, [basinname, '_bv2019_params.nc']));
+subset_parameter(ucrb_tif, bv2019params, fullfile(outdir, [basinname, '_bv2019_params.nc']));
 
 %% Subset L2013
 

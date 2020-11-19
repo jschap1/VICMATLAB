@@ -56,7 +56,7 @@ max_lon=max(lon_sub);
 
 % inclusive (larger domain)
 % % exclusive (smaller domain)
-inclusive = 0; 
+inclusive = 1; 
 if inclusive
     disp('Using inclusive option. Both options seem to work.')
     resolution = 1/16; 
@@ -112,8 +112,16 @@ nccreate(outname,var_list_3{1},...
     'Datatype','int32',...
     'Dimensions',{'lon',length(lon_ind),'lat',length(lat_ind)},...
     'Format','netcdf4_classic')   
-ncwrite(outname,var_list_3{1}, ones(size(basinmask')));
-% ncwrite(outname,var_list_3{1}, basinmask');
+
+use_mask = 1;
+if use_mask
+    disp('using basin mask')
+    ncwrite(outname,var_list_3{1}, basinmask');
+else
+    disp('not using basin mask')
+    disp('but mask is still applied for frac and area')
+    ncwrite(outname,var_list_3{1}, ones(size(basinmask')));
+end
     
 var_list2={'frac','area'};
 for i=1:length(var_list2)

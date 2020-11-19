@@ -57,6 +57,26 @@ prefix = 'full_data_';
 precision = 5;
 convert_forcing(forcdir, prefix, outname, precision, start_date, end_date, nt_per_day)
 
+%% Subset parameters for image mode simulation
+
+compname = 'atlantic';
+switch compname
+    case 'atlantic'
+        param_name = '/home/jschap/Documents/Codes/VICMATLAB/data/VICGlobal/tuolumne_domain.nc';
+        domain_name = '/home/jschap/Documents/Codes/VICMATLAB/data/VICGlobal/tuolumne_params.nc';
+        basinmaskname = '/home/jschap/Documents/Codes/VICMATLAB/data/upptuo_mask.tif';
+        global_domain = '/hdd/Data/VICParametersGlobal/VICGlobal/v1.6/output_latest_aug14/output_latest/VICGlobal_domain.nc';
+        global_params = '/hdd/Data/VICParametersGlobal/VICGlobal/v1.6/output_latest_aug14/output_latest/VICGlobal_params.nc';
+    case 'pacific'
+        param_name = '/home/jschap/Documents/Codes/VICMATLAB/data/VICGlobal/tuolumne_domain.nc';
+        domain_name = '/home/jschap/Documents/Codes/VICMATLAB/data/VICGlobal/tuolumne_params.nc';
+        basinmaskname = '/home/jschap/Documents/Codes/VICMATLAB/data/upptuo_mask.tif';
+        global_domain = '/hdd/Data/VICParametersGlobal/VICGlobal/v1.6/output_latest_aug14/output_latest/VICGlobal_domain.nc';
+        global_params = '/hdd/Data/VICParametersGlobal/VICGlobal/v1.6/output_latest_aug14/output_latest/VICGlobal_params.nc';        
+end
+subset_domain(basinmaskname, global_domain, domain_name)
+subset_parameter(basinmaskname, global_params, param_name)
+
 %% Run image simulation
 
 % Do on command line
@@ -88,219 +108,107 @@ end
 
 %% Compare image and classic mode outputs
 
-classic.out.swe = load(fullfile(classic.processed_dir, 'OUT_SWE.mat'))
+% Load classic outputs
+for i=4:length(classic.metadata.vars)
+    varname = classic.metadata.vars{i};
+    tempname = strsplit(varname, 'OUT_');
+    masksavename = fullfile(classic.processed_dir, [varname '_masked.mat']);
+    temp = load(masksavename);
+    classic.out.(tempname{2}) = temp.output_map_masked;
+end
 
+% Load image outputs
+vic_out_name_image = '/home/jschap/Documents/Codes/VICMATLAB/data/VICGlobal/out_image_2009-2011/fluxes.2009-01-01.nc';
+image = load_vic_output_image(vic_out_name_image);
 
+%% SWE plots
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-%% Subset meteorological forcing data 
-
-% Create ASCII input files for the meteorological forcing data. Subset it to the basin.
-% force_in = '/Volumes/HD3/Livneh_2013/MetNC'; % directory where forcing data are located
-force_in = '/media/jschap/HD_ExFAT/Livneh_2013/MetNC/';
-numforcings = 4; % number of forcings in daily CONUS daily forcing file
-
-% Beginning and ending years of simulation
-beginyear = 2009;
-endyear = 2011;
-
-% Directory where clipped forcing files should be saved
-force_out = ['./data/forc_' num2str(beginyear) '-' num2str(endyear)];
-
-grid_decimal = 5; % number of decimals used in forcing filenames
-maskname = './data/upptuo_mask.tif'; % basin mask
-
-temp = subset_forcings(force_in, force_out, beginyear, endyear, maskname);
-
-% temp = subset_forcings(force_in, force_out, beginyear, endyear, grid_decimal, numforcings, maskname);
-
-%% Plot the forcing data
-
-forcingpath = './data/forc_2009-2011';
-precision = 5; 
-varnames = {'PRECIP','TMIN','TMAX','WIND'};
-prefix = 'data_';
-forc = load_ascii_forcings(forcingpath, prefix, precision, varnames);
+% Plot SWE time-average maps
+classic.avgmap.swe = nanmean(classic.out.SWE,3);
+image.avgmap.swe = nanmean(image.OUT_SWE,3);
 
 figure, subplot(2,1,1)
-tmax_map = xyz2grid(forc.lon, forc.lat, mean(forc.TMAX)');
-plotraster(forc.lon, forc.lat, tmax_map, 'TMAX (deg. C)')
-
+plotraster(classic.metadata.lon, classic.metadata.lat, classic.avgmap.swe, 'Classic Mode SWE (mm)')
 subplot(2,1,2)
-prec_map = xyz2grid(forc.lon, forc.lat, mean(forc.PRECIP)');
-plotraster(forc.lon, forc.lat, prec_map, 'PREC (mm/day)')
+plotraster(image.lon, image.lat, image.avgmap.swe, 'Image Mode SWE (mm)')
 
-% Save as Geotiff
-geotiffwrite('./data/livneh_precipitation_2009-2011_average.tif', ...
-    flipud(prec_map), R)
-
-%% Disaggregate meteorological forcing data
-
-% Run the VIC model as a meteorological forcing disaggregator.
-
-% Create a global parameter file and run the following code to disaggregate 
-% the met. forcing data with MT-CLIM
-
-disagg_force_out = ['./data/disagg_forc_' num2str(beginyear) '-' num2str(endyear)];
-mkdir(disagg_force_out)
-disp(['Created directory ' disagg_force_out ' for disaggregated forcings'])
-
-disp('Running met. forcing disaggregation')
-tic
-system('/home/jschap/Documents/Software/VIC/src/vicNl -g ./data/global_param_disagg.txt')
-toc
-% Takes 54 sec on my laptop for 175 grid cells, 3 years
-% Takes 27 seconds on my desktop! Woohoo for computing power!
-
-%% Plot the disaggregated forcings
-
-forcingpath = './data/disagg_forc_2009-2011/';
-precision = 5; 
-varnames = {'PRECIP','AIR_TEMP','SHORTWAVE','LONGWAVE','DENSITY','PRESSURE','VP','WIND'};
-prefix = 'full_data_';
-forc = load_ascii_forcings(forcingpath, prefix, precision, varnames);
-
-nvars =length(varnames);
-
-avg_maps = struct();
-avg_maps.names = varnames;
-for i=1:nvars
-    avg_maps.(varnames{i}) = xyz2grid(forc.lon, forc.lat, mean(forc.(varnames{i}),1)');
-%     avg_maps.(varnames{i}) = fliplr(xyz2grid(forc.lon, forc.lat, mean(forc.(varnames{i}),1)'));
-end
-
-labels = {'Precip (mm/hr)','T (deg. C)','SW (W/m^2)','LW (W/m^2)','\rho (kg/m^3)','P (kPa)','VP (kPa)','u (m/s)'};
+% Plot SWE basin-average time series
+classic.avgts.swe = calc_basin_avg_ts(classic.out.SWE);
+image.avgts.swe = calc_basin_avg_ts(image.OUT_SWE);
 
 figure
-for i=1:nvars
-    subplot(4,2,i)
-    plotraster(forc.lon, forc.lat, avg_maps.(varnames{i}), labels{i})
-%     plotraster(forc.lon, forc.lat, avg_maps.(varnames{i}), varnames{i})
-end
+plot(classic.metadata.time, classic.avgts.swe)
+hold on
+plot(image.time, image.avgts.swe)
+xlabel('Time')
+ylabel('SWE (mm)')
+legend('Classic Mode','Image Mode')
 
-% Save as Geotiff
-geotiffwrite('./data/livneh_precipitation_downscaled_2009-2011_average.tif', ...
-    flipud(avg_maps.PRECIP), R)
+%% Baseflow plots
 
-%% Run VIC for water years 2010-2011. This takes about 15 minutes on my computer.
+% Baseflow
+classic.avgmap.qb = nanmean(classic.out.BASEFLOW,3);
+image.avgmap.qb = nanmean(image.OUT_BASEFLOW,3);
+classic.avgts.qb = calc_basin_avg_ts(classic.out.BASEFLOW);
+image.avgts.qb = calc_basin_avg_ts(image.OUT_BASEFLOW);
 
-% Set up the global parameter file for this model run, first. 
+figure, subplot(2,1,1)
+plotraster(classic.metadata.lon, classic.metadata.lat, classic.avgmap.qb, 'Classic Mode Baseflow (mm)')
+subplot(2,1,2)
+plotraster(image.lon, image.lat, image.avgmap.qb, 'Image Mode Baseflow (mm)')
 
-% This setup is for the Upper Tuolumne Basin, in energy balance mode,
-% with the frozen soils module disabled to reduce computational requirements. 
-% Use the template global parameter file to generate the specific list of outputs 
-% that we are using in this example.
+figure
+plot(classic.metadata.time, classic.avgts.qb)
+hold on
+plot(image.time, image.avgts.qb)
+xlabel('Time')
+ylabel('Baseflow (mm)')
+legend('Classic Mode','Image Mode')
 
-% system('/Volumes/HD3/SWOTDA/Software/VIC-VIC.5.1.0.rc1/vic/drivers/classic/vic_classic.exe -g ./data/global_param.txt')
+%% Runoff plots
 
-system('/home/jschap/Documents/Software/VIC/vic/drivers/classic/vic_classic.exe -g ./data/global_param.txt')
+% Runoff
+classic.avgmap.qd = nanmean(classic.out.RUNOFF,3);
+image.avgmap.qd = nanmean(image.OUT_RUNOFF,3);
+classic.avgts.qd = calc_basin_avg_ts(classic.out.RUNOFF);
+image.avgts.qd = calc_basin_avg_ts(image.OUT_RUNOFF);
 
-% Analyze the outputs from the VIC simulation. 
-% First, re-organize the VIC outputs by entering the following commands on
-% the command line
-% cd /home/jschap/Documents/Codes/VICMATLAB/data/out_2009-2011/
-% mkdir eb; mv eb*.txt eb
-% mkdir wb; mv wb*.txt wb
+figure, subplot(2,1,1)
+plotraster(classic.metadata.lon, classic.metadata.lat, classic.avgmap.qd, 'Classic Mode Runoff (mm)')
+subplot(2,1,2)
+plotraster(image.lon, image.lat, image.avgmap.qd, 'Image Mode Runoff (mm)')
 
-%% Process VIC output data with VICMATLAB
+figure
+plot(classic.metadata.time, classic.avgts.qd)
+hold on
+plot(image.time, image.avgts.qd)
+xlabel('Time')
+ylabel('Runoff (mm)')
+legend('Classic Mode','Image Mode')
 
-% Get VIC run metadata
-vic_out_dir = './data/out_2009-2011/';
-timestep_out = 'daily';
-info = get_vic_run_metadata(vic_out_dir, timestep_out);
+%% Look at an individual grid cell
 
-% Create directories to store processed outputs
-results_dir = fullfile(vic_out_dir, 'processed');
-figdir = fullfile(vic_out_dir, 'figures');
-mkdir(results_dir)
-disp(['Created directory for results: ' results_dir]);
-mkdir(figdir)
-disp(['Created directory for figures: ' figdir]);
+ts_classic = squeeze(classic.out.BASEFLOW(1,1,:));
+ts_image = squeeze(image.OUT_BASEFLOW(1,1,:));
+figure
+plot(classic.metadata.time, ts_classic, '--');
+hold on
+plot(image.time, ts_image)
+legend('Classic Mode','Image Mode')
 
-% Save the metadata from the VIC run
-save(fullfile(results_dir, 'vic_run_metadata.mat'), 'info');
-disp(['Saved VIC run metadata as ' fullfile(results_dir, 'vic_run_metadata.mat')])
+%% Compare soil parameters
 
-% Read in and plot the VIC results
-[~, swe, ~] = load_vic_output(vic_out_dir, 'swe');
+dsmax_classic = geotiffread2('/home/jschap/Documents/Codes/VICMATLAB/data/VICGlobal/soiltifs_classic/dsmax.tif');
 
-swe_map = xyz2grid(info.lon, info.lat, mean(swe,2));
-figure, plotraster(info.lon, info.lat, swe_map, 'SWE (mm)')
+image_params = '/home/jschap/Documents/Codes/VICMATLAB/data/VICGlobal/tuolumne_params.nc';
+image_params_info = ncinfo(image_params);
+dsmax_image = ncread(image_params, 'Dsmax');
+dsmax_image = dsmax_image';
 
-% mkdir wb; mv wb*.txt wb
-[~, precip, ~] = load_vic_output(vic_out_dir, 'precipitation');
-% only works with water balance variables right now.
-% need to generalize the code to handle energy balance variables
-% also should find a less clunky way to specify the variable name, aside
-% from the column number
+figure, subplot(2,1,1)
+plotraster(classic.metadata.lon, classic.metadata.lat, dsmax_classic, 'Classic Mode Dsmax (mm/day)')
+subplot(2,1,2)
+plotraster(image.lon, image.lat, basin_mask.*dsmax_image, 'Image Mode Dsmax (mm/day)')
 
-precip_map = xyz2grid(info.lon, info.lat, mean(precip,2));
-figure, plotraster(info.lon, info.lat, precip_map, 'Precip (mm/day)')
-
-% Save as Geotiff
-geotiffwrite('./data/precipitation_output_2009-2011_average.tif', ...
-    flipud(precip_map), R)
-
-%% Convert inputs from ASCII to NetCDF
-
-% addpath(genpath('/home/jschap/Documents/Research/Codes/VICMATLAB/vicmatlab_dev'))
-
-% must use entire CONUS domain file for the current setup
-
-wkpath = '/home/jschap/Documents/Codes/VICMATLAB/';
-parpath = '/home/jschap/Documents/Data/VICParametersCONUS/';
-
-inputs.veglib = fullfile(parpath, 'vic_veglib_nohead.txt');
-inputs.soilparfile = fullfile(parpath, 'vic.soil.0625.new.cal.adj.conus.plus.crb.can_no_July_T_avg.txt');
-inputs.snowband = fullfile(parpath, 'vic.snow.0625.new.cal.adj.can.5bands');
-inputs.vegparam = fullfile(parpath, 'vic.veg.0625.new.cal.adj.can');
-
-inputs.forcdir = fullfile(wkpath, '/data/disagg_forc_2009-2011/full_data*');
-inputs.domainfile_name = fullfile(wkpath, '/data/tuolumne_domain2.nc');
-inputs.params_name = fullfile(wkpath, '/data/tuolumne_params2.nc');
-
-classic2image(inputs);
-
-%% Convert forcings from ASCII to NetCDF
-
-cd ~/Documents/Codes/VICMATLAB/
-addpath(genpath('./vicmatlab'))
-
-% forcingpath = './data/disagg_forc_2009-2011/';
-forcingpath = '/home/jschap/Documents/Backups/data/disagg_forc_2009-2011';
-precision = 5; 
-start_date = datetime(2009,1,1,0,0,0);
-end_date = datetime(2011,12,31,23,0,0);
-nt_per_day = 24;
-prefix = 'full_data_';
-outname = './data/netcdf_forcings/forc_tuo';
-
-convert_forcing(forcingpath, prefix, outname, precision, start_date, end_date, nt_per_day)
+% They check out. Exactly the same.
 
