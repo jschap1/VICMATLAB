@@ -20,9 +20,9 @@ function [soils_subset, soil_var_path] = subset_soils(soils, extent, ...
     outname, outformat, grid_decimal, generate_tif, setup)
 
 % 9/11/2020 JRS modifies this for 1/4 degree UMRB setup 
-% disp('Assuming resolution is 1/16 degrees');
-% resolution = 1/16;
-resolution = 1/4;
+
+resolution = 1/16;
+disp(['Assuming resolution is ' num2str(resolution) ' degrees']);
 
 if ischar(extent) 
     tmp1 = strsplit(extent, '.');

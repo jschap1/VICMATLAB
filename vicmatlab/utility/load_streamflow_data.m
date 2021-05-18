@@ -11,6 +11,9 @@ if size(dat,2) > 10
     dat = load(filename);
 end
 
+if size(dat,2) < 4
+    dat = readmatrix(filename, 'TreatAsMissing',{'NA'}, 'Delimiter', '\t');
+end
 
 if strcmp(format, 'daily')
     t = datetime(dat(:,1), dat(:,2), dat(:,3));

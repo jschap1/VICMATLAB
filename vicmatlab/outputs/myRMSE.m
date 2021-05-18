@@ -4,8 +4,9 @@ function RMSE = myRMSE(y, y_hat)
 
 % remove NaNs
 A = [y, y_hat];
-A(isnan(y),:) = [];
-A(isnan(y_hat),:) = [];
+i1 = isnan(A);
+i2 = find(sum(i1, 2) > 0);
+A(i2,:) = [];
 y = A(:,1);
 y_hat = A(:,2);
 

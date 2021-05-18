@@ -13,7 +13,8 @@ function make_netcdf_forcing(indir, prefix, outname)
 % outname = '/Volumes/HD4/SWOTDA/Data/Tuolumne/forc_image_2.nc';
 
 disp('reading forcing file names')
-fnames = dir(fullfile(indir, [prefix '*']));
+fnames = dir(fullfile(indir, [prefix '*.nc']));
+% fnames = dir(fullfile(indir, [prefix '*']));
 % info = ncinfo(fullfile(indir, fnames(1).name));
 disp('read forcing file names')
 

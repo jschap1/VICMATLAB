@@ -22,6 +22,10 @@ optargs = {3, 'daily', 0, './varname.mat'};
 optargs(1:numvarargs) = varargin;
 [headerlines, timestep_out, saveflag, savename] = optargs{:};
 
+if strcmp(timestep_out, 'hourly')
+    disp('timevector output will not have hours... This is a missing feature in the code.')
+end
+
 info = get_vic_run_metadata2(vic_out_dir, timestep_out, prefix, headerlines);
 
 %% Parse the input variable name:

@@ -1,6 +1,7 @@
 % Crop time series
 %
 % Crops two times series to match
+% Buggy: [y1,y2,t] = crop_time_series(netrad(site_num,:)', totalnet_all, time_vic, tthr_all);
 
 function [y1,y2,t] = crop_time_series(y1, y2, t1, t2)
  
