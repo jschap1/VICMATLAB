@@ -50,7 +50,8 @@ var_col = find(strcmp(official_variable_name, info.vars));
 
 % Initialize arrays
 varnames = dir([vic_out_dir '/' prefix '*.txt']);
-dat = dlmread(fullfile(vic_out_dir, varnames(1).name), '\t', 3, 0);
+% dat = dlmread(fullfile(vic_out_dir, varnames(1).name), '\t', 3, 0);
+dat = readmatrix(fullfile(vic_out_dir, varnames(1).name), 'headerlines', 3);
 
 timevector = datetime(dat(:,1), dat(:,2), dat(:,3));
 
@@ -60,7 +61,8 @@ problem_flag = 0;
 
 var1 = zeros(ncells, ndays);
 for k=1:ncells
-    dat = dlmread(fullfile(vic_out_dir, varnames(k).name), '\t', 3, 0);
+%     dat = dlmread(fullfile(vic_out_dir, varnames(k).name), '\t', 3, 0);
+    dat = readmatrix(fullfile(vic_out_dir, varnames(k).name), 'headerlines', 3);
     try
         var1(k,:) = dat(:,var_col);
     catch

@@ -22,6 +22,7 @@ function [soils_subset, soil_var_path] = subset_soils(soils, extent, ...
 % 9/11/2020 JRS modifies this for 1/4 degree UMRB setup 
 
 resolution = 1/16;
+% resolution = 1/4;
 disp(['Assuming resolution is ' num2str(resolution) ' degrees']);
 
 if ischar(extent) 
@@ -111,6 +112,9 @@ soils_subset(soils_subset(:,1) == 0,:) = []; % include this line to reduce file 
 soil_var_path = fileparts(outname);
 
 if generate_tif
+    
+    soil_var_path = fullfile(soil_var_path, 'tifs');
+    mkdir(soil_var_path)
     varnames = get_soil_var_names(setup); % 3L-no-org-frost-msds
     lat_vect = soils_subset(:,3);
     lon_vect = soils_subset(:,4);

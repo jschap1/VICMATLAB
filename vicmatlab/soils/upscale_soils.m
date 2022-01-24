@@ -4,59 +4,96 @@
 % Upscales the VIC soil parameter file from its current resolution to a
 % coarser resolution
 %
-% Crop and rescale in one step
 % INPUTS
 
-function [newsoils] = upscale_soils(soils, newres, oldres)
+function [newsoils, newmask] = upscale_soils(soils, newres, oldres)
 
-% Make map
+% f = newres/oldres; % upscaling (or downscaling) factor
+[n, nvars] = size(soils); % n = original number of grid cells
+
 lat_vect = soils(:,3);
 lon_vect = soils(:,4);
 
-% Round to the nearest newres increment
-newlon1 = floor(min(lon_vect)) + 0.5*newres;
-newlon2 = ceil(max(lon_vect)) - 0.5*newres;
-newlat1 = floor(min(lat_vect)) + 0.5*newres;
-newlat2 = ceil(max(lat_vect)) - 0.5*newres;
+runcell = xyz2grid(lon_vect, lat_vect, soils(:,1));
+figure
+plotraster(lon_vect, lat_vect, runcell, 'Runcell');
 
-newlon = newlon1:newres:newlon2;
-newlat = newlat1:newres:newlat2;
+elev = xyz2grid(lon_vect, lat_vect, soils(:,22));
+figure
+plotraster(lon_vect, lat_vect, elev, 'Elev');
 
-% May need to add/subtract half a res here...
-R1 = makerefmat(min(lon_vect), min(lat_vect), oldres, oldres); % fine
-R2 = makerefmat(newlon(1), newlat(1), newres, newres); % coarse
+[runcell2, newlons, newlats] = upscale_raster(runcell, lon_vect, lat_vect, newres, oldres, 'linear');
 
-% Still trying to figure out the best way to upscale... 9/11/2020 JRS
+figure
+plotraster(newlons, newlats, runcell2, 'Runcell');
 
-[lon11, lon11] = getlatlon(svar_map, R1);
+ncells_out = sum(runcell2(:));
+disp(['The number of cells in the output is ' num2str(ncells_out)])
 
-nvars = size(soils,2);
+R = makerefmat(min(newlons), min(newlats), newres, newres);
+extent1 = basin_mask2coordinate_list(runcell2, R);
+lat = extent1(:,2); % output coordinates for soil parameter file 
+lon = extent1(:,1); 
 
-for k=1:nvars
-    svar = soils(:,k);
-    svar_map = xyz2grid(lon_vect, lat_vect, svar);
-    svar_map2 = svar_map;
-    svar_map2(isnan(svar_map2)) = 0;
-    % Bringing over a method from an old project
-%     addpath('/hdd/SWOTDA/Codes/Met_Forcing_Downscaling/Codes/')
-%     [v_interp, finelon, finelat, coarselon, coarselat] = interpolate_merra2(svar_map, R1, R2, 'linear', 0);
+runcell3 = runcell2(:);
+runcell3(runcell3==0) = [];
+dat = [lat, lon, runcell3];
+
+runcell4 = xyz2grid(lon, lat, runcell3); % removes empty borders, if they exist
+figure,plotraster(lon, lat, runcell4,''); % check
+
+%% Assemble re-scaled soil parameter file
+
+newsoils = zeros(ncells_out, nvars);
+newsoils(:,1) = runcell3;
+newsoils(:,2) = 1:ncells_out;
+
+for k=5:nvars
     
-
-
-[Xq,Yq] = ndgrid(lon_vect, lat_vect); % fine
-[X,Y] = ndgrid(newlon, newlat); % coarse 
-
-G = griddedInterpolant(X,Y, svar_map, 'linear');
-v_interp = G(Xq,Yq);
+    invar = xyz2grid(lon_vect, lat_vect, soils(:,k));
+    outvar = upscale_raster(invar, lon_vect, lat_vect, newres, oldres, 'linear');
+    % outvar = interp2(oldlats, oldlons, invar', newlats, newlons, 'linear')';
     
+    % check
+%     figure, plotraster(lons, lats, outvar,'');
+    outvect = outvar(:);
     
-    F = griddedInterpolant(svar_map2);
-    a = F({newlon,newlat});
+%     lons(runcell2(:)==0) = [];
+%     lats(runcell2(:)==0) = [];
+    outvect(runcell2(:)==0) = [];
+    
+%     reconstruct = xyz2grid(lons, lats, outvect);
+%     figure
+%     plotraster(lons, lats, reconstruct, '');
+    
+    newsoils(:,k) = outvect;
+ 
+    disp(['Processed soil variable number ' num2str(k) ' of ' num2str(nvars)])
 end
 
-% Resample map
+lons = zeros(ncells_out,1);
+lats = zeros(ncells_out,1);
+ind = 1; % brute force fix for lat/lon not matching
+for i=1:length(newlons)
+    for j=1:length(newlats)
+        lons(ind) = newlons(i);
+        lats(ind) = newlats(j);
+        ind = ind + 1;
+    end
+end
 
-% Write soil file
+tmpmask = runcell2(:);
+lats(tmpmask==0) = [];
+lons(tmpmask==0) = [];
+newsoils(:,3) = lats;
+newsoils(:,4) = lons;
 
+elev = xyz2grid(lons, lats, newsoils(:,22));
+figure
+plotraster(lons, lats, elev, 'elev')
+
+newmask = xyz2grid(lons, lats, newsoils(:,1));
+figure
+plotraster(lons, lats, newmask, 'elev')
 
 return
